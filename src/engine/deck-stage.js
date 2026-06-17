@@ -339,6 +339,18 @@
         if (this._presenterActive) this.exitPresenterMode();
       });
 
+      // Forward navigation commands sent by the audience window keyboard handler.
+      this._audienceKeyHandler = (e) => {
+        if (!this._presenterActive || !e.data || !e.data.pfKeyNav) return;
+        switch (e.data.pfKeyNav) {
+          case "next":  this.next();                    break;
+          case "prev":  this.prev();                    break;
+          case "first": this.show(0);                   break;
+          case "last":  this.show(this.count - 1);      break;
+        }
+      };
+      window.addEventListener("message", this._audienceKeyHandler);
+
       this._audienceWin     = win;
       this._presenterActive = true;
       this.classList.add("is-presenter");
@@ -361,6 +373,11 @@
       const win = this._audienceWin;
       this._audienceWin = null;
       if (win && !win.closed) win.close();
+
+      if (this._audienceKeyHandler) {
+        window.removeEventListener("message", this._audienceKeyHandler);
+        this._audienceKeyHandler = null;
+      }
 
       if (this._presenterSidebar) { this._presenterSidebar.remove(); this._presenterSidebar = null; }
       clearInterval(this._timerInterval);
@@ -523,11 +540,11 @@
 <html>
 <head>
 <meta charset="utf-8">
-${linkTags}
 <style>
 /* Safety-net layout — explicit longhand properties (no inset shorthand)
-   for Safari < 14.1 compatibility. Also provides a white slide background
-   in case external stylesheets fail to load (e.g. very strict sandbox). */
+   for Safari < 14.1. background:#fff is a last-resort fallback; the theme
+   CSS loaded below (via <link> or inlineCSS) overrides it for all variants
+   including dark slides, because it is declared later in the cascade. */
 html,body{margin:0;height:100%;overflow:hidden;background:#000}
 .pf-canvas{position:fixed;left:50%;top:50%;-webkit-transform-origin:center center;transform-origin:center center;width:${W}px;height:${H}px}
 .pf-canvas>*{position:absolute;top:0;right:0;bottom:0;left:0;visibility:hidden;opacity:0;-webkit-transition:opacity .35s ease;transition:opacity .35s ease;background:#fff;color:#000}
@@ -535,6 +552,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000}
 aside.notes{display:none!important}
 ${inlineCSS}
 </style>
+${linkTags}
 </head>
 <body>
 <div class="pf-canvas" id="c">${slidesHTML}</div>
@@ -547,6 +565,15 @@ ${inlineCSS}
   window.addEventListener('resize', scale);
   scale(); show(0);
   window.addEventListener('message', function(e){ if(e.data && typeof e.data.pfSlide==='number') show(e.data.pfSlide) });
+  window.addEventListener('keydown', function(e){
+    if(!window.opener || e.metaKey || e.ctrlKey || e.altKey) return;
+    var nav=null;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '||e.key==='PageDown') nav='next';
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp') nav='prev';
+    else if(e.key==='Home') nav='first';
+    else if(e.key==='End')  nav='last';
+    if(nav){ e.preventDefault(); window.opener.postMessage({pfKeyNav:nav},'*'); }
+  });
   try{ document.documentElement.requestFullscreen() }catch(e){}
 })();
 <\/script>
