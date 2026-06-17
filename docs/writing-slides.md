@@ -62,10 +62,26 @@ These classes are provided by the theme:
 - **Next:** → · PageDown · Space
 - **Previous:** ← · PageUp
 - **First / last:** Home · End
-- **Jump:** number keys `1`–`9`
-- **Touch:** tap the left / right half of the screen
+- **Jump:** number keys `1`–`9`, or click a slide in the left-hand rail
+- **Buttons:** prev / next / full screen, bottom-right of the stage
+- **Full screen:** the button or the `f` key (Esc to leave)
+- **Touch:** tap the left / right half of the stage
 - The current slide is kept in the URL (`#3`), so reloading or sharing a link
   reopens on the same slide.
+
+When windowed, a rail on the left shows a live thumbnail of every slide (the
+real content, scaled down) — click one to jump to it. In full screen the rail is
+hidden and the controls fade out when the mouse is idle, returning on movement.
+
+## Deck attributes
+
+Set these on `<deck-stage>`:
+
+| Attribute        | Default     | Purpose                                  |
+| ---------------- | ----------- | ---------------------------------------- |
+| `width` `height` | `1920×1080` | the design canvas size                   |
+| `exit-hint`      | English     | toast text shown when entering full screen |
+| `no-rail`        | —           | hide the thumbnail rail                  |
 
 ## Printing to PDF
 

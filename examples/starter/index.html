@@ -13,9 +13,15 @@
     <!--
       A deck is one <deck-stage> with a list of <section class="slide"> children.
       Author on a 1920x1080 canvas; the engine scales it to fit any screen.
-      Navigate with arrow keys / space, or tap left/right on touch screens.
+      Navigate with the arrow keys / space, the on-screen buttons, the left-hand
+      thumbnail rail, or by tapping left/right on touch screens. Press "f" or the
+      button to go full screen. `exit-hint` sets the toast shown on entering it.
     -->
-    <deck-stage width="1920" height="1080">
+    <deck-stage
+      width="1920"
+      height="1080"
+      exit-hint="Appuyez sur Échap pour quitter le plein écran."
+    >
       <!-- 1. Title -->
       <section class="slide slide--title">
         <p class="eyebrow">Presentation Forge</p>
