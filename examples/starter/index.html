@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Presentation Forge — starter deck</title>
+
+    <!-- The engine mechanics, then a theme. Swap the theme line to restyle. -->
+    <link rel="stylesheet" href="../../src/themes/base.css" />
+    <link rel="stylesheet" href="../../src/themes/ink-blue.css" />
+  </head>
+  <body>
+    <!--
+      A deck is one <deck-stage> with a list of <section class="slide"> children.
+      Author on a 1920x1080 canvas; the engine scales it to fit any screen.
+      Navigate with arrow keys / space, or tap left/right on touch screens.
+    -->
+    <deck-stage width="1920" height="1080">
+      <!-- 1. Title -->
+      <section class="slide slide--title">
+        <p class="eyebrow">Presentation Forge</p>
+        <h1 class="display">Slides as clean HTML.</h1>
+        <p class="lead">A small, readable engine for building presentations.</p>
+      </section>
+
+      <!-- 2. Agenda -->
+      <section class="slide">
+        <p class="eyebrow">Agenda</p>
+        <h2 class="title">What this starter shows.</h2>
+        <ul class="bullets">
+          <li>The slide types you get out of the box.</li>
+          <li>How content is laid out on the canvas.</li>
+          <li>How to navigate, print and share a deck.</li>
+        </ul>
+      </section>
+
+      <!-- 3. Section divider -->
+      <section class="slide slide--section">
+        <p class="eyebrow">Part one</p>
+        <h1 class="title">The building blocks.</h1>
+        <p class="lead">Every slide is plain, semantic HTML.</p>
+      </section>
+
+      <!-- 4. Two-column content -->
+      <section class="slide">
+        <h2 class="title">Author on the left, structure on the right.</h2>
+        <div class="two-col">
+          <div>
+            <p class="lead">Write what you mean.</p>
+            <ul class="bullets">
+              <li>Headings and lead text.</li>
+              <li>Bulleted points.</li>
+              <li>Cards and quotes.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <p class="eyebrow accent">Tip</p>
+            <p>
+              Each block uses a class from the theme, so the look stays
+              consistent across every slide.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Quote -->
+      <section class="slide">
+        <p class="eyebrow">A quote</p>
+        <blockquote>
+          Good slides are not a wall of text — they are a few clear ideas,
+          well placed.
+        </blockquote>
+        <p class="muted">— anyone who has sat through a bad deck</p>
+      </section>
+
+      <!-- 6. Code -->
+      <section class="slide">
+        <h2 class="title">A slide is just markup.</h2>
+        <pre><code>&lt;section class="slide"&gt;
+  &lt;h2 class="title"&gt;Your point here.&lt;/h2&gt;
+  &lt;ul class="bullets"&gt;
+    &lt;li&gt;One idea per line.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/section&gt;</code></pre>
+      </section>
+
+      <!-- 7. Conclude -->
+      <section class="slide slide--conclude">
+        <p class="eyebrow">That's the tour</p>
+        <h1 class="display">Thank you.</h1>
+        <p class="lead">Edit this file, or start a new deck from it.</p>
+      </section>
+    </deck-stage>
+
+    <script src="../../src/engine/deck-stage.js"></script>
+  </body>
+</html>
