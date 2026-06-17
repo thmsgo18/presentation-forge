@@ -139,36 +139,44 @@
     }
 
     _buildNotesUI() {
-      // Button at bottom-left of the stage — toggles the speaker-notes editor.
-      // stopPropagation prevents the document "click outside" handler from
-      // immediately closing the panel that was just opened.
-      this.notesBtn = mkBtn("pf-notes-btn", "Edit speaker notes", ICONS.editNotes,
-        () => this._toggleNotesEditor());
-      this.notesBtn.addEventListener("click", (e) => e.stopPropagation());
+      // Build the toggle button manually (one listener, no mkBtn) to keep the
+      // logic simple and avoid any ambiguity with multiple click handlers.
+      this.notesBtn = document.createElement("button");
+      this.notesBtn.type      = "button";
+      this.notesBtn.className = "pf-btn pf-notes-btn";
+      this.notesBtn.setAttribute("aria-label", "Edit speaker notes");
+      this.notesBtn.title     = "Edit speaker notes";
+      this.notesBtn.innerHTML = ICONS.editNotes;
+      this.notesBtn.addEventListener("click", () => this._toggleNotesEditor());
 
       // Editor panel — slides up from the bottom of the stage.
-      // Clicks inside the panel also stop propagation so they don't close it.
       this.notesEditor = el("div", "pf-notes-editor");
-      this.notesEditor.addEventListener("click", (e) => e.stopPropagation());
 
       this.notesTA = document.createElement("textarea");
-      this.notesTA.className     = "pf-notes-ta";
-      this.notesTA.placeholder   = "Notes du présentateur pour cette slide…";
+      this.notesTA.className   = "pf-notes-ta";
+      this.notesTA.placeholder = "Notes du présentateur pour cette slide…";
       this.notesTA.setAttribute("aria-label", "Speaker notes");
 
-      const closeBtn = mkBtn("pf-notes-editor-close", "Fermer les notes", ICONS.compress,
-        () => this._toggleNotesEditor());
+      const closeBtn = document.createElement("button");
+      closeBtn.type      = "button";
+      closeBtn.className = "pf-btn pf-notes-editor-close";
+      closeBtn.setAttribute("aria-label", "Fermer les notes");
+      closeBtn.title     = "Fermer les notes";
+      closeBtn.innerHTML = ICONS.compress;
+      closeBtn.addEventListener("click", () => this._toggleNotesEditor());
 
       this.notesEditor.append(this.notesTA, closeBtn);
       this.stage.append(this.notesBtn, this.notesEditor);
 
-      // Close the editor when clicking anywhere outside it.
-      this._onDocClick = () => {
-        if (this.notesEditor.classList.contains("is-open")) {
-          this._saveNotes();
-          this.notesEditor.classList.remove("is-open");
-          this.notesBtn.classList.remove("is-active");
-        }
+      // Close the editor when clicking anywhere outside the panel or the button.
+      // Using contains() is safer than stopPropagation: it lets the button's own
+      // click propagate normally and simply ignores clicks that land inside.
+      this._onDocClick = (e) => {
+        if (!this.notesEditor.classList.contains("is-open")) return;
+        if (this.notesEditor.contains(e.target) || this.notesBtn.contains(e.target)) return;
+        this._saveNotes();
+        this.notesEditor.classList.remove("is-open");
+        this.notesBtn.classList.remove("is-active");
       };
       document.addEventListener("click", this._onDocClick);
     }
