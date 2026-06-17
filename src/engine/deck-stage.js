@@ -41,6 +41,8 @@
     next:     '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
     expand:   '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/></svg>',
     compress: '<svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>',
+    // Presenter mode: a screen/monitor with a stand
+    present:  '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="13" rx="2"/><path d="M8 21h8M12 16v5"/><path d="M7 10h1m3-3v6m3-4v4"/></svg>',
   };
 
   const el = (tag, cls) => {
@@ -160,11 +162,12 @@
     }
 
     _buildControls() {
-      this.controls = el("div", "pf-controls");
-      this.prevBtn  = mkBtn("pf-prev", "Previous slide", ICONS.prev,  () => this.prev());
-      this.nextBtn  = mkBtn("pf-next", "Next slide",     ICONS.next,  () => this.next());
-      this.fsBtn    = mkBtn("pf-fs",   "Full screen",    ICONS.expand, () => this.toggleFullscreen());
-      this.controls.append(this.prevBtn, this.nextBtn, this.fsBtn);
+      this.controls      = el("div", "pf-controls");
+      this.prevBtn       = mkBtn("pf-prev",    "Previous slide",   ICONS.prev,    () => this.prev());
+      this.nextBtn       = mkBtn("pf-next",    "Next slide",       ICONS.next,    () => this.next());
+      this.presenterBtn  = mkBtn("pf-present", "Presenter mode",   ICONS.present, () => this.togglePresenter());
+      this.fsBtn         = mkBtn("pf-fs",      "Full screen",      ICONS.expand,  () => this.toggleFullscreen());
+      this.controls.append(this.prevBtn, this.nextBtn, this.presenterBtn, this.fsBtn);
       this.appendChild(this.controls);
     }
 
@@ -223,6 +226,8 @@
         case "End":  e.preventDefault(); this.show(this.count - 1); break;
         case "f": case "F":
           e.preventDefault(); this.toggleFullscreen(); break;
+        case "p": case "P":
+          e.preventDefault(); this.togglePresenter(); break;
         case "Escape":
           // Intercept Esc in presenter mode before the browser acts on it.
           if (this._presenterActive) {
@@ -249,29 +254,29 @@
     /* Full screen & presenter mode                                        */
     /* ------------------------------------------------------------------ */
 
+    // ⤢ button / f key — single-screen full screen on all browsers.
     toggleFullscreen() {
-      if (this._presenterActive) {
-        this.exitPresenterMode();
-        return;
-      }
+      if (this._presenterActive) return; // presenter mode has its own exit button
       if (fsEl()) {
         (document.exitFullscreen || document.webkitExitFullscreen).call(document);
         return;
       }
-      // Two or more screens → presenter mode; otherwise normal full screen.
-      if (window.screen.isExtended) {
-        // _openPresenter is async but we don't await it here so that
-        // window.open() inside it runs before the first await, staying
-        // within the user-gesture activation context (required by Safari
-        // and Firefox to allow popups).
-        this._openPresenter();
+      // Request fullscreen on `this` (the whole <deck-stage>), NOT on a child
+      // div. Safari only shows the fullscreen element + its descendants, so
+      // requesting on a child would hide the sibling controls and toast.
+      const req = this.requestFullscreen || this.webkitRequestFullscreen;
+      if (req) req.call(this).catch(() => {});
+    }
+
+    // 🖥 button / p key — presenter mode on all browsers.
+    // Opens a popup audience window (place it on the second screen).
+    // screen.isExtended (Chrome-only) is no longer used for detection —
+    // the user triggers this explicitly, so it works on Safari and Firefox too.
+    togglePresenter() {
+      if (this._presenterActive) {
+        this.exitPresenterMode();
       } else {
-        // Request fullscreen on `this` (the whole <deck-stage> element), NOT
-        // on this.stage. Safari only renders the fullscreen element and its
-        // descendants — requesting on a child div would hide the sibling
-        // controls, overlay and toast.
-        const req = this.requestFullscreen || this.webkitRequestFullscreen;
-        if (req) req.call(this).catch(() => {});
+        this._openPresenter();
       }
     }
 
@@ -338,6 +343,9 @@
       this._audienceWin     = win;
       this._presenterActive = true;
       this.classList.add("is-presenter");
+      this.presenterBtn.innerHTML = ICONS.compress;
+      this.presenterBtn.setAttribute("aria-label", "Exit presenter mode");
+      this.presenterBtn.title = "Exit presenter mode";
       this._buildPresenterSidebar();
       this._syncAudience(this.index);
       this._updatePresenterView();
@@ -355,9 +363,9 @@
       if (this._presenterSidebar) { this._presenterSidebar.remove(); this._presenterSidebar = null; }
       clearInterval(this._timerInterval);
 
-      this.fsBtn.innerHTML = ICONS.expand;
-      this.fsBtn.setAttribute("aria-label", "Full screen");
-      this.fsBtn.title = "Full screen";
+      this.presenterBtn.innerHTML = ICONS.present;
+      this.presenterBtn.setAttribute("aria-label", "Presenter mode");
+      this.presenterBtn.title = "Presenter mode";
 
       requestAnimationFrame(() => { this._layout(); this._scaleThumbs(); });
     }
