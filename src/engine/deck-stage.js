@@ -189,7 +189,11 @@
       this.thumbs.forEach((t, n) => t.classList.toggle("is-active", n === this.index));
 
       const active = this.thumbs[this.index];
-      if (active) active.scrollIntoView({ block: "nearest" });
+      if (active) {
+        // scrollIntoView with options: Safari 15+. Fallback for older browsers.
+        try { active.scrollIntoView({ block: "nearest" }); }
+        catch (_) { active.scrollIntoView(false); }
+      }
 
       this.overlay.textContent = `${this.index + 1} / ${this.count}`;
       this.prevBtn.disabled = this.index === 0;
@@ -256,15 +260,23 @@
       }
       // Two or more screens → presenter mode; otherwise normal full screen.
       if (window.screen.isExtended) {
-        this.enterPresenterMode();
+        // _openPresenter is async but we don't await it here so that
+        // window.open() inside it runs before the first await, staying
+        // within the user-gesture activation context (required by Safari
+        // and Firefox to allow popups).
+        this._openPresenter();
       } else {
-        (this.requestFullscreen || this.webkitRequestFullscreen).call(this);
+        const el = this.stage;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (req) req.call(el).catch(() => {});
       }
     }
 
     _onFullscreenChange() {
       if (this._presenterActive) return;
-      const on = fsEl() === this;
+      // We check any fullscreen element — we are the only caller of
+      // requestFullscreen so any active fullscreen is ours.
+      const on = !!fsEl();
       this.classList.toggle("is-fullscreen", on);
       this.fsBtn.innerHTML = on ? ICONS.compress : ICONS.expand;
       const label = on ? "Exit full screen" : "Full screen";
@@ -276,41 +288,48 @@
 
     /* ---- Presenter mode --------------------------------------------- */
 
-    async enterPresenterMode() {
-      // Determine where to open the audience window.
-      let left = (window.screen.availLeft || 0) + window.screen.availWidth;
-      let top  = window.screen.availTop  || 0;
-      let w    = window.screen.availWidth;
-      let h    = window.screen.availHeight;
+    async _openPresenter() {
+      // 1. Open the popup SYNCHRONOUSLY (before any await) so that popup
+      //    blockers in Safari and Firefox see the user-gesture context.
+      const left = (window.screen.availLeft || 0) + window.screen.availWidth;
+      const top  = window.screen.availTop  || 0;
+      const w    = window.screen.availWidth;
+      const h    = window.screen.availHeight;
+      const features = `left=${left},top=${top},width=${w},height=${h},popup=1`;
+      const win = window.open("about:blank", "_blank", features);
 
+      if (!win) {
+        // Popup blocked — fall back to single-screen full screen.
+        const el = this.stage;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (req) req.call(el).catch(() => {});
+        return;
+      }
+
+      // 2. Now we can await — try to move the window to the secondary screen.
       if ("getScreenDetails" in window) {
         try {
           const details   = await window.getScreenDetails();
           const secondary = details.screens.find((s) => !s.isPrimary);
-          if (secondary) {
-            left = secondary.availLeft;
-            top  = secondary.availTop;
-            w    = secondary.availWidth;
-            h    = secondary.availHeight;
+          if (secondary && !win.closed) {
+            try { win.moveTo(secondary.availLeft, secondary.availTop); }   catch {}
+            try { win.resizeTo(secondary.availWidth, secondary.availHeight); } catch {}
           }
-        } catch { /* permission denied — use offset heuristic */ }
+        } catch { /* permission denied — the initial offset heuristic stands */ }
       }
 
-      const features = `left=${left},top=${top},width=${w},height=${h},popup=1`;
-      this._audienceWin = window.open("", "_blank", features);
+      if (win.closed) return;
 
-      if (!this._audienceWin) {
-        // Popup blocked — fall back to single-screen full screen.
-        (this.requestFullscreen || this.webkitRequestFullscreen).call(this);
-        return;
-      }
-
-      this._audienceWin.document.write(this._buildAudienceHTML());
-      this._audienceWin.document.close();
-      this._audienceWin.addEventListener("beforeunload", () => {
+      // 3. Write the audience document.
+      //    about:blank inherits the opener's origin, so document.write is
+      //    same-origin and works across all browsers.
+      win.document.write(this._buildAudienceHTML());
+      win.document.close();
+      win.addEventListener("beforeunload", () => {
         if (this._presenterActive) this.exitPresenterMode();
       });
 
+      this._audienceWin     = win;
       this._presenterActive = true;
       this.classList.add("is-presenter");
       this._buildPresenterSidebar();
@@ -323,8 +342,9 @@
       this._presenterActive = false;
       this.classList.remove("is-presenter");
 
-      if (this._audienceWin && !this._audienceWin.closed) this._audienceWin.close();
+      const win = this._audienceWin;
       this._audienceWin = null;
+      if (win && !win.closed) win.close();
 
       if (this._presenterSidebar) { this._presenterSidebar.remove(); this._presenterSidebar = null; }
       clearInterval(this._timerInterval);
