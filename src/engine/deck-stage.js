@@ -266,23 +266,29 @@
         // and Firefox to allow popups).
         this._openPresenter();
       } else {
-        const el = this.stage;
-        const req = el.requestFullscreen || el.webkitRequestFullscreen;
-        if (req) req.call(el).catch(() => {});
+        // Request fullscreen on `this` (the whole <deck-stage> element), NOT
+        // on this.stage. Safari only renders the fullscreen element and its
+        // descendants — requesting on a child div would hide the sibling
+        // controls, overlay and toast.
+        const req = this.requestFullscreen || this.webkitRequestFullscreen;
+        if (req) req.call(this).catch(() => {});
       }
     }
 
     _onFullscreenChange() {
       if (this._presenterActive) return;
-      // We check any fullscreen element — we are the only caller of
-      // requestFullscreen so any active fullscreen is ours.
+      // !!fsEl() is sufficient — we are the only caller of requestFullscreen.
       const on = !!fsEl();
       this.classList.toggle("is-fullscreen", on);
       this.fsBtn.innerHTML = on ? ICONS.compress : ICONS.expand;
       const label = on ? "Exit full screen" : "Full screen";
       this.fsBtn.setAttribute("aria-label", label);
       this.fsBtn.title = label;
-      if (on) this._showToast(this.exitHint);
+      if (on) {
+        this._showToast(this.exitHint);
+        // Make buttons visible immediately; they fade after IDLE_MS without movement.
+        this._markActive();
+      }
       requestAnimationFrame(() => { this._layout(); this._scaleThumbs(); });
     }
 
