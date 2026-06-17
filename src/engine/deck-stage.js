@@ -300,24 +300,39 @@
     /* ---- Presenter mode --------------------------------------------- */
 
     async _openPresenter() {
-      // 1. Open the popup SYNCHRONOUSLY (before any await) so that popup
-      //    blockers in Safari and Firefox see the user-gesture context.
+      // 1. Build the audience HTML and a blob URL SYNCHRONOUSLY, before any
+      //    await, so popup blockers in Safari and Firefox see the user gesture.
+      const html    = this._buildAudienceHTML();
+      const blob    = new Blob([html], { type: "text/html;charset=utf-8" });
+      const blobUrl = URL.createObjectURL(blob);
+      this._audienceBlobUrl = blobUrl;
+
       const left = (window.screen.availLeft || 0) + window.screen.availWidth;
       const top  = window.screen.availTop  || 0;
       const w    = window.screen.availWidth;
       const h    = window.screen.availHeight;
       const features = `left=${left},top=${top},width=${w},height=${h},popup=1`;
-      const win = window.open("about:blank", "_blank", features);
+      const win = window.open(blobUrl, "_blank", features);
 
       if (!win) {
-        // Popup blocked — fall back to single-screen full screen.
-        const el = this.stage;
-        const req = el.requestFullscreen || el.webkitRequestFullscreen;
-        if (req) req.call(el).catch(() => {});
+        // Popup blocked — revoke the URL and fall back to single-screen fullscreen.
+        URL.revokeObjectURL(blobUrl);
+        this._audienceBlobUrl = null;
+        const req = this.requestFullscreen || this.webkitRequestFullscreen;
+        if (req) req.call(this).catch(() => {});
         return;
       }
 
-      // 2. Now we can await — try to move the window to the secondary screen.
+      // Revoke the blob URL after a generous delay — the window only needs it
+      // for the initial load; once rendered it is self-contained.
+      setTimeout(() => {
+        if (this._audienceBlobUrl) {
+          URL.revokeObjectURL(this._audienceBlobUrl);
+          this._audienceBlobUrl = null;
+        }
+      }, 8000);
+
+      // 2. Now we can await — try to move the popup to the secondary screen.
       if ("getScreenDetails" in window) {
         try {
           const details   = await window.getScreenDetails();
@@ -326,19 +341,18 @@
             try { win.moveTo(secondary.availLeft, secondary.availTop); }   catch {}
             try { win.resizeTo(secondary.availWidth, secondary.availHeight); } catch {}
           }
-        } catch { /* permission denied — the initial offset heuristic stands */ }
+        } catch { /* permission denied — initial offset heuristic stands */ }
       }
 
       if (win.closed) return;
 
-      // 3. Write the audience document.
-      //    about:blank inherits the opener's origin, so document.write is
-      //    same-origin and works across all browsers.
-      win.document.write(this._buildAudienceHTML());
-      win.document.close();
-      win.addEventListener("beforeunload", () => {
-        if (this._presenterActive) this.exitPresenterMode();
-      });
+      // Listen for the audience window closing (try/catch: Safari may restrict
+      // cross-origin window events on blob: popups opened from file://).
+      try {
+        win.addEventListener("beforeunload", () => {
+          if (this._presenterActive) this.exitPresenterMode();
+        });
+      } catch { /* ignore — user closing the popup is handled by polling or manual exit */ }
 
       this._audienceWin     = win;
       this._presenterActive = true;
@@ -347,7 +361,10 @@
       this.presenterBtn.setAttribute("aria-label", "Exit presenter mode");
       this.presenterBtn.title = "Exit presenter mode";
       this._buildPresenterSidebar();
+      // Sync the current slide index. Also re-sync after a short delay in case
+      // the audience window is still loading when the first message is sent.
       this._syncAudience(this.index);
+      setTimeout(() => this._syncAudience(this.index), 600);
       this._updatePresenterView();
     }
 
@@ -359,6 +376,11 @@
       const win = this._audienceWin;
       this._audienceWin = null;
       if (win && !win.closed) win.close();
+
+      if (this._audienceBlobUrl) {
+        URL.revokeObjectURL(this._audienceBlobUrl);
+        this._audienceBlobUrl = null;
+      }
 
       if (this._presenterSidebar) { this._presenterSidebar.remove(); this._presenterSidebar = null; }
       clearInterval(this._timerInterval);
@@ -469,16 +491,29 @@
 
     /* ---- Audience window HTML ---------------------------------------- */
 
-    _buildAudienceHTML() {
-      // Collect CSS from all same-origin stylesheets (covers both dev and bundle).
-      const css = Array.from(document.styleSheets).map((ss) => {
+    _collectCSS() {
+      // Primary: read inline <style> tag content — always works everywhere,
+      // including Safari on file:// where cssRules access is blocked by
+      // the browser's cross-origin security model. This also covers the bundle
+      // case where build.py has already inlined all stylesheets as <style> tags.
+      let css = Array.from(document.querySelectorAll("style"))
+        .map((s) => s.textContent)
+        .join("\n");
+
+      // Secondary: try linked <link rel=stylesheet> via cssRules — works on
+      // same-origin HTTP servers, but throws SecurityError on file:// in Safari.
+      Array.from(document.styleSheets).forEach((ss) => {
+        if (!ss.href) return; // already collected from the <style> tag above
         try {
-          return Array.from(ss.cssRules).map((r) => r.cssText).join("\n");
-        } catch {
-          // Cross-origin sheet — skip (fonts etc. are decorative).
-          return "";
-        }
-      }).join("\n");
+          css += "\n" + Array.from(ss.cssRules).map((r) => r.cssText).join("\n");
+        } catch { /* cross-origin restriction — skip */ }
+      });
+
+      return css;
+    }
+
+    _buildAudienceHTML() {
+      const css = this._collectCSS();
 
       const slidesHTML = this.slides.map((s) => {
         const c = s.cloneNode(true);
@@ -493,11 +528,15 @@
 <head>
 <meta charset="utf-8">
 <style>
+/* Safety-net layout — explicit longhand properties instead of the inset
+   shorthand so this works in Safari < 14.1. The full deck CSS follows below
+   and overrides these rules with the correct theme styles. */
 html,body{margin:0;height:100%;overflow:hidden;background:#000}
-.pf-canvas{position:fixed;left:50%;top:50%;transform-origin:center center;width:${W}px;height:${H}px}
-.pf-canvas>*{position:absolute;inset:0;visibility:hidden;opacity:0;transition:opacity .35s ease}
+.pf-canvas{position:fixed;left:50%;top:50%;-webkit-transform-origin:center center;transform-origin:center center;width:${W}px;height:${H}px}
+.pf-canvas>*{position:absolute;top:0;right:0;bottom:0;left:0;visibility:hidden;opacity:0;-webkit-transition:opacity .35s ease;transition:opacity .35s ease}
 .pf-canvas>[data-active]{visibility:visible;opacity:1}
 aside.notes{display:none!important}
+/* Full deck styles collected from the presenter page (base + theme). */
 ${css}
 </style>
 </head>
