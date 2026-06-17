@@ -115,6 +115,7 @@
       window.removeEventListener("hashchange", this._onHash);
       document.removeEventListener("fullscreenchange",       this._onFs);
       document.removeEventListener("webkitfullscreenchange", this._onFs);
+      if (this._onDocClick) document.removeEventListener("click", this._onDocClick);
     }
 
     /* ------------------------------------------------------------------ */
@@ -139,11 +140,16 @@
 
     _buildNotesUI() {
       // Button at bottom-left of the stage — toggles the speaker-notes editor.
+      // stopPropagation prevents the document "click outside" handler from
+      // immediately closing the panel that was just opened.
       this.notesBtn = mkBtn("pf-notes-btn", "Edit speaker notes", ICONS.editNotes,
         () => this._toggleNotesEditor());
+      this.notesBtn.addEventListener("click", (e) => e.stopPropagation());
 
       // Editor panel — slides up from the bottom of the stage.
+      // Clicks inside the panel also stop propagation so they don't close it.
       this.notesEditor = el("div", "pf-notes-editor");
+      this.notesEditor.addEventListener("click", (e) => e.stopPropagation());
 
       this.notesTA = document.createElement("textarea");
       this.notesTA.className     = "pf-notes-ta";
@@ -155,6 +161,16 @@
 
       this.notesEditor.append(this.notesTA, closeBtn);
       this.stage.append(this.notesBtn, this.notesEditor);
+
+      // Close the editor when clicking anywhere outside it.
+      this._onDocClick = () => {
+        if (this.notesEditor.classList.contains("is-open")) {
+          this._saveNotes();
+          this.notesEditor.classList.remove("is-open");
+          this.notesBtn.classList.remove("is-active");
+        }
+      };
+      document.addEventListener("click", this._onDocClick);
     }
 
     _buildRail() {
@@ -256,6 +272,9 @@
 
     _onKeyDown(e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // Let the user type freely in the notes textarea (or any input).
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === "TEXTAREA" || tag === "INPUT") return;
       switch (e.key) {
         case "ArrowRight": case "PageDown": case " ":
           e.preventDefault(); this.next(); break;
