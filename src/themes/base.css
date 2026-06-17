@@ -88,6 +88,24 @@ deck-stage {
 /* Speaker notes are invisible in every mode except the presenter sidebar. */
 aside.notes { display: none !important; }
 
+/* ---- rail resize handle ---- */
+
+.pf-rail-resizer {
+  flex: 0 0 5px;
+  cursor: col-resize;
+  background: transparent;
+  -webkit-transition: background 0.15s ease;
+  transition: background 0.15s ease;
+}
+
+.pf-rail-resizer:hover,
+.pf-rail-resizer.is-dragging {
+  background: var(--pf-accent);
+}
+
+deck-stage.is-fullscreen .pf-rail-resizer,
+deck-stage.is-presenter  .pf-rail-resizer { display: none; }
+
 /* ---- thumbnail rail (windowed only) ---- */
 
 .pf-rail {
@@ -225,6 +243,78 @@ aside.notes { display: none !important; }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* ---- speaker-notes editor button (bottom-left of the stage) ---- */
+
+.pf-notes-btn {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 30;
+  -webkit-transition: background 0.2s ease;
+  transition: background 0.2s ease;
+}
+
+.pf-notes-btn.is-active {
+  background: var(--pf-accent);
+}
+
+deck-stage.is-fullscreen .pf-notes-btn,
+deck-stage.is-presenter  .pf-notes-btn { display: none; }
+
+/* ---- speaker-notes editor panel (slides up from bottom of stage) ---- */
+
+.pf-notes-editor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  display: flex;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  background: rgba(8, 12, 25, 0.93);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-transform: translateY(100%);
+  transform: translateY(100%);
+  -webkit-transition: -webkit-transform 0.25s ease;
+  transition: transform 0.25s ease;
+  z-index: 25;
+}
+
+.pf-notes-editor.is-open {
+  -webkit-transform: translateY(0);
+  transform: translateY(0);
+}
+
+.pf-notes-ta {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  height: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: #dce8f8;
+  font-family: var(--font-sans, -apple-system, sans-serif);
+  font-size: 15px;
+  line-height: 1.5;
+  resize: none;
+}
+
+.pf-notes-ta:focus {
+  outline: none;
+  border-color: var(--pf-accent);
+}
+
+deck-stage.is-fullscreen .pf-notes-editor,
+deck-stage.is-presenter  .pf-notes-editor { display: none; }
 
 /* ---- slide counter (bottom-centre, inside the stage) ---- */
 

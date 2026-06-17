@@ -43,6 +43,8 @@
     compress: '<svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>',
     // Presenter mode: a screen/monitor with a stand
     present:  '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="13" rx="2"/><path d="M8 21h8M12 16v5"/><path d="M7 10h1m3-3v6m3-4v4"/></svg>',
+    // Speaker notes editor: pencil icon
+    editNotes:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
   };
 
   const el = (tag, cls) => {
@@ -77,12 +79,15 @@
 
       this.slides = Array.from(this.children).filter((c) => c.nodeType === 1);
 
-      this._buildRail();
-      this._buildStage();
-      this._buildControls();
+      // Create overlay and toast before builders so _buildStage can place
+      // the overlay inside .pf-stage (centres it on the slide, not the viewport).
       this.overlay = el("div", "pf-overlay");
       this.toast   = el("div", "pf-toast");
-      this.append(this.overlay, this.toast);
+
+      this._buildRail();
+      this._buildStage();    // appends overlay to this.stage
+      this._buildControls();
+      this.append(this.toast);
 
       this.index = this._indexFromHash();
       this.show(this.index, { updateHash: false });
@@ -126,7 +131,30 @@
         this.canvas.appendChild(slide);
       });
       this.stage.appendChild(this.canvas);
+      // Overlay lives inside the stage so left:50% centres it on the slide area.
+      this.stage.appendChild(this.overlay);
+      this._buildNotesUI();
       this.appendChild(this.stage);
+    }
+
+    _buildNotesUI() {
+      // Button at bottom-left of the stage — toggles the speaker-notes editor.
+      this.notesBtn = mkBtn("pf-notes-btn", "Edit speaker notes", ICONS.editNotes,
+        () => this._toggleNotesEditor());
+
+      // Editor panel — slides up from the bottom of the stage.
+      this.notesEditor = el("div", "pf-notes-editor");
+
+      this.notesTA = document.createElement("textarea");
+      this.notesTA.className     = "pf-notes-ta";
+      this.notesTA.placeholder   = "Notes du présentateur pour cette slide…";
+      this.notesTA.setAttribute("aria-label", "Speaker notes");
+
+      const closeBtn = mkBtn("pf-notes-editor-close", "Fermer les notes", ICONS.compress,
+        () => this._toggleNotesEditor());
+
+      this.notesEditor.append(this.notesTA, closeBtn);
+      this.stage.append(this.notesBtn, this.notesEditor);
     }
 
     _buildRail() {
@@ -159,6 +187,11 @@
         return thumb;
       });
       this.appendChild(this.rail);
+
+      // Drag handle between rail and stage.
+      this.resizer = el("div", "pf-rail-resizer");
+      this.appendChild(this.resizer);
+      this._bindRailResize();
     }
 
     _buildControls() {
@@ -184,6 +217,10 @@
     }
 
     show(i, { updateHash = true } = {}) {
+      // Auto-save notes for the slide we are leaving, then reload for the new one.
+      const editorOpen = this.notesEditor && this.notesEditor.classList.contains("is-open");
+      if (editorOpen) this._saveNotes();
+
       this.index = this._clamp(i);
 
       this.slides.forEach((s, n) =>
@@ -205,6 +242,8 @@
       this._markActive();
       this._syncAudience(this.index);
       this._updatePresenterView();
+
+      if (editorOpen) this._loadNotesForCurrentSlide();
 
       if (updateHash) {
         const h = "#" + (this.index + 1);
@@ -293,6 +332,12 @@
         this._showToast(this.exitHint);
         // Make buttons visible immediately; they fade after IDLE_MS without movement.
         this._markActive();
+        // Close the notes editor — it is not available in full-screen mode.
+        if (this.notesEditor && this.notesEditor.classList.contains("is-open")) {
+          this._saveNotes();
+          this.notesEditor.classList.remove("is-open");
+          this.notesBtn.classList.remove("is-active");
+        }
       }
       requestAnimationFrame(() => { this._layout(); this._scaleThumbs(); });
     }
@@ -394,6 +439,75 @@
       if (this._audienceWin && !this._audienceWin.closed) {
         this._audienceWin.postMessage({ pfSlide: i }, "*");
       }
+    }
+
+    /* ---- Rail resize ------------------------------------------------- */
+
+    _bindRailResize() {
+      this.resizer.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        const startX = e.clientX;
+        const startW = this.rail.offsetWidth;
+        this.resizer.classList.add("is-dragging");
+        document.body.style.cursor    = "col-resize";
+        document.body.style.userSelect = "none";
+
+        const onMove = (ev) => {
+          const w = Math.max(160, Math.min(600, startW + ev.clientX - startX));
+          this.rail.style.flex = `0 0 ${w}px`;
+          this._layout();
+          this._scaleThumbs();
+        };
+        const onUp = () => {
+          this.resizer.classList.remove("is-dragging");
+          document.body.style.cursor    = "";
+          document.body.style.userSelect = "";
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup",   onUp);
+        };
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup",   onUp);
+      });
+    }
+
+    /* ---- Speaker-notes editor --------------------------------------- */
+
+    _toggleNotesEditor() {
+      const opening = !this.notesEditor.classList.contains("is-open");
+      if (opening) {
+        this._loadNotesForCurrentSlide();
+        this.notesEditor.classList.add("is-open");
+        this.notesBtn.classList.add("is-active");
+        requestAnimationFrame(() => this.notesTA.focus());
+      } else {
+        this._saveNotes();
+        this.notesEditor.classList.remove("is-open");
+        this.notesBtn.classList.remove("is-active");
+      }
+    }
+
+    _loadNotesForCurrentSlide() {
+      const slide   = this.slides[this.index];
+      const notesEl = slide && slide.querySelector("aside.notes");
+      this.notesTA.value = notesEl ? notesEl.textContent.trim() : "";
+    }
+
+    _saveNotes() {
+      const slide = this.slides[this.index];
+      if (!slide) return;
+      let notesEl  = slide.querySelector("aside.notes");
+      const text   = this.notesTA.value.trim();
+      if (text) {
+        if (!notesEl) {
+          notesEl = document.createElement("aside");
+          notesEl.className = "notes";
+          slide.appendChild(notesEl);
+        }
+        notesEl.textContent = text;
+      } else if (notesEl) {
+        notesEl.remove();
+      }
+      this._updatePresenterView();
     }
 
     /* ---- Presenter sidebar ------------------------------------------ */
