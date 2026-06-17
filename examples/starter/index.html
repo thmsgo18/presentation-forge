@@ -13,9 +13,17 @@
     <!--
       A deck is one <deck-stage> with a list of <section class="slide"> children.
       Author on a 1920x1080 canvas; the engine scales it to fit any screen.
-      Navigate with the arrow keys / space, the on-screen buttons, the left-hand
-      thumbnail rail, or by tapping left/right on touch screens. Press "f" or the
-      button to go full screen. `exit-hint` sets the toast shown on entering it.
+
+      Navigation: arrow keys, Space, on-screen prev/next buttons.
+      Full screen: the ⤢ button or the "f" key.
+        - Two screens detected → presenter mode (audience window on the second
+          screen, presenter view with next-slide preview, notes and timer here).
+        - One screen → normal full screen.
+      Speaker notes: <aside class="notes"> inside a slide — invisible to the
+        audience, shown in the presenter sidebar.
+
+      `exit-hint` sets the toast text shown when entering single-screen full
+      screen (Esc to leave).
     -->
     <deck-stage
       width="1920"
@@ -27,6 +35,9 @@
         <p class="eyebrow">Presentation Forge</p>
         <h1 class="display">Slides as clean HTML.</h1>
         <p class="lead">A small, readable engine for building presentations.</p>
+        <aside class="notes">
+          <p>Introduce the project in 30 seconds. Mention that the whole thing is a single HTML file.</p>
+        </aside>
       </section>
 
       <!-- 2. Agenda -->
@@ -38,6 +49,9 @@
           <li>How content is laid out on the canvas.</li>
           <li>How to navigate, print and share a deck.</li>
         </ul>
+        <aside class="notes">
+          <p>Three points — keep it brief, two minutes max. Ask if anyone has questions before moving on.</p>
+        </aside>
       </section>
 
       <!-- 3. Section divider -->
@@ -45,9 +59,12 @@
         <p class="eyebrow">Part one</p>
         <h1 class="title">The building blocks.</h1>
         <p class="lead">Every slide is plain, semantic HTML.</p>
+        <aside class="notes">
+          <p>Transition slide — just read the title and move on. Don't linger.</p>
+        </aside>
       </section>
 
-      <!-- 4. Two-column content -->
+      <!-- 4. Two-column -->
       <section class="slide">
         <h2 class="title">Author on the left, structure on the right.</h2>
         <div class="two-col">
@@ -67,6 +84,9 @@
             </p>
           </div>
         </div>
+        <aside class="notes">
+          <p>Point to the two columns. Explain that the left is the "what" and the right is a structural hint — the AI follows the same pattern for every slide it generates.</p>
+        </aside>
       </section>
 
       <!-- 5. Quote -->
@@ -77,6 +97,9 @@
           well placed.
         </blockquote>
         <p class="muted">— anyone who has sat through a bad deck</p>
+        <aside class="notes">
+          <p>Let the quote breathe. Pause. Then add: "That is the whole point of this format."</p>
+        </aside>
       </section>
 
       <!-- 6. Code -->
@@ -87,7 +110,11 @@
   &lt;ul class="bullets"&gt;
     &lt;li&gt;One idea per line.&lt;/li&gt;
   &lt;/ul&gt;
+  &lt;aside class="notes"&gt;Notes visible only in presenter mode.&lt;/aside&gt;
 &lt;/section&gt;</code></pre>
+        <aside class="notes">
+          <p>Show how simple the authoring format is. Mention that the <code>&lt;aside class="notes"&gt;</code> tag is the only addition since the last version.</p>
+        </aside>
       </section>
 
       <!-- 7. Conclude -->
@@ -95,6 +122,9 @@
         <p class="eyebrow">That's the tour</p>
         <h1 class="display">Thank you.</h1>
         <p class="lead">Edit this file, or start a new deck from it.</p>
+        <aside class="notes">
+          <p>Open it up for questions. Remind them where the repo is.</p>
+        </aside>
       </section>
     </deck-stage>
 

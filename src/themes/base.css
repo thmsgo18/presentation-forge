@@ -1,26 +1,24 @@
 /*
  * base.css — engine mechanics and chrome, theme-agnostic.
  *
- * This file owns the *plumbing*: the scaled canvas, the thumbnail rail, the
- * control buttons, the slide counter, the full-screen behaviour, and printing.
- * It carries no slide-content styling — colours, fonts and spacing for the
- * slides themselves live in a theme file (e.g. ink-blue.css).
+ * Owns the plumbing: the scaled canvas, the thumbnail rail, the control
+ * buttons, the slide counter, the presenter sidebar, and printing. No
+ * slide-content styles here — those live in a theme file (e.g. ink-blue.css).
  *
- * The chrome (rail, buttons, toast) uses a few CSS variables that default to
- * the active theme's palette, so it blends in automatically:
- *   --pf-rail-bg, --pf-rail-fg, --pf-chrome-bg, --pf-chrome-fg, --pf-accent
+ * Chrome variables (override in a theme or inline to restyle the UI shell):
+ *   --pf-rail-bg      rail / sidebar background
+ *   --pf-rail-fg      rail text and icon colour
+ *   --pf-chrome-bg    button / overlay pill background (semi-transparent)
+ *   --pf-chrome-fg    button / overlay text colour
+ *   --pf-accent       thumbnail active-border and hover colour
  */
 
-/* Prevent a flash of un-upgraded slides before deck-stage.js runs. */
-deck-stage:not(:defined) {
-  visibility: hidden;
-}
+deck-stage:not(:defined) { visibility: hidden; }
 
-html,
-body {
+html, body {
   margin: 0;
   height: 100%;
-  background: #000; /* letterbox bars */
+  background: #000;
   overflow: hidden;
 }
 
@@ -31,15 +29,14 @@ deck-stage {
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* Chrome palette — falls back to the theme's tokens when present. */
-  --pf-rail-bg: var(--accent-deep, #0f1722);
-  --pf-rail-fg: #c7d4e8;
-  --pf-chrome-bg: rgba(0, 0, 0, 0.55);
-  --pf-chrome-fg: #ffffff;
-  --pf-accent: var(--accent, #5b8bd0);
+  --pf-rail-bg:    var(--accent-deep, #0f1722);
+  --pf-rail-fg:    #c7d4e8;
+  --pf-chrome-bg:  rgba(0, 0, 0, 0.55);
+  --pf-chrome-fg:  #ffffff;
+  --pf-accent:     var(--accent, #5b8bd0);
 }
 
-/* ---- stage: the scaled canvas area ---- */
+/* ---- stage: the area that contains the scaled canvas ---- */
 
 .pf-stage {
   position: relative;
@@ -55,8 +52,6 @@ deck-stage {
   transform-origin: center center;
 }
 
-/* Slides are absolutely stacked; only the active one is visible. Hidden
- * slides stay in the DOM so their state (media, inputs) survives navigation. */
 .pf-canvas > * {
   position: absolute;
   inset: 0;
@@ -69,6 +64,9 @@ deck-stage {
   visibility: visible;
   opacity: 1;
 }
+
+/* Speaker notes are invisible in every mode except the presenter sidebar. */
+aside.notes { display: none !important; }
 
 /* ---- thumbnail rail (windowed only) ---- */
 
@@ -106,7 +104,6 @@ deck-stage {
   opacity: 0.6;
 }
 
-/* The frame clips a full-size clone that we scale down to fit. */
 .pf-thumb-frame {
   position: relative;
   flex: 1 1 auto;
@@ -123,29 +120,25 @@ deck-stage {
   top: 0;
   left: 0;
   transform-origin: top left;
-  pointer-events: none; /* the whole thumb is the click target */
+  pointer-events: none;
 }
 
 .pf-thumb-canvas > * {
   position: absolute;
   inset: 0;
+  visibility: visible;
+  opacity: 1;
 }
 
-.pf-thumb:hover .pf-thumb-frame {
-  border-color: var(--pf-accent);
-}
+.pf-thumb:hover .pf-thumb-frame { border-color: var(--pf-accent); }
 
 .pf-thumb.is-active .pf-thumb-frame {
   border-color: var(--pf-accent);
   outline: 2px solid var(--pf-accent);
 }
+.pf-thumb.is-active .pf-thumb-num { opacity: 1; color: #fff; }
 
-.pf-thumb.is-active .pf-thumb-num {
-  opacity: 1;
-  color: #fff;
-}
-
-/* ---- control buttons (bottom-right) ---- */
+/* ---- control buttons (bottom-right of the stage) ---- */
 
 .pf-controls {
   position: absolute;
@@ -170,17 +163,11 @@ deck-stage {
   cursor: pointer;
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  transition: background 0.2s ease, opacity 0.2s ease;
+  transition: background 0.2s ease;
 }
 
-.pf-btn:hover {
-  background: rgba(0, 0, 0, 0.78);
-}
-
-.pf-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
+.pf-btn:hover   { background: rgba(0, 0, 0, 0.78); }
+.pf-btn:disabled { opacity: 0.35; cursor: default; }
 
 .pf-btn svg {
   width: 22px;
@@ -192,7 +179,7 @@ deck-stage {
   stroke-linejoin: round;
 }
 
-/* ---- slide counter (bottom-centre) ---- */
+/* ---- slide counter (bottom-centre, inside the stage) ---- */
 
 .pf-overlay {
   position: absolute;
@@ -228,82 +215,176 @@ deck-stage {
   pointer-events: none;
   transition: opacity 0.4s ease;
 }
+.pf-toast.is-visible { opacity: 1; }
 
-.pf-toast.is-visible {
-  opacity: 1;
-}
+/* ---- single-screen full screen behaviour ---- */
 
-/* ---- full-screen behaviour ---- */
+deck-stage.is-fullscreen .pf-rail { display: none; }
 
-/* Hide the rail; the stage takes the whole screen. */
-deck-stage.is-fullscreen .pf-rail {
-  display: none;
-}
-
-/* Controls and counter fade out when idle, return on mouse move. */
 deck-stage.is-fullscreen .pf-controls,
 deck-stage.is-fullscreen .pf-overlay {
   opacity: 0;
   pointer-events: none;
 }
 
-deck-stage.is-fullscreen.is-active-ui .pf-controls {
-  opacity: 1;
-  pointer-events: auto;
+deck-stage.is-fullscreen.is-active-ui .pf-controls { opacity: 1; pointer-events: auto; }
+deck-stage.is-fullscreen.is-active-ui .pf-overlay  { opacity: 1; }
+deck-stage.is-fullscreen:not(.is-active-ui)         { cursor: none; }
+
+/* ---- presenter mode ---- */
+
+/*
+ * Layout in presenter mode (flex row):
+ *   .pf-rail   hidden — keys / thumbnails are in the sidebar
+ *   .pf-stage  left area (flex-grow), shows current slide
+ *   .pf-presenter-sidebar  right panel, fixed width
+ *
+ * Normal chrome (controls, overlay) is hidden; the sidebar has its own bar.
+ */
+
+deck-stage.is-presenter .pf-rail     { display: none; }
+deck-stage.is-presenter .pf-controls { display: none; }
+deck-stage.is-presenter .pf-overlay  { display: none; }
+
+.pf-presenter-sidebar {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  background: var(--pf-rail-bg);
+  color: var(--pf-rail-fg);
+  overflow: hidden;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-deck-stage.is-fullscreen.is-active-ui .pf-overlay {
-  opacity: 1;
+.pf-presenter-label {
+  margin: 14px 16px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  flex: 0 0 auto;
 }
 
-deck-stage.is-fullscreen:not(.is-active-ui) {
-  cursor: none;
+/* Next-slide preview */
+
+.pf-next-frame {
+  position: relative;
+  margin: 0 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a2030;
+  aspect-ratio: 16 / 9;
+  flex: 0 0 auto;
+}
+
+.pf-next-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+/* The cloned slide inside the next-preview canvas must fill the canvas. */
+.pf-next-slot {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.pf-next-slot > * {
+  box-sizing: border-box;
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  inset: unset !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+.pf-next-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+/* Notes */
+
+.pf-notes {
+  flex: 1 1 0;
+  margin: 0 16px 8px;
+  overflow-y: auto;
+  font-size: 17px;
+  line-height: 1.65;
+  color: #dce8f8;
+}
+
+.pf-notes p { margin: 0 0 0.6em; }
+.pf-no-notes { opacity: 0.4; font-style: italic; }
+
+/* Presenter bar (bottom of sidebar) */
+
+.pf-presenter-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.pf-presenter-bar .pf-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  flex: 0 0 auto;
+}
+.pf-presenter-bar .pf-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+.pf-presenter-count {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-timer {
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+  flex: 0 0 auto;
 }
 
 /* ---- opt-out / narrow viewports ---- */
 
-deck-stage[no-rail] .pf-rail {
-  display: none;
-}
+deck-stage[no-rail] .pf-rail { display: none; }
 
 @media (max-width: 820px) {
-  .pf-rail {
-    display: none;
-  }
+  .pf-rail { display: none; }
 }
 
 /* ---- print: one page per slide, no chrome ---- */
 
 @media print {
-  @page {
-    size: 1920px 1080px;
-    margin: 0;
-  }
+  @page { size: 1920px 1080px; margin: 0; }
 
-  html,
-  body {
-    height: auto;
-    overflow: visible;
-    background: #fff;
-  }
+  html, body { height: auto; overflow: visible; background: #fff; }
 
-  deck-stage {
-    position: static;
-    display: block;
-  }
+  deck-stage { position: static; display: block; }
 
-  .pf-rail,
-  .pf-controls,
-  .pf-overlay,
-  .pf-toast {
-    display: none !important;
-  }
+  .pf-rail, .pf-controls, .pf-overlay, .pf-toast,
+  .pf-presenter-sidebar { display: none !important; }
 
-  .pf-stage {
-    position: static;
-    overflow: visible;
-    background: none;
-  }
+  .pf-stage { position: static; overflow: visible; background: none; }
 
   .pf-canvas {
     position: static;
