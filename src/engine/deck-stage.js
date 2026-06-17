@@ -343,10 +343,11 @@
       this._audienceKeyHandler = (e) => {
         if (!this._presenterActive || !e.data || !e.data.pfKeyNav) return;
         switch (e.data.pfKeyNav) {
-          case "next":  this.next();                    break;
-          case "prev":  this.prev();                    break;
-          case "first": this.show(0);                   break;
-          case "last":  this.show(this.count - 1);      break;
+          case "next":           this.next();                    break;
+          case "prev":           this.prev();                    break;
+          case "first":          this.show(0);                   break;
+          case "last":           this.show(this.count - 1);      break;
+          case "exit-presenter": this.exitPresenterMode();       break;
         }
       };
       window.addEventListener("message", this._audienceKeyHandler);
@@ -572,6 +573,7 @@ ${linkTags}
     else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp') nav='prev';
     else if(e.key==='Home') nav='first';
     else if(e.key==='End')  nav='last';
+    else if(e.key==='Escape') nav='exit-presenter';
     if(nav){ e.preventDefault(); window.opener.postMessage({pfKeyNav:nav},'*'); }
   });
   try{ document.documentElement.requestFullscreen() }catch(e){}
