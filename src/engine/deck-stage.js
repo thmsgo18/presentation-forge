@@ -300,37 +300,22 @@
     /* ---- Presenter mode --------------------------------------------- */
 
     async _openPresenter() {
-      // 1. Build the audience HTML and a blob URL SYNCHRONOUSLY, before any
-      //    await, so popup blockers in Safari and Firefox see the user gesture.
-      const html    = this._buildAudienceHTML();
-      const blob    = new Blob([html], { type: "text/html;charset=utf-8" });
-      const blobUrl = URL.createObjectURL(blob);
-      this._audienceBlobUrl = blobUrl;
-
+      // 1. Open the popup SYNCHRONOUSLY (before any await) so that popup
+      //    blockers in Safari and Firefox see the user-gesture context.
+      //    about:blank is always same-origin with the opener — no restrictions.
       const left = (window.screen.availLeft || 0) + window.screen.availWidth;
       const top  = window.screen.availTop  || 0;
       const w    = window.screen.availWidth;
       const h    = window.screen.availHeight;
       const features = `left=${left},top=${top},width=${w},height=${h},popup=1`;
-      const win = window.open(blobUrl, "_blank", features);
+      const win = window.open("about:blank", "_blank", features);
 
       if (!win) {
-        // Popup blocked — revoke the URL and fall back to single-screen fullscreen.
-        URL.revokeObjectURL(blobUrl);
-        this._audienceBlobUrl = null;
+        // Popup blocked — fall back to single-screen fullscreen.
         const req = this.requestFullscreen || this.webkitRequestFullscreen;
         if (req) req.call(this).catch(() => {});
         return;
       }
-
-      // Revoke the blob URL after a generous delay — the window only needs it
-      // for the initial load; once rendered it is self-contained.
-      setTimeout(() => {
-        if (this._audienceBlobUrl) {
-          URL.revokeObjectURL(this._audienceBlobUrl);
-          this._audienceBlobUrl = null;
-        }
-      }, 8000);
 
       // 2. Now we can await — try to move the popup to the secondary screen.
       if ("getScreenDetails" in window) {
@@ -346,13 +331,13 @@
 
       if (win.closed) return;
 
-      // Listen for the audience window closing (try/catch: Safari may restrict
-      // cross-origin window events on blob: popups opened from file://).
-      try {
-        win.addEventListener("beforeunload", () => {
-          if (this._presenterActive) this.exitPresenterMode();
-        });
-      } catch { /* ignore — user closing the popup is handled by polling or manual exit */ }
+      // 3. Write the audience document into the same-origin about:blank window.
+      win.document.write(this._buildAudienceHTML());
+      win.document.close();
+
+      win.addEventListener("beforeunload", () => {
+        if (this._presenterActive) this.exitPresenterMode();
+      });
 
       this._audienceWin     = win;
       this._presenterActive = true;
@@ -362,7 +347,7 @@
       this.presenterBtn.title = "Exit presenter mode";
       this._buildPresenterSidebar();
       // Sync the current slide index. Also re-sync after a short delay in case
-      // the audience window is still loading when the first message is sent.
+      // the audience window is still loading when the first postMessage is sent.
       this._syncAudience(this.index);
       setTimeout(() => this._syncAudience(this.index), 600);
       this._updatePresenterView();
@@ -376,11 +361,6 @@
       const win = this._audienceWin;
       this._audienceWin = null;
       if (win && !win.closed) win.close();
-
-      if (this._audienceBlobUrl) {
-        URL.revokeObjectURL(this._audienceBlobUrl);
-        this._audienceBlobUrl = null;
-      }
 
       if (this._presenterSidebar) { this._presenterSidebar.remove(); this._presenterSidebar = null; }
       clearInterval(this._timerInterval);
@@ -513,7 +493,23 @@
     }
 
     _buildAudienceHTML() {
-      const css = this._collectCSS();
+      // Strategy: give the popup as many CSS sources as possible so at least one
+      // works in every browser / file:// vs HTTP scenario.
+      //
+      // A.  <link> tags with absolute hrefs — the most reliable path on Safari
+      //     file://. The about:blank popup is same-origin with the opener, so
+      //     <link> can load local file:// resources just as the main page can.
+      //     (fetch / XHR are blocked on file:// in Safari, but <link> is not.)
+      //
+      // B.  Inline <style> textContent — covers the bundle (build.py inlines
+      //     everything) and any hand-written inline styles.
+      //
+      // C.  cssRules extraction — works on same-origin HTTP dev servers.
+      const linkTags = Array.from(document.querySelectorAll("link[rel=stylesheet]"))
+        .map((l) => `<link rel="stylesheet" href="${l.href}">`)
+        .join("\n");
+
+      const inlineCSS = this._collectCSS();
 
       const slidesHTML = this.slides.map((s) => {
         const c = s.cloneNode(true);
@@ -527,17 +523,17 @@
 <html>
 <head>
 <meta charset="utf-8">
+${linkTags}
 <style>
-/* Safety-net layout — explicit longhand properties instead of the inset
-   shorthand so this works in Safari < 14.1. The full deck CSS follows below
-   and overrides these rules with the correct theme styles. */
+/* Safety-net layout — explicit longhand properties (no inset shorthand)
+   for Safari < 14.1 compatibility. Also provides a white slide background
+   in case external stylesheets fail to load (e.g. very strict sandbox). */
 html,body{margin:0;height:100%;overflow:hidden;background:#000}
 .pf-canvas{position:fixed;left:50%;top:50%;-webkit-transform-origin:center center;transform-origin:center center;width:${W}px;height:${H}px}
-.pf-canvas>*{position:absolute;top:0;right:0;bottom:0;left:0;visibility:hidden;opacity:0;-webkit-transition:opacity .35s ease;transition:opacity .35s ease}
+.pf-canvas>*{position:absolute;top:0;right:0;bottom:0;left:0;visibility:hidden;opacity:0;-webkit-transition:opacity .35s ease;transition:opacity .35s ease;background:#fff;color:#000}
 .pf-canvas>[data-active]{visibility:visible;opacity:1}
 aside.notes{display:none!important}
-/* Full deck styles collected from the presenter page (base + theme). */
-${css}
+${inlineCSS}
 </style>
 </head>
 <body>
