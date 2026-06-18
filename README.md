@@ -2,66 +2,96 @@
 
 Build presentations as clean, readable HTML.
 
-Presentation Forge is a small, zero-dependency engine for slide decks. You
-write each slide as plain, semantic HTML; the engine handles scaling,
-navigation, the slide counter, printing to PDF, and bundling to a single
-portable file. There is no framework to learn and nothing to compile — open a
-deck in a browser and it just works.
+You write one HTML file per slide; a small build step bundles them with the
+engine, the theme and your images into a single self-contained `index.html` you
+can double-click, email, or host anywhere. No framework, no dependencies.
 
 *[Version française](README.fr.md)*
 
-## Why
-
-- **Readable.** A deck is `<section class="slide">` elements with ordinary
-  content inside. Anyone comfortable with HTML can open one and find their way
-  around.
-- **Consistent.** A theme provides the design tokens and block styles, so every
-  slide looks coherent without per-slide fiddling.
-- **Portable.** One build step inlines everything into a single `.html` file you
-  can email, host anywhere, or open with a double-click.
-- **No dependencies.** The engine is one vanilla JavaScript file; the bundler is
-  one Python file using only the standard library.
-
-## Quick start
-
-```sh
-git clone https://github.com/thmsgo18/presentation-forge.git
-cd presentation-forge
-open examples/starter/index.html      # or double-click it
-```
-
-Use the arrow keys (or Space) to move through the slides.
-
-To produce a single shareable file:
-
-```sh
-python3 build.py examples/starter/index.html
-# -> dist/starter.html
-```
-
-## Project layout
+## Structure
 
 ```
 presentation-forge/
-├── src/
-│   ├── engine/
-│   │   └── deck-stage.js     # the presentation engine (one file, no deps)
-│   └── themes/
-│       ├── base.css          # mechanics only: scaling, layout, print
-│       └── ink-blue.css      # a sober blue / ink theme (colours, fonts, type)
-├── examples/
-│   └── starter/
-│       └── index.html        # a demo deck showing every slide type
-├── docs/
-│   └── writing-slides.md     # how to author a deck
-└── build.py                  # bundle a deck into one portable .html
+├── engine/              # the presentation logic — don't edit
+│   ├── deck-stage.js    #   the engine: a <deck-stage> custom element
+│   └── base.css         #   its mechanics: scaling, controls, presenter UI, print
+├── themes/              # the looks — one folder per theme, swap freely
+│   └── ink-blue/
+│       ├── tokens.css   #     the dials: colours, type scale, spacing, fonts
+│       ├── fonts.css    #     @font-face declarations
+│       ├── slides.css   #     how blocks are styled (.title, .bullets, variants…)
+│       ├── fonts/       #     font files            ┐ the look — travels
+│       ├── images/      #     backgrounds, textures │ with the theme
+│       └── logos/       #     logos                 ┘
+├── slides/              # your content — one file per slide, ordered by name
+│   ├── 01-title.html
+│   ├── 02-agenda.html
+│   └── …
+├── assets/              # content images for THIS deck (kept apart from themes)
+├── deck.config.json     # title, size, transition, theme
+├── build.py             # bundles everything into one self-contained index.html
+├── index.html           # the build output — open & share THIS file
+└── README.md
 ```
 
-## Writing a deck
+Three clear layers: **logic** (`engine/`), **look** (`themes/`), **content**
+(`slides/`). A theme is a self-contained folder (styles + its fonts, backgrounds
+and logos); switching the `theme` in `deck.config.json` restyles the whole deck
+without touching a single slide, because every theme honours the same set of
+tokens and slide classes.
 
-See [docs/writing-slides.md](docs/writing-slides.md). In short: a deck is one
-`<deck-stage>` containing `<section class="slide">` children, authored on a
-fixed 1920×1080 canvas that the engine scales to fit any screen.
+## Workflow
+
+```sh
+# 1. Edit slides in slides/ (one <section class="slide"> per file).
+# 2. Build the deck:
+python3 build.py            # -> index.html (self-contained)
+# 3. Open or share index.html — it's a single file with everything inside,
+#    images included, so it works by double-click and offline.
+```
+
+While editing, rebuild on every save and refresh the browser:
+
+```sh
+python3 build.py --watch
+python3 build.py --open     # build, then open it in the browser
+```
+
+Move through the slides with the arrow keys or Space.
+
+## Writing a slide
+
+Each file in `slides/` is one `<section class="slide">`:
+
+```html
+<section class="slide">
+  <h2 class="title">Your point here.</h2>
+  <ul class="bullets">
+    <li>One idea per line.</li>
+  </ul>
+  <aside class="notes">Notes — visible only in presenter mode.</aside>
+</section>
+```
+
+Slide variants: `slide--title`, `slide--section`, `slide--conclude`.
+Content blocks from the theme: `eyebrow`, `display`, `title`, `lead`, `muted`,
+`accent`, `bullets`, `two-col`, `card`, `blockquote`, `pre > code`.
+
+Slides display in **filename order** (`01-`, `02-`…); to add one, drop a new
+file in `slides/`. See [docs/writing-slides.md](docs/writing-slides.md) for the
+full guide.
+
+## Presenting
+
+- **Progressive reveal** — add `class="fragment"` to an element to reveal it
+  step by step on click (the presenter view shows `step 2/3`).
+- **Full screen** — the ⤢ button or `f`.
+- **Presenter mode** — the screen button or `p`: opens an audience window
+  (full-screen slide) and a presenter view here with the next-slide preview,
+  speaker notes, a wall clock and timers, drawing and a laser pointer.
+- **Overview** — `o` shows every slide as a grid; `b` / `w` blanks the screen.
+- **Export PDF** — the print button (one page per slide).
+- **Keyboard shortcuts** — press `?` for the full list.
 
 ## License
 

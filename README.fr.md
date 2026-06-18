@@ -2,68 +2,98 @@
 
 Créez des présentations en HTML propre et lisible.
 
-Presentation Forge est un petit moteur de slides sans aucune dépendance. Vous
-écrivez chaque slide en HTML simple et sémantique ; le moteur s'occupe de la
-mise à l'échelle, de la navigation, du compteur de slides, de l'impression en
-PDF et de la génération d'un fichier unique et portable. Aucun framework à
-apprendre, rien à compiler — ouvrez une présentation dans un navigateur, c'est
-prêt.
+Vous écrivez une slide par fichier HTML ; une petite étape de build regroupe les
+slides avec le moteur, le thème et vos images dans un seul `index.html` autonome
+que vous pouvez double-cliquer, envoyer par mail ou héberger n'importe où. Aucun
+framework, aucune dépendance.
 
 *[English version](README.md)*
 
-## Pourquoi
-
-- **Lisible.** Une présentation, ce sont des `<section class="slide">` avec du
-  contenu ordinaire à l'intérieur. Toute personne à l'aise avec le HTML s'y
-  retrouve.
-- **Cohérent.** Un thème fournit les jetons de design et le style des blocs :
-  toutes les slides restent harmonieuses sans réglage au cas par cas.
-- **Portable.** Une étape de build regroupe tout dans un seul fichier `.html` à
-  envoyer par mail, héberger n'importe où, ou ouvrir d'un double-clic.
-- **Sans dépendances.** Le moteur tient dans un fichier JavaScript vanilla ; le
-  bundler dans un fichier Python n'utilisant que la bibliothèque standard.
-
-## Démarrage rapide
-
-```sh
-git clone https://github.com/thmsgo18/presentation-forge.git
-cd presentation-forge
-open examples/starter/index.html      # ou double-cliquez dessus
-```
-
-Utilisez les flèches (ou Espace) pour parcourir les slides.
-
-Pour produire un fichier unique partageable :
-
-```sh
-python3 build.py examples/starter/index.html
-# -> dist/starter.html
-```
-
-## Organisation du projet
+## Structure
 
 ```
 presentation-forge/
-├── src/
-│   ├── engine/
-│   │   └── deck-stage.js     # le moteur de présentation (un fichier, zéro dépendance)
-│   └── themes/
-│       ├── base.css          # mécanique uniquement : échelle, disposition, impression
-│       └── ink-blue.css      # un thème sobre bleu / encre (couleurs, polices, typo)
-├── examples/
-│   └── starter/
-│       └── index.html        # une présentation de démo montrant chaque type de slide
-├── docs/
-│   └── writing-slides.md     # comment écrire une présentation
-└── build.py                  # regroupe une présentation en un seul .html portable
+├── engine/              # la logique de présentation — ne pas toucher
+│   ├── deck-stage.js    #   le moteur : un custom element <deck-stage>
+│   └── base.css         #   sa mécanique : mise à l'échelle, contrôles, mode présentateur, impression
+├── themes/              # les apparences — un dossier par thème, interchangeables
+│   └── ink-blue/
+│       ├── tokens.css   #     les réglages : couleurs, échelle typo, espacements, polices
+│       ├── fonts.css    #     déclarations @font-face
+│       ├── slides.css   #     style des blocs (.title, .bullets, variantes…)
+│       ├── fonts/       #     fichiers de police   ┐ le look — voyage
+│       ├── images/      #     fonds, textures      │ avec le thème
+│       └── logos/       #     logos                ┘
+├── slides/              # votre contenu — un fichier par slide, ordonné par nom
+│   ├── 01-title.html
+│   ├── 02-agenda.html
+│   └── …
+├── assets/              # images de contenu de CETTE présentation (séparées des thèmes)
+├── deck.config.json     # titre, dimensions, transition, thème
+├── build.py             # regroupe tout dans un seul index.html autonome
+├── index.html           # le résultat du build — ouvrez & partagez CE fichier
+└── README.fr.md
 ```
 
-## Écrire une présentation
+Trois couches claires : **logique** (`engine/`), **apparence** (`themes/`),
+**contenu** (`slides/`). Un thème est un dossier autonome (styles + ses polices,
+fonds et logos) ; changer le `theme` dans `deck.config.json` restyle toute la
+présentation sans toucher une seule slide, car chaque thème respecte le même jeu
+de variables et de classes.
 
-Voir [docs/writing-slides.md](docs/writing-slides.md). En résumé : une
-présentation est un `<deck-stage>` contenant des `<section class="slide">`,
-écrites sur un canevas fixe de 1920×1080 que le moteur met à l'échelle pour
-remplir n'importe quel écran.
+## Utilisation
+
+```sh
+# 1. Éditez les slides dans slides/ (un <section class="slide"> par fichier).
+# 2. Construisez la présentation :
+python3 build.py            # -> index.html (autonome)
+# 3. Ouvrez ou partagez index.html — un seul fichier avec tout dedans,
+#    images comprises : il marche en double-clic et hors-ligne.
+```
+
+Pendant l'édition, reconstruire à chaque sauvegarde et rafraîchir le navigateur :
+
+```sh
+python3 build.py --watch
+python3 build.py --open     # construit, puis ouvre dans le navigateur
+```
+
+Parcourez les slides avec les flèches ou Espace.
+
+## Écrire une slide
+
+Chaque fichier de `slides/` est un `<section class="slide">` :
+
+```html
+<section class="slide">
+  <h2 class="title">Votre point ici.</h2>
+  <ul class="bullets">
+    <li>Une idée par ligne.</li>
+  </ul>
+  <aside class="notes">Notes — visibles seulement en mode présentateur.</aside>
+</section>
+```
+
+Variantes de slide : `slide--title`, `slide--section`, `slide--conclude`.
+Blocs de contenu fournis par le thème : `eyebrow`, `display`, `title`, `lead`,
+`muted`, `accent`, `bullets`, `two-col`, `card`, `blockquote`, `pre > code`.
+
+Les slides s'affichent dans l'**ordre des noms de fichiers** (`01-`, `02-`…) ;
+pour en ajouter une, déposez un nouveau fichier dans `slides/`. Voir
+[docs/writing-slides.md](docs/writing-slides.md) pour le guide complet.
+
+## Présenter
+
+- **Révélation progressive** — ajoutez `class="fragment"` à un élément pour le
+  révéler étape par étape au clic (la vue présentateur affiche `step 2/3`).
+- **Plein écran** — le bouton ⤢ ou `f`.
+- **Mode présentateur** — le bouton écran ou `p` : ouvre une fenêtre audience
+  (slide en plein écran) et une vue présentateur ici, avec l'aperçu de la slide
+  suivante, les notes, l'heure réelle et les chronos, le dessin et le laser.
+- **Vue d'ensemble** — `o` affiche toutes les slides en grille ; `b` / `w`
+  passe l'écran en noir / blanc.
+- **Export PDF** — le bouton imprimante (une page par slide).
+- **Raccourcis clavier** — touche `?` pour la liste complète.
 
 ## Licence
 

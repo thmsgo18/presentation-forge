@@ -1,57 +1,15 @@
 /*
- * ink-blue.css — a sober blue / ink theme.
+ * slides.css — how the "ink-blue" theme styles each slide and block.
  *
- * A theme owns the whole visual layer: design tokens (colours, fonts, type
- * scale, spacing) and the styling of every slide element and variant. To make
- * a new theme, copy this file and change the tokens — the structure below is a
- * good starting point.
- *
- * Slide anatomy this theme styles:
+ * Uses only the tokens from tokens.css and the assets in images/ and logos/.
+ * The slide vocabulary it styles (kept stable across every theme):
  *   <section class="slide">              standard content slide
  *   <section class="slide slide--title"> opening / hero slide
  *   <section class="slide slide--section">  section divider (dark)
  *   <section class="slide slide--conclude"> closing slide
- *
- * Inside a slide, the building blocks are:
- *   .eyebrow   small uppercase kicker above a title
- *   .display   the largest heading (title slide)
- *   h1 / .title / h2 / .subtitle / .lead
- *   ul.bullets, .two-col, .card, blockquote, code, .footer
+ *   blocks: .eyebrow .display h1/.title h2/.subtitle .lead .muted .accent
+ *           ul.bullets .two-col .card blockquote pre/code .footer
  */
-
-:root {
-  /* Type scale */
-  --type-display: 132px;
-  --type-title: 68px;
-  --type-subtitle: 44px;
-  --type-lead: 36px;
-  --type-body: 30px;
-  --type-small: 26px;
-  --type-eyebrow: 24px;
-
-  /* Spacing */
-  --pad-x: 110px;
-  --pad-top: 100px;
-  --pad-bottom: 90px;
-  --gap-title: 48px;
-  --gap-item: 28px;
-
-  /* Colour */
-  --bg: #ffffff;
-  --bg-soft: #f6f8fc;
-  --ink: #0f1e3a;
-  --muted: #6b7a8f;
-  --rule: #0f1e3a22;
-  --accent: #2a4f8a;
-  --accent-deep: #0f1e3a;
-  --accent-soft: #7da8d8;
-  --accent-tint: #2a4f8a14;
-
-  /* Fonts */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-}
 
 /* ---- base slide ---- */
 
@@ -237,3 +195,23 @@ pre {
   background: var(--bg-soft);
   align-items: flex-start;
 }
+
+/*
+ * ---- backgrounds & logo (examples — uncomment and drop files in images/ / logos/) ----
+ *
+ * .slide--title {
+ *   background: var(--accent-deep) url("images/cover.jpg") center / cover;
+ * }
+ *
+ * Put a logo on every slide via a corner element:
+ * .slide::after {
+ *   content: "";
+ *   position: absolute;
+ *   right: var(--pad-x);
+ *   top: 48px;
+ *   width: 160px;
+ *   height: 48px;
+ *   background: url("logos/logo.svg") right center / contain no-repeat;
+ *   opacity: .85;
+ * }
+ */
