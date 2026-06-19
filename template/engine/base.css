@@ -1,9 +1,9 @@
 /*
- * base.css — engine mechanics and chrome, theme-agnostic.
+ * base.css - engine mechanics and chrome, theme-agnostic.
  *
  * Owns the plumbing: the scaled canvas, the thumbnail rail, the control
  * buttons, the slide counter, the presenter sidebar, and printing. No
- * slide-content styles here — those live in a theme file (e.g. ink-blue.css).
+ * slide-content styles here - those live in a theme file (e.g. ink-blue.css).
  *
  * Browser support: Chrome 88+, Firefox 89+, Safari 14+, Edge 88+.
  * (aspect-ratio requires Safari 15+; thumbs proportions degrade gracefully below.)
@@ -35,7 +35,7 @@ html, body {
 
 deck-stage {
   position: fixed;
-  /* inset: 0 — written as explicit properties for Safari < 14.1 */
+  /* inset: 0 - written as explicit properties for Safari < 14.1 */
   top: 0;
   right: 0;
   bottom: 0;
@@ -69,7 +69,7 @@ deck-stage {
 
 .pf-canvas > * {
   position: absolute;
-  /* inset: 0 — explicit for Safari < 14.1 */
+  /* inset: 0 - explicit for Safari < 14.1 */
   top: 0;
   right: 0;
   bottom: 0;
@@ -146,7 +146,7 @@ deck-stage.is-presenter  .pf-rail-resizer { display: none; }
 }
 
 /*
- * Thumbnail frame — aspect-ratio 16:9.
+ * Thumbnail frame - aspect-ratio 16:9.
  * Fallback for browsers without aspect-ratio support (Safari < 15):
  * a position:relative + padding-bottom trick keeps the 16:9 shape.
  */
@@ -246,7 +246,7 @@ deck-stage.is-presenter  .pf-rail-resizer { display: none; }
 
 /* ---- speaker notes (windowed mode only) ---- */
 
-/* Toggle button — bottom-left of the stage */
+/* Toggle button - bottom-left of the stage */
 .pf-notes-btn {
   position: absolute;
   left: 18px;
@@ -459,7 +459,7 @@ deck-stage.is-presenter .pf-overlay  { display: none; }
   flex: 0 0 auto;
 }
 
-/* Next-slide preview — same 16:9 aspect-ratio trick as thumbnails */
+/* Next-slide preview - same 16:9 aspect-ratio trick as thumbnails */
 .pf-next-frame {
   position: relative;
   margin: 0 16px;

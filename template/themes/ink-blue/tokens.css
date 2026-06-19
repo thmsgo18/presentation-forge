@@ -1,10 +1,10 @@
 /*
- * tokens.css — the dials of the "ink-blue" theme.
+ * tokens.css - the dials of the "ink-blue" theme.
  *
  * Only design tokens live here: colours, type scale, spacing and the font-family
  * names. Tweak these to recolour or retype the whole deck without touching the
  * block styling (slides.css) or the engine. Every theme must define the same
- * token names so a deck can switch themes without breaking — this is the
+ * token names so a deck can switch themes without breaking - this is the
  * contract slides rely on.
  */
 
@@ -36,7 +36,7 @@
   --accent-soft: #7da8d8;
   --accent-tint: #2a4f8a14;
 
-  /* Fonts — declare the actual @font-face files in fonts.css */
+  /* Fonts - declare the actual @font-face files in fonts.css */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;

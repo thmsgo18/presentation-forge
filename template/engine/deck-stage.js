@@ -1,26 +1,27 @@
 /*
- * <deck-stage> — the presentation engine.
+ * <deck-stage> - the presentation engine.
  *
- * A zero-dependency custom element that turns a list of <section> slides into
- * a navigable, auto-scaling deck.
+ * A zero-dependency custom element that turns a list of <section> slides into a
+ * navigable, auto-scaling deck. Slides are authored on a fixed design canvas
+ * (default 1920x1080) that the engine scales to fit any screen.
  *
- * Three operating modes:
- *   windowed      default; shows the thumbnail rail on the left.
- *   full screen   single screen (or no Window Management permission);
- *                 rail hidden, controls fade on idle, Esc to exit.
- *   presenter     two or more screens detected; opens an audience window on
- *                 the secondary screen (full-screen slide only) and shows a
- *                 presenter sidebar (next-slide preview, notes, timer) here.
+ * Operating modes:
+ *   windowed     default; shows the thumbnail rail on the left.
+ *   full screen  the "f" key or button; rail hidden, controls fade when idle.
+ *   presenter    the "p" key or button; opens an audience window (full-screen
+ *                slide) and shows a presenter sidebar here (next-slide preview,
+ *                speaker notes, wall clock and timers).
  *
- * Speaker notes authoring:
- *   <section class="slide">
- *     <h2 class="title">…</h2>
- *     <aside class="notes">Anything here — only visible in presenter mode.</aside>
- *   </section>
+ * Speaker notes: add <aside class="notes"> inside a slide; it shows only in the
+ * presenter sidebar, never to the audience.
+ *
+ * Progressive reveal: add class="fragment" to elements to reveal them one click
+ * at a time before moving on to the next slide.
  *
  * Attributes on <deck-stage>:
- *   width / height   design canvas size (default 1920 × 1080)
- *   exit-hint        toast text shown on entering single-screen full screen
+ *   width / height   design canvas size (default 1920x1080)
+ *   transition       slide transition: fade (default), slide, or zoom
+ *   exit-hint        toast text shown when entering single-screen full screen
  *   no-rail          always hide the thumbnail rail
  */
 (() => {
@@ -155,7 +156,7 @@
       });
       this.stage.appendChild(this.canvas);
 
-      // Draw SVG overlay — same position/transform as canvas, scaled in sync.
+      // Draw SVG overlay - same position/transform as canvas, scaled in sync.
       this._drawSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       this._drawSvg.setAttribute("class", "pf-draw-svg");
       this._drawSvg.setAttribute("viewBox", `0 0 ${this.designW} ${this.designH}`);
@@ -163,7 +164,7 @@
       this._drawSvg.style.height = this.designH + "px";
       this.stage.appendChild(this._drawSvg);
 
-      // Laser dot — tracks mouse, synced to audience.
+      // Laser dot - tracks mouse, synced to audience.
       this._laserDot = el("div", "pf-laser-dot");
       this.stage.appendChild(this._laserDot);
 
@@ -529,7 +530,7 @@
     /* Full screen & presenter mode                                        */
     /* ------------------------------------------------------------------ */
 
-    // ⤢ button / f key — single-screen full screen on all browsers.
+    // ⤢ button / f key - single-screen full screen on all browsers.
     toggleFullscreen() {
       if (this._presenterActive) return; // presenter mode has its own exit button
       if (fsEl()) {
@@ -543,9 +544,9 @@
       if (req) req.call(this).catch(() => {});
     }
 
-    // 🖥 button / p key — presenter mode on all browsers.
+    // 🖥 button / p key - presenter mode on all browsers.
     // Opens a popup audience window (place it on the second screen).
-    // screen.isExtended (Chrome-only) is no longer used for detection —
+    // screen.isExtended (Chrome-only) is no longer used for detection -
     // the user triggers this explicitly, so it works on Safari and Firefox too.
     togglePresenter() {
       if (this._presenterActive) {
@@ -557,7 +558,7 @@
 
     _onFullscreenChange() {
       if (this._presenterActive) return;
-      // !!fsEl() is sufficient — we are the only caller of requestFullscreen.
+      // !!fsEl() is sufficient - we are the only caller of requestFullscreen.
       const on = !!fsEl();
       this.classList.toggle("is-fullscreen", on);
       this.fsBtn.innerHTML = on ? ICONS.compress : ICONS.expand;
@@ -568,7 +569,7 @@
         this._showToast(this.exitHint);
         // Make buttons visible immediately; they fade after IDLE_MS without movement.
         this._markActive();
-        // Close the notes panel — not available in full-screen mode.
+        // Close the notes panel - not available in full-screen mode.
         this._closeNotes();
       }
       requestAnimationFrame(() => { this._layout(); this._scaleThumbs(); });
@@ -579,7 +580,7 @@
     async _openPresenter() {
       // 1. Open the popup SYNCHRONOUSLY (before any await) so that popup
       //    blockers in Safari and Firefox see the user-gesture context.
-      //    about:blank is always same-origin with the opener — no restrictions.
+      //    about:blank is always same-origin with the opener - no restrictions.
       const left = (window.screen.availLeft || 0) + window.screen.availWidth;
       const top  = window.screen.availTop  || 0;
       const w    = window.screen.availWidth;
@@ -588,13 +589,13 @@
       const win = window.open("about:blank", "_blank", features);
 
       if (!win) {
-        // Popup blocked — fall back to single-screen fullscreen.
+        // Popup blocked - fall back to single-screen fullscreen.
         const req = this.requestFullscreen || this.webkitRequestFullscreen;
         if (req) req.call(this).catch(() => {});
         return;
       }
 
-      // 2. Now we can await — try to move the popup to the secondary screen.
+      // 2. Now we can await - try to move the popup to the secondary screen.
       if ("getScreenDetails" in window) {
         try {
           const details   = await window.getScreenDetails();
@@ -603,7 +604,7 @@
             try { win.moveTo(secondary.availLeft, secondary.availTop); }   catch {}
             try { win.resizeTo(secondary.availWidth, secondary.availHeight); } catch {}
           }
-        } catch { /* permission denied — initial offset heuristic stands */ }
+        } catch { /* permission denied - initial offset heuristic stands */ }
       }
 
       if (win.closed) return;
@@ -637,7 +638,7 @@
       this.presenterBtn.title = "Exit presenter mode";
       this._buildPresenterSidebar();
       // Rescale the main slide now that the stage shares its width with the
-      // sidebar — otherwise the canvas keeps its windowed scale and gets clipped.
+      // sidebar - otherwise the canvas keeps its windowed scale and gets clipped.
       requestAnimationFrame(() => this._layout());
       // Sync the current slide index. Also re-sync after a short delay in case
       // the audience window is still loading when the first postMessage is sent.
@@ -786,7 +787,7 @@
       const spacer = el("span", "pf-scroll-spacer");
       if (this._notesFontSize === undefined) this._notesFontSize = 17;
       const fontDown = el("button", "pf-font-btn"); fontDown.type = "button";
-      fontDown.textContent = "A−"; fontDown.title = "Smaller notes text";
+      fontDown.textContent = "A-"; fontDown.title = "Smaller notes text";
       fontDown.setAttribute("aria-label", "Smaller notes text");
       const fontUp = el("button", "pf-font-btn"); fontUp.type = "button";
       fontUp.textContent = "A+"; fontUp.title = "Larger notes text";
@@ -816,7 +817,7 @@
       this._clockEl        = el("span", "pf-clock");      // wall-clock time
       this._timerEl        = el("span", "pf-timer");      // elapsed time
 
-      // Reset only the global timer — the per-slide timer is independent and
+      // Reset only the global timer - the per-slide timer is independent and
       // resets on slide change.
       const resetBtn = mkBtn("pf-timer-reset", "Reset timer", ICONS.reset, () => {
         this._timerStart = Date.now();
@@ -1022,7 +1023,7 @@
         ["← / ↑",          "Previous slide"],
         ["Home",            "First slide"],
         ["End",             "Last slide"],
-        ["1 – 9",           "Jump to slide"],
+        ["1 - 9",           "Jump to slide"],
         ["f",               "Toggle fullscreen"],
         ["p",               "Toggle presenter mode"],
         ["o",               "Overview (all slides)"],
@@ -1168,7 +1169,7 @@ window.addEventListener('load', function(){ setTimeout(function(){ window.focus(
     _toggleDraw() { this._setDraw(!this._drawActive); }
 
     _setDraw(on) {
-      // Pen and laser are mutually exclusive — turning one on turns the other off.
+      // Pen and laser are mutually exclusive - turning one on turns the other off.
       if (on && this._laserActive) this._setLaser(false);
       this._drawActive = on;
       [this.drawBtn, this._presenterDrawBtn].forEach((b) => b && b.classList.toggle("is-active", on));
@@ -1279,7 +1280,7 @@ window.addEventListener('load', function(){ setTimeout(function(){ window.focus(
     /* ---- Audience window HTML ---------------------------------------- */
 
     _collectCSS() {
-      // Primary: read inline <style> tag content — always works everywhere,
+      // Primary: read inline <style> tag content - always works everywhere,
       // including Safari on file:// where cssRules access is blocked by
       // the browser's cross-origin security model. This also covers the bundle
       // case where build.py has already inlined all stylesheets as <style> tags.
@@ -1287,31 +1288,22 @@ window.addEventListener('load', function(){ setTimeout(function(){ window.focus(
         .map((s) => s.textContent)
         .join("\n");
 
-      // Secondary: try linked <link rel=stylesheet> via cssRules — works on
+      // Secondary: try linked <link rel=stylesheet> via cssRules - works on
       // same-origin HTTP servers, but throws SecurityError on file:// in Safari.
       Array.from(document.styleSheets).forEach((ss) => {
         if (!ss.href) return; // already collected from the <style> tag above
         try {
           css += "\n" + Array.from(ss.cssRules).map((r) => r.cssText).join("\n");
-        } catch { /* cross-origin restriction — skip */ }
+        } catch { /* cross-origin restriction - skip */ }
       });
 
       return css;
     }
 
     _buildAudienceHTML() {
-      // Strategy: give the popup as many CSS sources as possible so at least one
-      // works in every browser / file:// vs HTTP scenario.
-      //
-      // A.  <link> tags with absolute hrefs — the most reliable path on Safari
-      //     file://. The about:blank popup is same-origin with the opener, so
-      //     <link> can load local file:// resources just as the main page can.
-      //     (fetch / XHR are blocked on file:// in Safari, but <link> is not.)
-      //
-      // B.  Inline <style> textContent — covers the bundle (build.py inlines
-      //     everything) and any hand-written inline styles.
-      //
-      // C.  cssRules extraction — works on same-origin HTTP dev servers.
+      // Carry the deck's styles into the popup. A built deck inlines everything,
+      // so the <style> text collected by _collectCSS() is the source that always
+      // works; we also forward any <link rel=stylesheet> for the unbundled case.
       const linkTags = Array.from(document.querySelectorAll("link[rel=stylesheet]"))
         .map((l) => `<link rel="stylesheet" href="${l.href}">`)
         .join("\n");

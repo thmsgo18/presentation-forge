@@ -1,5 +1,5 @@
 /*
- * slides.css — how the "ink-blue" theme styles each slide and block.
+ * slides.css - how the "ink-blue" theme styles each slide and block.
  *
  * Uses only the tokens from tokens.css and the assets in images/ and logos/.
  * The slide vocabulary it styles (kept stable across every theme):
@@ -197,7 +197,7 @@ pre {
 }
 
 /*
- * ---- backgrounds & logo (examples — uncomment and drop files in images/ / logos/) ----
+ * ---- backgrounds & logo (examples - uncomment and drop files in images/ / logos/) ----
  *
  * .slide--title {
  *   background: var(--accent-deep) url("images/cover.jpg") center / cover;

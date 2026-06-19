@@ -13,25 +13,25 @@ framework, aucune dépendance.
 
 ```
 presentation-forge/
-├── engine/              # la logique de présentation — ne pas toucher
+├── engine/              # la logique de présentation - ne pas toucher
 │   ├── deck-stage.js    #   le moteur : un custom element <deck-stage>
 │   └── base.css         #   sa mécanique : mise à l'échelle, contrôles, mode présentateur, impression
-├── themes/              # les apparences — un dossier par thème, interchangeables
+├── themes/              # les apparences - un dossier par thème, interchangeables
 │   └── ink-blue/
 │       ├── tokens.css   #     les réglages : couleurs, échelle typo, espacements, polices
 │       ├── fonts.css    #     déclarations @font-face
 │       ├── slides.css   #     style des blocs (.title, .bullets, variantes…)
-│       ├── fonts/       #     fichiers de police   ┐ le look — voyage
+│       ├── fonts/       #     fichiers de police   ┐ le look - voyage
 │       ├── images/      #     fonds, textures      │ avec le thème
 │       └── logos/       #     logos                ┘
-├── slides/              # votre contenu — un fichier par slide, ordonné par nom
+├── slides/              # votre contenu - un fichier par slide, ordonné par nom
 │   ├── 01-title.html
 │   ├── 02-agenda.html
 │   └── …
 ├── assets/              # images de contenu de CETTE présentation (séparées des thèmes)
 ├── deck.config.json     # titre, dimensions, transition, thème
 ├── build.py             # regroupe tout dans un seul index.html autonome
-├── index.html           # le résultat du build — ouvrez & partagez CE fichier
+├── index.html           # le résultat du build - ouvrez & partagez CE fichier
 └── README.fr.md
 ```
 
@@ -47,7 +47,7 @@ de variables et de classes.
 # 1. Éditez les slides dans slides/ (un <section class="slide"> par fichier).
 # 2. Construisez la présentation :
 python3 build.py            # -> index.html (autonome)
-# 3. Ouvrez ou partagez index.html — un seul fichier avec tout dedans,
+# 3. Ouvrez ou partagez index.html - un seul fichier avec tout dedans,
 #    images comprises : il marche en double-clic et hors-ligne.
 ```
 
@@ -70,7 +70,7 @@ Chaque fichier de `slides/` est un `<section class="slide">` :
   <ul class="bullets">
     <li>Une idée par ligne.</li>
   </ul>
-  <aside class="notes">Notes — visibles seulement en mode présentateur.</aside>
+  <aside class="notes">Notes - visibles seulement en mode présentateur.</aside>
 </section>
 ```
 
@@ -84,16 +84,16 @@ pour en ajouter une, déposez un nouveau fichier dans `slides/`. Voir
 
 ## Présenter
 
-- **Révélation progressive** — ajoutez `class="fragment"` à un élément pour le
+- **Révélation progressive** - ajoutez `class="fragment"` à un élément pour le
   révéler étape par étape au clic (la vue présentateur affiche `step 2/3`).
-- **Plein écran** — le bouton ⤢ ou `f`.
-- **Mode présentateur** — le bouton écran ou `p` : ouvre une fenêtre audience
+- **Plein écran** - le bouton ⤢ ou `f`.
+- **Mode présentateur** - le bouton écran ou `p` : ouvre une fenêtre audience
   (slide en plein écran) et une vue présentateur ici, avec l'aperçu de la slide
   suivante, les notes, l'heure réelle et les chronos, le dessin et le laser.
-- **Vue d'ensemble** — `o` affiche toutes les slides en grille ; `b` / `w`
+- **Vue d'ensemble** - `o` affiche toutes les slides en grille ; `b` / `w`
   passe l'écran en noir / blanc.
-- **Export PDF** — le bouton imprimante (une page par slide).
-- **Raccourcis clavier** — touche `?` pour la liste complète.
+- **Export PDF** - le bouton imprimante (une page par slide).
+- **Raccourcis clavier** - touche `?` pour la liste complète.
 
 ## Licence
 

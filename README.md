@@ -1,97 +1,60 @@
-# Presentation Forge
+# Presentation Forge — Claude Code plugin
 
-Build presentations as clean, readable HTML.
+Build beautiful, **self-contained HTML presentations** with Claude Code. You
+describe a talk; Claude writes one HTML file per slide and bundles them — engine,
+theme and images included — into a single portable `index.html` you can
+double-click, email, or host anywhere. No framework, no runtime dependencies.
 
-You write one HTML file per slide; a small build step bundles them with the
-engine, the theme and your images into a single self-contained `index.html` you
-can double-click, email, or host anywhere. No framework, no dependencies.
+This plugin wraps the [Presentation Forge](template/README.md) deck engine and
+adds three commands.
 
-*[Version française](README.fr.md)*
+## Commands
 
-## Structure
+| Command | What it does |
+| ------- | ------------ |
+| **`/new-deck`** `[topic or brief]` | Create a presentation on any subject — a technical talk, a course, a pitch — scaffolded from the template, authored slide by slide, and built to `index.html`. |
+| **`/import-pptx-theme`** `<file.pptx>` | Recreate a PowerPoint's look (colours, fonts, logo, backgrounds) as a **reusable HTML theme** under `themes/<name>/`, usable by any deck. |
+| **`/deck-to-pdf`** `<deck>` | Export a deck to a clean PDF, one page per slide, with progressive reveals shown in their final state — reliable even where the browser's own print isn't. |
 
-```
-presentation-forge/
-├── engine/              # the presentation logic — don't edit
-│   ├── deck-stage.js    #   the engine: a <deck-stage> custom element
-│   └── base.css         #   its mechanics: scaling, controls, presenter UI, print
-├── themes/              # the looks — one folder per theme, swap freely
-│   └── ink-blue/
-│       ├── tokens.css   #     the dials: colours, type scale, spacing, fonts
-│       ├── fonts.css    #     @font-face declarations
-│       ├── slides.css   #     how blocks are styled (.title, .bullets, variants…)
-│       ├── fonts/       #     font files            ┐ the look — travels
-│       ├── images/      #     backgrounds, textures │ with the theme
-│       └── logos/       #     logos                 ┘
-├── slides/              # your content — one file per slide, ordered by name
-│   ├── 01-title.html
-│   ├── 02-agenda.html
-│   └── …
-├── assets/              # content images for THIS deck (kept apart from themes)
-├── deck.config.json     # title, size, transition, theme
-├── build.py             # bundles everything into one self-contained index.html
-├── index.html           # the build output — open & share THIS file
-└── README.md
-```
+A **skill** (`presentation-forge`) carries the shared knowledge — the slide
+authoring contract, building, theming — so Claude can also just build a deck when
+you ask, without a command.
 
-Three clear layers: **logic** (`engine/`), **look** (`themes/`), **content**
-(`slides/`). A theme is a self-contained folder (styles + its fonts, backgrounds
-and logos); switching the `theme` in `deck.config.json` restyles the whole deck
-without touching a single slide, because every theme honours the same set of
-tokens and slide classes.
+## Install
 
-## Workflow
+The repository is its own marketplace:
 
 ```sh
-# 1. Edit slides in slides/ (one <section class="slide"> per file).
-# 2. Build the deck:
-python3 build.py            # -> index.html (self-contained)
-# 3. Open or share index.html — it's a single file with everything inside,
-#    images included, so it works by double-click and offline.
+# in Claude Code
+/plugin marketplace add thmsgo18/presentation-forge
+/plugin install presentation-forge@thmsgo18
 ```
 
-While editing, rebuild on every save and refresh the browser:
+Then ask Claude to “make a presentation about …”, or run `/new-deck`.
 
-```sh
-python3 build.py --watch
-python3 build.py --open     # build, then open it in the browser
+## Requirements
+
+- **Python 3** (standard library only) — to build decks and run the scripts.
+- **A Chromium browser** (Chrome, Chromium, Edge or Brave) **or Playwright** —
+  only for `/deck-to-pdf`. The script prefers a system browser and falls back to
+  `pip install playwright && playwright install chromium`.
+- `/import-pptx-theme` needs nothing extra: the `.pptx` reader is pure stdlib.
+
+## Layout
+
+```
+.claude-plugin/        plugin + marketplace manifests
+commands/              /new-deck, /import-pptx-theme, /deck-to-pdf
+skills/presentation-forge/SKILL.md   shared authoring knowledge
+scripts/               deck_to_pdf.py (PDF export), pptx_theme.py (theme import)
+template/              the deck scaffold copied into each new presentation
+                       (engine/, themes/, slides/, build.py, docs/ …)
 ```
 
-Move through the slides with the arrow keys or Space.
-
-## Writing a slide
-
-Each file in `slides/` is one `<section class="slide">`:
-
-```html
-<section class="slide">
-  <h2 class="title">Your point here.</h2>
-  <ul class="bullets">
-    <li>One idea per line.</li>
-  </ul>
-  <aside class="notes">Notes — visible only in presenter mode.</aside>
-</section>
-```
-
-Slide variants: `slide--title`, `slide--section`, `slide--conclude`.
-Content blocks from the theme: `eyebrow`, `display`, `title`, `lead`, `muted`,
-`accent`, `bullets`, `two-col`, `card`, `blockquote`, `pre > code`.
-
-Slides display in **filename order** (`01-`, `02-`…); to add one, drop a new
-file in `slides/`. See [docs/writing-slides.md](docs/writing-slides.md) for the
-full guide.
-
-## Presenting
-
-- **Progressive reveal** — add `class="fragment"` to an element to reveal it
-  step by step on click (the presenter view shows `step 2/3`).
-- **Full screen** — the ⤢ button or `f`.
-- **Presenter mode** — the screen button or `p`: opens an audience window
-  (full-screen slide) and a presenter view here with the next-slide preview,
-  speaker notes, a wall clock and timers, drawing and a laser pointer.
-- **Overview** — `o` shows every slide as a grid; `b` / `w` blanks the screen.
-- **Export PDF** — the print button (one page per slide).
-- **Keyboard shortcuts** — press `?` for the full list.
+The engine, themes and authoring guide live in [`template/`](template/) — see
+[`template/README.md`](template/README.md) and
+[`template/docs/writing-slides.md`](template/docs/writing-slides.md) for the deck
+system itself.
 
 ## License
 

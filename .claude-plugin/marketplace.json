@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "thmsgo18",
+  "description": "Thomas Gourmelen's Claude Code plugins.",
+  "owner": {
+    "name": "Thomas Gourmelen",
+    "url": "https://github.com/thmsgo18"
+  },
+  "plugins": [
+    {
+      "name": "presentation-forge",
+      "source": "./",
+      "description": "Build beautiful self-contained HTML presentations: author slides from a brief, import a PowerPoint template as a reusable theme, and export clean PDFs.",
+      "keywords": ["presentation", "slides", "deck", "html", "pdf", "pptx"]
+    }
+  ]
+}

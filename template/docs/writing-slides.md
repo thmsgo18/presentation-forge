@@ -2,8 +2,8 @@
 
 A deck is a folder. You write **one file per slide** in `slides/`, each holding a
 single `<section class="slide">` with plain content using classes from the theme.
-Everything else — scaling, navigation, the slide counter, presenter mode,
-printing — is handled by the engine.
+Everything else - scaling, navigation, the slide counter, presenter mode,
+printing - is handled by the engine.
 
 You never write the `<deck-stage>` wrapper or link the engine/theme by hand:
 `build.py` assembles the slides, the engine, the theme and your images into one
@@ -18,7 +18,7 @@ self-contained `index.html`.
   <ul class="bullets">
     <li>One idea per line.</li>
   </ul>
-  <aside class="notes">Notes — visible only in presenter mode.</aside>
+  <aside class="notes">Notes - visible only in presenter mode.</aside>
 </section>
 ```
 
@@ -36,7 +36,7 @@ python3 build.py --watch    # rebuild on every save
 python3 build.py --open     # build, then open in the browser
 ```
 
-Open `index.html` (double-click works — it's a single file with the engine,
+Open `index.html` (double-click works - it's a single file with the engine,
 theme and images all inlined).
 
 ## Slide variants
@@ -52,15 +52,15 @@ theme and images all inlined).
 
 These classes are provided by the theme:
 
-- `.eyebrow` — small uppercase kicker above a title
-- `.display` — the largest heading (title slide)
-- `h1` / `.title`, `h2` / `.subtitle`, `.lead` — headings and lead text
-- `ul.bullets` — a bulleted list
-- `.two-col` — a two-column grid
-- `.card` — a boxed callout
-- `blockquote` — a pull quote
-- `pre` / `code` — code
-- `.muted`, `.accent` — text colour helpers
+- `.eyebrow` - small uppercase kicker above a title
+- `.display` - the largest heading (title slide)
+- `h1` / `.title`, `h2` / `.subtitle`, `.lead` - headings and lead text
+- `ul.bullets` - a bulleted list
+- `.two-col` - a two-column grid
+- `.card` - a boxed callout
+- `blockquote` - a pull quote
+- `pre` / `code` - code
+- `.muted`, `.accent` - text colour helpers
 
 ## Progressive reveal (fragments)
 
@@ -101,7 +101,7 @@ portable file.
 - **Next / previous:** → · PageDown · Space  /  ← · PageUp (these also step
   through fragments)
 - **First / last:** Home · End
-- **Jump:** number keys `1`–`9`, or click a slide in the left-hand rail
+- **Jump:** number keys `1`-`9`, or click a slide in the left-hand rail
 - **Overview (all slides):** `o`
 - **Full screen:** the button or the `f` key (Esc to leave)
 - **Presenter mode:** the button or `p`
@@ -120,7 +120,7 @@ Set these in `deck.config.json`:
 | ------------ | -------------- | ------------------------------------------- |
 | `title`      | `Presentation` | the page title                              |
 | `lang`       | `en`           | document language                           |
-| `theme`      | `ink-blue`     | which `theme/<name>.css` to use             |
+| `theme`      | `ink-blue`     | which `themes/<name>/` folder to use        |
 | `width` `height` | `1920` `1080` | the design canvas size                  |
 | `transition` | `fade`         | slide transition: `fade` · `slide` · `zoom` |
 | `exit_hint`  | English        | toast text shown when entering full screen  |
@@ -128,7 +128,7 @@ Set these in `deck.config.json`:
 ## Printing to PDF
 
 Open the built deck and use the print button (or the browser's **Print → Save as
-PDF**). Each slide becomes one page at the design size — no extra setup.
+PDF**). Each slide becomes one page at the design size - no extra setup.
 
 ## Theming
 
@@ -139,13 +139,13 @@ themes/ink-blue/
 ├── tokens.css   # the dials: colours, type scale, spacing, font-family names
 ├── fonts.css    # @font-face declarations
 ├── slides.css   # how the blocks above are styled
-├── fonts/       # font files            ┐ part of the look —
+├── fonts/       # font files            ┐ part of the look -
 ├── images/      # backgrounds, textures │ travels with the theme
 └── logos/       # logos                 ┘
 ```
 
 Keep theme assets (fonts, backgrounds, logos) inside the theme folder, and your
-deck's content images in `assets/` — the two never mix.
+deck's content images in `assets/` - the two never mix.
 
 To make a new look, copy `themes/ink-blue/` to `themes/<name>/`, edit
 `tokens.css` (and `slides.css` if needed), and set `"theme": "<name>"` in

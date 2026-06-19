@@ -2,7 +2,7 @@
 """Bundle the deck into a single, self-contained index.html.
 
 Reads the slides (one file per slide in ``slides/``), the engine and the theme,
-and inlines everything — script, styles, and images as base64 data URIs — into
+and inlines everything - script, styles, and images as base64 data URIs - into
 one portable ``index.html`` you can double-click, email, or host anywhere. No
 build tools, no third-party packages: just the Python standard library.
 
@@ -12,7 +12,7 @@ build tools, no third-party packages: just the Python standard library.
 
 Sources you edit:
     slides/*.html       one <section class="slide"> per file (order = filename)
-    theme/<name>.css    the look (chosen in deck.config.json)
+    themes/<name>/      the look (chosen in deck.config.json)
     deck.config.json    title, size, transition, theme
 """
 
@@ -172,12 +172,12 @@ def build() -> Path:
 """
     OUTPUT.write_text(html, encoding="utf-8")
     size_kb = OUTPUT.stat().st_size / 1024
-    print(f"Built {OUTPUT.name} — {len(slides)} slides, {size_kb:.0f} KB")
+    print(f"Built {OUTPUT.name} - {len(slides)} slides, {size_kb:.0f} KB")
     return OUTPUT
 
 
 def watch() -> None:
-    print("Watching for changes — Ctrl+C to stop.")
+    print("Watching for changes - Ctrl+C to stop.")
     mtimes: dict[Path, float] = {}
     try:
         while True:

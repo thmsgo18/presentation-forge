@@ -1,5 +1,5 @@
 /*
- * fonts.css — web fonts for the "ink-blue" theme.
+ * fonts.css - web fonts for the "ink-blue" theme.
  *
  * Drop the font files in fonts/, declare them here with @font-face, then use the
  * family name in tokens.css (--font-serif, --font-mono, ...). build.py inlines
