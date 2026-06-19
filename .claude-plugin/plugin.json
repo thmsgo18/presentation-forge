@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "presentation-forge",
   "displayName": "Presentation Forge",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Build beautiful self-contained HTML presentations (decks): author slides, import a PowerPoint template as a reusable theme, and export clean PDFs.",
   "author": {
     "name": "Thomas Gourmelen",
