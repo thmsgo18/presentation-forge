@@ -51,7 +51,7 @@ generating — don't stall on details you can reasonably choose. Useful to know:
    `<section class="slide">`), and offer to open it (`python3 build.py --open`).
 
 5. **Report** the deck folder path and how to present (arrow keys / Space, `p` for
-   presenter mode, `?` for shortcuts), and mention `/deck-to-pdf` for a PDF.
+   presenter mode, `?` for shortcuts), and mention `/export-pdf` for a PDF.
 
 ## Quality bar
 

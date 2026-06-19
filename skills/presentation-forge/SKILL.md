@@ -31,10 +31,11 @@ Three layers, always kept separate:
   backgrounds. Swap themes without touching slides.
 - **content** (`slides/`) — the actual slides, one file each, ordered by name.
 
-This skill is the shared foundation for three commands: **`/new-deck`** (author a
-deck from a brief), **`/import-pptx-theme`** (turn a PowerPoint into a reusable
-theme), and **`/deck-to-pdf`** (export a clean PDF). You can also use it directly
-whenever the task is "make an HTML presentation."
+This skill is the shared foundation for three commands: **`/new-presentation`**
+(author a deck from a brief), **`/import-template`** (turn a PowerPoint, an image
+or a text description into a reusable theme), and **`/export-pdf`** (export a
+clean PDF). You can also use it directly whenever the task is "make an HTML
+presentation."
 
 ## Where the template lives
 
@@ -182,7 +183,8 @@ styled), plus `fonts/`, `images/`, `logos/`. To create a new look, copy
 `themes/ink-blue/` to `themes/<name>/`, edit `tokens.css` first, and set
 `"theme": "<name>"` in `deck.config.json`. Every theme must define the same
 token names and style the same slide classes, so switching a theme never breaks a
-deck. To build a theme from a PowerPoint, use **`/import-pptx-theme`**.
+deck. To build a theme from a PowerPoint, an image or a description, use
+**`/import-template`**.
 
 ## Exporting to PDF
 
@@ -197,7 +199,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/deck_to_pdf.py" <deck-or-index.html> [-o 
 ```
 
 It prefers a system Chrome/Chromium/Edge/Brave and falls back to Playwright. The
-**`/deck-to-pdf`** command wraps this; see `scripts/deck_to_pdf.py --help`.
+**`/export-pdf`** command wraps this; see `scripts/deck_to_pdf.py --help`.
 
 ## Reference
 
