@@ -2,8 +2,8 @@
 """Extract the *design language* of a PowerPoint (.pptx) for re-use as a
 Presentation Forge theme.
 
-A .pptx is just a zip of XML. This reads the parts that define the look — the
-theme colour scheme, the major/minor fonts, the slide size — and lists the
+A .pptx is just a zip of XML. This reads the parts that define the look - the
+theme colour scheme, the major/minor fonts, the slide size - and lists the
 embedded media (logos, backgrounds). It prints a JSON report and, with
 ``--dump-media``, copies the media files out so you can pick a logo / background.
 
@@ -15,7 +15,7 @@ boring extraction.
     python3 pptx_theme.py <file.pptx>                     # print JSON report
     python3 pptx_theme.py <file.pptx> --dump-media <dir>  # also extract media
 
-Standard library only — no python-pptx, no Pillow, no pip install.
+Standard library only - no python-pptx, no Pillow, no pip install.
 """
 
 import argparse

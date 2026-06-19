@@ -1,61 +1,66 @@
-# Presentation Forge — Claude Code plugin
+# Presentation Forge - a portable Claude skill
 
-Build beautiful, **self-contained HTML presentations** with Claude Code. You
-describe a talk; Claude writes one HTML file per slide and bundles them — engine,
-theme and images included — into a single portable `index.html` you can
-double-click, email, or host anywhere. No framework, no runtime dependencies.
+Build beautiful, **self-contained HTML presentations** with Claude. You describe a
+talk; Claude writes one HTML file per slide and bundles them - engine, theme and
+images included - into a single portable `index.html` you can double-click,
+email, or host anywhere. No framework, no runtime dependencies.
 
-This plugin wraps the [Presentation Forge](template/README.md) deck engine and
-adds three commands.
+This is an **Agent Skill**: a single folder that works everywhere Claude has a
+filesystem and Python - **Claude Code**, the **Claude apps** (claude.ai / desktop),
+and the **API**.
 
-## Commands
+## What it does
 
-| Command | What it does |
-| ------- | ------------ |
-| **`/new-presentation`** `[topic or brief]` | Create a presentation on any subject — a technical talk, a course, a pitch — scaffolded from the template, authored slide by slide, and built to `index.html`. |
-| **`/import-template`** `<.pptx \| image \| "description">` | Build a **reusable HTML theme** under `themes/<name>/` from a PowerPoint, an image (slide/brand mockup), or a text description — and optionally integrate your company logo. |
-| **`/export-pdf`** `<deck>` | Export a deck to a clean PDF, one page per slide, with progressive reveals shown in their final state — reliable even where the browser's own print isn't. |
+Two workflows, triggered in plain language (no slash command needed):
 
-A **skill** (`presentation-forge`) carries the shared knowledge — the slide
-authoring contract, building, theming — so Claude can also just build a deck when
-you ask, without a command.
+- **Create a presentation** - *“make an HTML presentation about …”*. Any subject:
+  a technical talk, a course, a pitch. Claude scaffolds a deck, writes the slides,
+  and builds it to a single `index.html`.
+- **Import a theme** - *“reuse this brand / this .pptx / this look”*. Build a
+  **reusable theme** from a PowerPoint (`.pptx`), an image (slide/brand mockup),
+  or a text description - and integrate a **company logo**.
+
+The skill bundles the whole engine in [`template/`](template/); the authoring
+contract and theme guide live in [`SKILL.md`](SKILL.md) and
+[`reference/import-theme.md`](reference/import-theme.md).
 
 ## Install
 
-The repository is its own marketplace:
+### In the Claude apps (claude.ai / desktop)
+Upload **`dist/presentation-forge-skill.zip`** in **Settings → Features → Skills**
+(Pro, Max, Team, or Enterprise, with code execution enabled). Then just ask Claude
+to make a presentation.
 
+### In Claude Code
+Drop the skill into your skills folder - Claude discovers it automatically:
 ```sh
-# in Claude Code
-/plugin marketplace add thmsgo18/presentation-forge
-/plugin install presentation-forge@thmsgo18
+git clone https://github.com/thmsgo18/presentation-forge.git ~/.claude/skills/presentation-forge
 ```
+(or copy this folder to `.claude/skills/presentation-forge/` inside a project).
 
-Then ask Claude to “make a presentation about …”, or run `/new-presentation`.
+### Via the API
+Upload the same `dist/presentation-forge-skill.zip` through the Skills API
+(`/v1/skills`) and reference it from the code-execution container.
+
+> Custom skills don’t sync across surfaces - upload the zip once per surface where
+> you want it.
 
 ## Requirements
 
-- **Python 3** (standard library only) — to build decks and run the scripts.
-- **A Chromium browser** (Chrome, Chromium, Edge or Brave) **or Playwright** —
-  only for `/export-pdf`. The script prefers a system browser and falls back to
-  `pip install playwright && playwright install chromium`.
-- `/import-template` needs nothing extra: the `.pptx` reader is pure stdlib, and
-  image/description references use Claude's own visual judgement.
+- **Python 3** (standard library only) - to build decks and read `.pptx` files.
+- Nothing else. Theme import from images or descriptions uses Claude’s own visual
+  judgement.
 
 ## Layout
 
 ```
-.claude-plugin/        plugin + marketplace manifests
-commands/              /new-presentation, /import-template, /export-pdf
-skills/presentation-forge/SKILL.md   shared authoring knowledge
-scripts/               deck_to_pdf.py (PDF export), pptx_theme.py (theme import)
-template/              the deck scaffold copied into each new presentation
-                       (engine/, themes/, slides/, build.py, docs/ …)
+SKILL.md                 the skill: workflows + slide authoring contract
+reference/import-theme.md detailed theme-import guide (pptx · image · description · logo)
+scripts/pptx_theme.py    extract palette/fonts/media from a .pptx (pure stdlib)
+template/                the deck engine copied into each presentation
+                         (engine/, themes/, slides/, build.py, docs/ …)
+dist/                    packaged skill zip for upload
 ```
-
-The engine, themes and authoring guide live in [`template/`](template/) — see
-[`template/README.md`](template/README.md) and
-[`template/docs/writing-slides.md`](template/docs/writing-slides.md) for the deck
-system itself.
 
 ## License
 
