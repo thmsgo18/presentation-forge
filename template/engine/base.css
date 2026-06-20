@@ -68,12 +68,18 @@ deck-stage {
 }
 
 .pf-canvas > * {
-  position: absolute;
-  /* inset: 0 - explicit for Safari < 14.1 */
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  /* These positioning properties are engine-owned: every slide is absolutely
+     stacked to fill the scaled canvas. They are !important on purpose. The
+     selector .pf-canvas > * has the same specificity (0,1,0) as a theme's
+     .slide rule, and the theme CSS loads after the engine CSS, so without
+     !important a stray `.slide { position: relative }` (or top/left/etc.) in a
+     theme would win, drop slides back into normal flow, and break the whole
+     deck's layout. Themes must never set these on .slide; the engine enforces it. */
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
   visibility: hidden;
   opacity: 0;
   -webkit-transition: opacity 0.35s ease;

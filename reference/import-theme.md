@@ -163,6 +163,16 @@ You are restyling them, not renaming them, so any deck still builds. Translate t
 master's px boxes proportionally to the 1920x1080 canvas (multiply by
 `1920 / pptx_slide_width`).
 
+**Never set engine-owned layout properties on `.slide` itself.** The engine
+absolutely-positions every slide to stack and scale them, so a theme must not set
+`position`, `top` / `right` / `bottom` / `left`, `transform`, `width` / `height`,
+`visibility` or `opacity` on `.slide` (or `.slide--*`). Doing so breaks the layout
+of the entire deck. To anchor a logo, footer, page number, or colour band inside a
+slide, you do **not** need `position: relative` on `.slide` - it is already a
+positioned box, so just give the child `position: absolute` and it anchors to the
+slide. Style padding, colours, fonts, backgrounds and the slide's inner blocks,
+not the slide's own placement in the canvas.
+
 Trade-off to state to the user: a strong visual signature makes this theme
 specific to the brand (less of a neutral drop-in). That is the right call for a
 faithful charter; note it so they know why it looks less generic than `ink-blue`.
