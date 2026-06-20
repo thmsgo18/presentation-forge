@@ -18,7 +18,10 @@ Two workflows, triggered in plain language (no slash command needed):
   and builds it to a single `index.html`.
 - **Import a theme** - *“reuse this brand / this .pptx / this look”*. Build a
   **reusable theme** from a PowerPoint (`.pptx`), an image (slide/brand mockup),
-  or a text description - and integrate a **company logo**.
+  or a text description - and integrate a **company logo**. The result is exported
+  as a single portable **`.pfstyle.json`** style file: re-attach it in any future
+  conversation to recreate the exact same style, with no image or PowerPoint
+  needed.
 
 The skill bundles the whole engine in [`template/`](template/); the authoring
 contract and theme guide live in [`SKILL.md`](SKILL.md) and
@@ -55,8 +58,12 @@ Upload the same `dist/presentation-forge-skill.zip` through the Skills API
 
 ```
 SKILL.md                 the skill: workflows + slide authoring contract
+reference/writing-decks.md how to write the deck, its text, and speaker notes
 reference/import-theme.md detailed theme-import guide (pptx · image · description · logo)
-scripts/pptx_theme.py    extract palette/fonts/media from a .pptx (pure stdlib)
+scripts/pptx_theme.py    extract palette/fonts/media/master geometry from a .pptx
+scripts/image_colors.py  sample dominant colours from a brand image
+scripts/fetch_font.py    download brand fonts from Google Fonts as woff2 + @font-face
+scripts/theme_bundle.py  pack/unpack a whole theme as one portable .pfstyle.json
 template/                the deck engine copied into each presentation
                          (engine/, themes/, slides/, build.py, docs/ …)
 dist/                    packaged skill zip for upload

@@ -47,7 +47,6 @@
     play:     '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
     pause:    '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>',
     reset:    '<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
-    print:    '<svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
     draw:     '<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
     erase:    '<svg viewBox="0 0 24 24"><path d="M20 20H7L3 16l11-11 7 7-4 4"/><path d="m6.5 17.5 5-5"/></svg>',
     laser:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M19.1 4.9l-2.1 2.1M7.1 16.9l-2.1 2.1"/></svg>',
@@ -296,7 +295,6 @@
       this.controls      = el("div", "pf-controls");
       this.prevBtn       = mkBtn("pf-prev",    "Previous slide",        ICONS.prev,    () => this.prev());
       this.nextBtn       = mkBtn("pf-next",    "Next slide",            ICONS.next,    () => this.next());
-      this.printBtn      = mkBtn("pf-print",   "Export PDF",            ICONS.print,   () => this._exportPDF());
       this.drawBtn       = mkBtn("pf-draw",    "Draw mode (D)",         ICONS.draw,    () => this._toggleDraw());
       this.eraseBtn      = mkBtn("pf-erase",   "Clear drawing",         ICONS.erase,   () => this._clearDraw());
       this.laserBtn      = mkBtn("pf-laser",   "Laser pointer (L)",     ICONS.laser,   () => this._toggleLaser());
@@ -305,7 +303,6 @@
       this.fsBtn         = mkBtn("pf-fs",      "Full screen",           ICONS.expand,  () => this.toggleFullscreen());
       this.controls.append(
         this.prevBtn, this.nextBtn,
-        this.printBtn,
         this.drawBtn, this.eraseBtn, this.laserBtn,
         this.helpBtn,
         this.presenterBtn, this.fsBtn
@@ -817,11 +814,14 @@
       this._clockEl        = el("span", "pf-clock");      // wall-clock time
       this._timerEl        = el("span", "pf-timer");      // elapsed time
 
-      // Reset only the global timer - the per-slide timer is independent and
-      // resets on slide change.
+      // Reset both timers together: resetting the global presentation timer
+      // also restarts the per-slide timer, so the two stay in sync from zero.
       const resetBtn = mkBtn("pf-timer-reset", "Reset timer", ICONS.reset, () => {
-        this._timerStart = Date.now();
+        const now = Date.now();
+        this._timerStart = now;
         this._updateTimer();
+        this._slideTimerStart = now;
+        if (this._slideTimerEl) this._slideTimerEl.textContent = "00:00";
       });
 
       const exitBtn = mkBtn("pf-exit-btn", "Exit presentation", ICONS.exit,
@@ -1117,53 +1117,6 @@
       if (this._ovCells) this._ovCells.forEach((c, i) => c.classList.toggle("is-current", i === this.index));
     }
 
-    /* ---- PDF export --------------------------------------------------- */
-
-    _exportPDF() {
-      // Open a dedicated window with each slide laid out one-per-page and let
-      // the browser's "Save as PDF" handle it. This avoids fighting the live
-      // deck's fixed-position / scaled layout, which prints unreliably.
-      const linkTags = Array.from(document.querySelectorAll("link[rel=stylesheet]"))
-        .map((l) => `<link rel="stylesheet" href="${l.href}">`)
-        .join("\n");
-      const inlineCSS = this._collectCSS();
-
-      const pagesHTML = this.slides.map((s) => {
-        const c = s.cloneNode(true);
-        c.removeAttribute("data-active");
-        c.querySelectorAll("aside.notes").forEach((n) => n.remove());
-        return `<div class="pf-print-page">${c.outerHTML}</div>`;
-      }).join("\n");
-
-      const W = this.designW, H = this.designH;
-      const win = window.open("", "_blank");
-      if (!win) { window.print(); return; }
-
-      win.document.write(`<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-@page { size: ${W}px ${H}px; margin: 0; }
-html,body{margin:0;padding:0;background:#fff}
-.pf-print-page{position:relative;width:${W}px;height:${H}px;overflow:hidden;page-break-after:always;break-after:page}
-.pf-print-page:last-child{page-break-after:auto;break-after:auto}
-.pf-print-page>*{position:absolute;top:0;right:0;bottom:0;left:0;visibility:visible!important;opacity:1!important}
-aside.notes{display:none!important}
-${inlineCSS}
-</style>
-${linkTags}
-</head>
-<body>
-${pagesHTML}
-<script>
-window.addEventListener('load', function(){ setTimeout(function(){ window.focus(); window.print(); }, 350); });
-<\/script>
-</body>
-</html>`);
-      win.document.close();
-    }
-
     /* ---- Draw mode ---------------------------------------------------- */
 
     _toggleDraw() { this._setDraw(!this._drawActive); }
@@ -1229,10 +1182,18 @@ window.addEventListener('load', function(){ setTimeout(function(){ window.focus(
     }
 
     _svgPt(e) {
-      const pt = this._drawSvg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      return pt.matrixTransform(this._drawSvg.getScreenCTM().inverse());
+      // Map a screen (client) point into the SVG's design-space coordinates.
+      // We deliberately avoid getScreenCTM(): on WebKit/Safari it does not
+      // account for the CSS transform that scales the draw overlay, so the pen
+      // would draw offset from the cursor (works on Chrome/Firefox, not Safari).
+      // getBoundingClientRect() reflects the real rendered box on every browser;
+      // since the viewBox matches the design size with no letterboxing, a linear
+      // rect-to-viewBox mapping is exact.
+      const r = this._drawSvg.getBoundingClientRect();
+      return {
+        x: r.width  ? (e.clientX - r.left) / r.width  * this.designW : 0,
+        y: r.height ? (e.clientY - r.top)  / r.height * this.designH : 0,
+      };
     }
 
     _syncDraw(data) {

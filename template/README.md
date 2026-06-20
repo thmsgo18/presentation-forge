@@ -14,7 +14,7 @@ can double-click, email, or host anywhere. No framework, no dependencies.
 presentation-forge/
 ├── engine/              # the presentation logic - don't edit
 │   ├── deck-stage.js    #   the engine: a <deck-stage> custom element
-│   └── base.css         #   its mechanics: scaling, controls, presenter UI, print
+│   └── base.css         #   its mechanics: scaling, controls, presenter UI
 ├── themes/              # the looks - one folder per theme, swap freely
 │   └── ink-blue/
 │       ├── tokens.css   #     the dials: colours, type scale, spacing, fonts
@@ -90,7 +90,6 @@ full guide.
   (full-screen slide) and a presenter view here with the next-slide preview,
   speaker notes, a wall clock and timers, drawing and a laser pointer.
 - **Overview** - `o` shows every slide as a grid; `b` / `w` blanks the screen.
-- **Export PDF** - the print button (one page per slide).
 - **Keyboard shortcuts** - press `?` for the full list.
 
 ## License

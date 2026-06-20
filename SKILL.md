@@ -96,25 +96,52 @@ next to `SKILL.md`.
    warnings. Report the deck folder and how to present (arrow keys / Space, `p`
    presenter mode, `?` shortcuts).
 
-Write slides a person would actually present from: concrete titles that state the
-point (not "Introduction"), scannable parallel bullets, real content from the
-brief. Match the deck's language to the audience; flag specifics you invent to
-fill a thin brief.
+### Write it well, from the start
+
+Treat the writing as the product, not an afterthought. Before writing slides, fix
+the **one core message**, the **audience**, and a clear **arc** (title, context,
+2-4 sections, a close with the takeaway and next step). Then, per slide:
+
+- make the **title a full assertion** that states the point ("Caching cut p99 by
+  40%", not "Performance"); the body is only the evidence for it;
+- **one idea per slide**, few words, parallel and concrete bullets, no walls of
+  text - prose belongs in the notes;
+- give almost every content slide **speaker notes** in `<aside class="notes">`:
+  the spoken narration and delivery cues the slide does NOT show (not a copy of
+  the slide text, not a word-for-word script);
+- match the language to the audience; flag specifics you invent for a thin brief.
+
+For the full method (arc, assertion-evidence, tight on-slide text, and exactly
+what to put in speaker notes), read
+[`reference/writing-decks.md`](reference/writing-decks.md) before writing. It is
+what makes the deck and its text excellent rather than merely correct.
 
 ## Workflow 2 - Import a theme
 
-Build a **reusable** theme under `template/themes/<name>/` (or in a deck's
-`themes/<name>/`) from any reference - capture the *design language* (palette,
-typography, logo, background), not a pixel-perfect clone. The reference can be:
+Reproduce a brand's charter as a **reusable** theme under
+`template/themes/<name>/` (or a deck's `themes/<name>/`): its **palette**, its
+**real fonts** (downloaded and embedded, not a system fallback), its **logo**, and
+its **visual signature** (layout: title placement, bands, rules, footer). The
+reference can be:
 
-- **a PowerPoint (`.pptx`)** - extract palette, fonts and media with the bundled
-  stdlib script `scripts/pptx_theme.py`;
-- **image(s)** - a slide screenshot, brand page, or moodboard, read by eye;
-- **a text description** - brand words mapped to concrete tokens;
+- **a saved style file (`.pfstyle.json`)** from a previous session - the exact,
+  one-step path: `scripts/theme_bundle.py unpack` rebuilds the whole theme (CSS,
+  fonts, logo, backgrounds) byte for byte, with no reproduction needed;
+- **a PowerPoint (`.pptx`)** - `scripts/pptx_theme.py` extracts the palette, the
+  fonts, the embedded media, and the master's layout geometry (title/body boxes,
+  font sizes, background);
+- **image(s)** - `scripts/image_colors.py` samples the exact dominant colours;
+  view the image for typography and layout;
+- **a text description** - brand words mapped to tokens;
 - optionally **a company logo** to integrate onto slides.
 
-The detailed, step-by-step procedure (script invocation, palette mapping, font
-handling, and **logo integration**) is in
+Real fonts are fetched with `scripts/fetch_font.py` (Google Fonts) when free, with
+a fallback to asking for the font files. Whenever you build a theme, **export it**
+with `scripts/theme_bundle.py pack` into a single `<name>.pfstyle.json` and give it
+to the user: handing back that one file in any future conversation recreates the
+exact same style, with no image or PowerPoint needed. The full step-by-step
+procedure (colour mapping, font fetching, logo integration, reproducing the layout
+in `slides.css`, and packing/unpacking the style file) is in
 [`reference/import-theme.md`](reference/import-theme.md). Read it when this
 workflow triggers.
 
@@ -186,6 +213,9 @@ never breaks a deck.
 
 ## Reference
 
+- [`reference/writing-decks.md`](reference/writing-decks.md) - how to write the
+  presentation and its text well, and what to put in speaker notes. Load it for
+  Workflow 1.
 - [`reference/import-theme.md`](reference/import-theme.md) - full theme-import
   procedure (pptx / image / description / logo). Load it for Workflow 2.
 - `template/docs/writing-slides.md` - the deep authoring guide (navigation,

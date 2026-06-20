@@ -2,8 +2,8 @@
 
 A deck is a folder. You write **one file per slide** in `slides/`, each holding a
 single `<section class="slide">` with plain content using classes from the theme.
-Everything else - scaling, navigation, the slide counter, presenter mode,
-printing - is handled by the engine.
+Everything else - scaling, navigation, the slide counter, and presenter
+mode - is handled by the engine.
 
 You never write the `<deck-stage>` wrapper or link the engine/theme by hand:
 `build.py` assembles the slides, the engine, the theme and your images into one
@@ -82,7 +82,7 @@ Each press of → reveals the next fragment; once all are shown, → moves to th
 next slide. ← hides the last fragment (and going back to a slide shows all of
 its fragments). The audience window and the presenter step counter
 (`step 2/3`) stay in sync. A slide with no `.fragment` behaves exactly as
-before. Printed/PDF decks show every fragment.
+before.
 
 ## Images
 
@@ -124,11 +124,6 @@ Set these in `deck.config.json`:
 | `width` `height` | `1920` `1080` | the design canvas size                  |
 | `transition` | `fade`         | slide transition: `fade` · `slide` · `zoom` |
 | `exit_hint`  | English        | toast text shown when entering full screen  |
-
-## Printing to PDF
-
-Open the built deck and use the print button (or the browser's **Print → Save as
-PDF**). Each slide becomes one page at the design size - no extra setup.
 
 ## Theming
 

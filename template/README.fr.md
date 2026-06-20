@@ -15,7 +15,7 @@ framework, aucune dépendance.
 presentation-forge/
 ├── engine/              # la logique de présentation - ne pas toucher
 │   ├── deck-stage.js    #   le moteur : un custom element <deck-stage>
-│   └── base.css         #   sa mécanique : mise à l'échelle, contrôles, mode présentateur, impression
+│   └── base.css         #   sa mécanique : mise à l'échelle, contrôles, mode présentateur
 ├── themes/              # les apparences - un dossier par thème, interchangeables
 │   └── ink-blue/
 │       ├── tokens.css   #     les réglages : couleurs, échelle typo, espacements, polices
@@ -92,7 +92,6 @@ pour en ajouter une, déposez un nouveau fichier dans `slides/`. Voir
   suivante, les notes, l'heure réelle et les chronos, le dessin et le laser.
 - **Vue d'ensemble** - `o` affiche toutes les slides en grille ; `b` / `w`
   passe l'écran en noir / blanc.
-- **Export PDF** - le bouton imprimante (une page par slide).
 - **Raccourcis clavier** - touche `?` pour la liste complète.
 
 ## Licence

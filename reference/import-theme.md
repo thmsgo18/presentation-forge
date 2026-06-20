@@ -1,156 +1,210 @@
 # Importing a theme
 
-Build a **reusable** Presentation Forge theme from a brand or visual reference.
-The goal is to capture the *design language* - palette, typography, logo,
-background - into `themes/<name>/`, so any deck can adopt the look with
-`"theme": "<name>"`. This is **not** a pixel-perfect clone of specific slides.
+Reproduce a brand's graphic charter as a reusable Presentation Forge theme under
+`themes/<name>/`. Capture four things and apply them faithfully:
 
-The reference can be a PowerPoint, image(s), a text description, or a combination
-- plus an optional company logo. Handle whatever the user provides; if a logo is
-mentioned but not attached, ask for the file.
+1. the **palette** (real colours),
+2. the **real fonts** (downloaded and embedded, not a system fallback),
+3. the **logo**,
+4. the **visual signature** (the layout: title placement, bands, rules, footer).
+
+The reference can be a PowerPoint, image(s), a text description, or a combination,
+plus an optional company logo. Handle whatever the user provides; if a logo or a
+font file is needed but missing, ask for it.
+
+It can also be a **saved style file** (`.pfstyle.json`) the user got from a
+previous session. That is the fast, exact path: skip straight to *Reuse a saved
+style file* below and you are done in one step.
 
 `<skill-dir>` below is this skill's folder (where `SKILL.md` lives); `template/`
 and `scripts/` are inside it.
 
+## Reuse a saved style file (fastest, exact)
+
+If the user provides a `.pfstyle.json`, do not reproduce anything: it already
+contains the complete theme (CSS, fonts, logo, backgrounds), byte for byte.
+Rebuild it into the deck and use it as-is:
+
+```sh
+python3 "<skill-dir>/scripts/theme_bundle.py" unpack <file.pfstyle.json> \
+    "<deck>/themes"
+```
+
+It recreates `<deck>/themes/<name>/` exactly and prints the theme name and a
+summary. Set `"theme": "<name>"` in `deck.config.json`, build, and you are done -
+no images or PowerPoint needed. To reproduce a style from scratch instead,
+continue with the steps below; either way, finish with *Export the style for
+reuse*.
+
 ## Step 1 - Derive the design language
 
-Do this for **each** source the user gives.
-
 ### From a PowerPoint (`.pptx`)
-
-Run the bundled extractor (pure standard library - no pip, no network):
 
 ```sh
 python3 "<skill-dir>/scripts/pptx_theme.py" <file.pptx> --dump-media /tmp/pptx-media
 ```
 
-It prints JSON with:
-- `palette` - the theme colours (`dk1`, `lt1`, `dk2`, `lt2`, `accent1…6`, `hlink`),
+JSON fields:
+- `palette` - theme colours (`dk1`, `lt1`, `dk2`, `lt2`, `accent1..6`, `hlink`),
 - `fonts` - `major` (headings) and `minor` (body),
-- `slide_size_px`,
-- `suggested_tokens` - a rough first mapping to Presentation Forge tokens,
-- `media` - embedded images with dimensions; the files are dumped to the given dir
-  so you can inspect them (logos, backgrounds).
-
-Start from `suggested_tokens`, then refine by eye.
+- `suggested_tokens` - a first colour mapping,
+- `master` - **layout signal**: `background`, `title_box` and `body_box`
+  (`{x,y,w,h}` in px at the deck's slide size), `title_pt` / `body_pt` default
+  font sizes. Use this to reproduce placement and proportions (Step 6).
+- `slide_size_px`, `media` (dumped for inspection).
 
 ### From image(s)
 
-When the user gives a slide screenshot, a brand-guidelines page, or a moodboard,
-**view the image** and read off:
-- the **background** colour and the **main text** colour,
-- the **accent** colour(s),
-- the **typography feel** - serif vs sans, weight, character (geometric, humanist,
-  condensed…),
-- any **layout signature** worth echoing (hairline rules, generous margins, a
-  colour band, a corner logo).
+Sample the real colours instead of guessing:
 
-Pick concrete hex values. Reading by eye is fine because the user validates by
-building; if they want exact dominant colours and Pillow happens to be available,
-you may sample the image programmatically, but treat that as optional.
+```sh
+python3 "<skill-dir>/scripts/image_colors.py" <image> --colors 6
+```
+
+It prints the dominant colours (`hex`, `share`, `hsv`) and a `suggested_tokens`
+(`bg` / `ink` / `accent`). Then also **view** the image for what colours can't
+tell you: the typography (serif vs sans, weight, character) and the layout
+signature (title placement, a colour band, hairline rules, a footer, the bullet
+style).
 
 ### From a text description
 
-Translate brand words into concrete tokens:
-- mood → light/dark `--bg` and `--ink` (e.g. "dark, sleek" → near-black bg, light
-  ink);
-- a named or implied brand colour → `--accent`;
-- "modern geometric sans" / "classic serif" / "monospace accents" → font families
-  with safe fallbacks;
-- "airy", "minimal", "lots of whitespace" → larger spacing tokens.
-
-State the choices you inferred so the user can correct them.
+Translate brand words into tokens: mood -> light/dark `--bg`/`--ink`; brand colour
+-> `--accent`; "modern geometric sans" / "classic serif" -> font families;
+"airy/minimal" -> larger spacing. State what you inferred.
 
 ## Step 2 - Create the theme folder
 
-Decide the deck folder first (scaffold a fresh one from `template/` if needed, per
-the skill's Workflow 1). Then create `themes/<name>/` by **copying
-`themes/ink-blue/`**:
+Scaffold a deck from `template/` if needed, then copy the base theme:
 
 ```sh
 cp -R "<deck>/themes/ink-blue" "<deck>/themes/<name>"
 ```
 
-This keeps the proven `slides.css` block styling and the token contract intact -
-you override the look, not the structure. Choose `<name>` from the brand (kebab-
-case).
+This keeps the class/token contract; you override the look. Name `<name>` after
+the brand (kebab-case).
 
 ## Step 3 - Map the palette into `themes/<name>/tokens.css`
 
-| Token             | Set from                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| `--bg`            | main background (pptx `lt1`)                                  |
-| `--bg-soft`       | a near-background tint (pptx `lt2`)                           |
-| `--ink`           | body text (pptx `dk1`)                                        |
-| `--accent`        | the brand colour (pptx `accent1`)                            |
-| `--accent-deep`   | a darkened accent or near-black (pptx `dk2`)                 |
-| `--accent-soft`   | a lighter accent                                             |
-| `--accent-tint`   | a very light accent, ~8-12% alpha (e.g. `#RRGGBB14`)          |
-| `--muted`         | a mid grey                                                    |
-| `--rule`          | `--ink` at low alpha (hairlines)                             |
+| Token           | Set from                                        |
+| --------------- | ----------------------------------------------- |
+| `--bg`          | main background (pptx `lt1`, image `bg`)        |
+| `--bg-soft`     | a near-background tint (pptx `lt2`)             |
+| `--ink`         | body text (pptx `dk1`, image `ink`)            |
+| `--accent`      | the brand colour (pptx `accent1`, image `accent`) |
+| `--accent-deep` | a darkened accent or near-black (pptx `dk2`)   |
+| `--accent-soft` | a lighter accent                                |
+| `--accent-tint` | a very light accent, ~8-12% alpha (`#RRGGBB14`) |
+| `--muted`       | a mid grey                                       |
+| `--rule`        | `--ink` at low alpha (hairlines)                |
 
-Keep the existing **type scale and spacing** unless the reference clearly calls
-for different proportions - the ink-blue scale is tuned for the 1920×1080 canvas.
+Set the **type scale** too if the master tells you (`title_pt` / `body_pt`): the
+tokens `--type-display`, `--type-title`, `--type-body` etc. are the dials. Scale
+the master's point sizes to the 1920x1080 canvas if the source slide size differs.
 
-## Step 4 - Set the fonts
+## Step 4 - Use the brand's real fonts
 
-Put the heading/body families into the `--font-serif` / `--font-sans` (and
-`--font-mono` if relevant) tokens. If the exact fonts aren't available, use the
-closest **safe fallbacks** (the matching system fonts). When you have the real
-font files, drop the `.woff2` into `themes/<name>/fonts/` and declare them with
-`@font-face` in `fonts.css` so the built deck looks identical offline (the build
-inlines them as base64).
+A fallback system font is the biggest fidelity loss, so fetch the real face when
+it is free:
+
+```sh
+python3 "<skill-dir>/scripts/fetch_font.py" "<Family>" --weights 400,700 \
+    --out "<deck>/themes/<name>/fonts"
+```
+
+It downloads the `.woff2` (latin + latin-ext, so French accents render) and prints
+`@font-face` rules. Paste those into `themes/<name>/fonts.css`, then point the
+token at the family in `tokens.css` (e.g. `--font-sans: "<Family>", system-ui,
+sans-serif;`). Fetch both the heading and body families.
+
+If the script reports the family is **not on Google Fonts** (a commercial or
+custom face): ask the user for the `.woff2` files (drop them in `fonts/` and write
+the `@font-face` by hand), or choose the closest free alternative and say so.
+Network is available in Claude Code; in a restricted sandbox the fetch may fail -
+fall back to the same options.
 
 ## Step 5 - Integrate the logo
 
-When the user provides a logo (or one is clearly the brand asset among the pptx
-media):
+Place the logo in `themes/<name>/logos/` (prefer transparent PNG or SVG), then
+wire it into `slides.css` with `url(logos/<file>)` (the build inlines it):
 
-1. **Place it** in `themes/<name>/logos/` (keep the original file; prefer a
-   transparent PNG or an SVG).
-2. **Wire it into `slides.css`** with `url(logos/<file>)` (relative to the theme
-   folder - the build inlines it). Common, tasteful patterns:
-   - **Small corner logo on every slide** - add a background image to `.slide`:
-     ```css
-     .slide {
-       background-image: url(logos/logo.png);
-       background-repeat: no-repeat;
-       background-position: right 48px top 40px;   /* keep clear of content */
-       background-size: 160px auto;
-     }
-     ```
-   - **Larger logo on the title slide only** - scope it to `.slide--title`.
-   - **Logo in a footer** - if the theme uses `.footer`, place it there instead.
-3. **Mind legibility**: size it modestly (it should never compete with the title),
-   keep it clear of text, and on dark variants (`slide--section`) use a light/
-   monochrome version if the colour logo doesn't read. If only a colour logo
-   exists and it clashes on dark slides, suppress it there
-   (`.slide--section { background-image: none; }`).
-4. Discard incidental pptx media (sample screenshots, content icons) - only the
-   real brand mark is the logo.
+- small corner logo on every slide via a `.slide` background-image, kept clear of
+  the content (`background-position: right 48px top 40px; background-size: 160px`);
+- or larger on `.slide--title` only; or in a `.footer`.
 
-## Step 6 - Backgrounds (optional)
+Mind legibility: modest size, clear of text; on dark variants (`slide--section`)
+use a light/monochrome logo or suppress it (`.slide--section{background-image:none}`).
+Pick the real brand mark from the pptx media; discard sample screenshots/icons.
 
-If the reference implies a background image or texture (distinct from the logo),
-place it in `themes/<name>/images/` and apply it to `slide--title` /
-`slide--section` (or all slides) - tastefully, never so busy that text becomes
-hard to read. Add an overlay/tint if needed to preserve contrast.
+## Step 6 - Reproduce the visual signature (slides.css)
 
-## Step 7 - Activate, verify, report
+Colours, fonts and a logo get you "on brand". Matching the **layout** is what makes
+it look like the real charter. Adapt `themes/<name>/slides.css` to echo the
+reference's signature, for example:
 
-1. Set `"theme": "<name>"` in `deck.config.json`.
-2. `python3 build.py` and open the result.
-3. Check a **title** slide, a **content** slide, and a **`slide--section`**
-   against the reference; tune `tokens.css` (and the logo placement) until the
-   feel matches and text stays legible.
-4. **Report** the colours and fonts you chose, where the logo was placed, and any
-   assumptions (substituted fonts, inferred brand colour, which media you treated
-   as the logo) so the user can correct them.
+- **title placement and size** - from the master `title_box` (position) and
+  `title_pt` (size), or from the image. Move/scale `.title` / `.display`
+  accordingly;
+- **a brand colour band or sidebar** - a coloured strip behind the title or down
+  one edge;
+- **hairline rules / underlines** - an accent rule under the title or in the
+  footer;
+- **a footer** - logo, a short brand line, a slide number, using `.footer`;
+- **section dividers** - how `slide--section` looks (full-bleed brand colour,
+  large number, etc.);
+- **bullet markers** - the shape/colour of `ul.bullets` markers;
+- **backgrounds** - if the master/reference has a background fill or texture, set
+  it on `.slide` (or just `slide--title` / `slide--section`); put image textures in
+  `themes/<name>/images/` and keep contrast high enough to read.
+
+**Preserve the contract.** Keep every class (`.slide`, `.title`, `.bullets`,
+`.two-col`, `.card`, `slide--title/section/conclude`, ...) and every token name.
+You are restyling them, not renaming them, so any deck still builds. Translate the
+master's px boxes proportionally to the 1920x1080 canvas (multiply by
+`1920 / pptx_slide_width`).
+
+Trade-off to state to the user: a strong visual signature makes this theme
+specific to the brand (less of a neutral drop-in). That is the right call for a
+faithful charter; note it so they know why it looks less generic than `ink-blue`.
+
+## Step 7 - Activate, verify against the reference, report
+
+1. Set `"theme": "<name>"` in `deck.config.json` and `python3 build.py`.
+2. Render and **compare side by side with the reference**: a title slide, a
+   content slide, and a `slide--section`. A quick way to get an image of a slide:
+   ```sh
+   "/path/to/Chrome" --headless=new --screenshot=/tmp/slide.png \
+       --window-size=1920,1080 "file://<deck>/index.html"
+   ```
+   Look at the title position/size, colours, fonts (are the real faces loading?),
+   logo placement, and overall feel. Tune `tokens.css` and `slides.css` and rebuild
+   until it matches and text stays legible.
+3. **Report** the colours and fonts used (and whether each font was fetched or
+   substituted), where the logo sits, what layout signatures you reproduced, and
+   any assumptions, so the user can correct them.
+
+## Step 8 - Export the style for reuse (always)
+
+Whenever you reproduce or build a theme, package it into a single portable style
+file and give it to the user, so they never have to refurnish the image, the
+PowerPoint, or the description again:
+
+```sh
+python3 "<skill-dir>/scripts/theme_bundle.py" pack "<deck>/themes/<name>" \
+    -o "<name>.pfstyle.json"
+```
+
+This writes one `<name>.pfstyle.json` that contains the **entire** theme byte for
+byte: `tokens.css`, `slides.css`, `fonts.css`, the `.woff2` font files, the logo,
+and any backgrounds, plus a readable summary. Nothing is lost.
+
+Hand that file to the user and tell them: in any future conversation, attaching
+this one file is enough to recreate the exact same style (see *Reuse a saved style
+file*) - no images or PowerPoint needed.
 
 ## Notes
 
-- Because every theme defines the same tokens and styles the same slide classes,
-  the new theme immediately works with any existing deck.
-- For a `.pptx`, this reads its theme/master design, not the content of its sample
+- Keep the class/token contract intact so the new theme works with any deck.
+- For a `.pptx`, this reads the theme + master design, not the content of sample
   slides.
 - Clean up any `/tmp/pptx-media` you created.

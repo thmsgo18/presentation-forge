@@ -2,7 +2,7 @@
  * base.css - engine mechanics and chrome, theme-agnostic.
  *
  * Owns the plumbing: the scaled canvas, the thumbnail rail, the control
- * buttons, the slide counter, the presenter sidebar, and printing. No
+ * buttons, the slide counter, and the presenter sidebar. No
  * slide-content styles here - those live in a theme file (e.g. ink-blue.css).
  *
  * Browser support: Chrome 88+, Firefox 89+, Safari 14+, Edge 88+.
@@ -1021,43 +1021,4 @@ deck-stage[no-rail] .pf-rail { display: none; }
 
 @media (max-width: 820px) {
   .pf-rail { display: none; }
-}
-
-/* ---- print: one page per slide, no chrome ---- */
-
-@media print {
-  @page { size: 1920px 1080px; margin: 0; }
-
-  html, body { height: auto; overflow: visible; background: #fff; }
-
-  deck-stage { position: static; display: block; }
-
-  .pf-rail, .pf-controls, .pf-overlay, .pf-toast,
-  .pf-presenter-sidebar, .pf-draw-svg, .pf-laser-dot,
-  .pf-progress-bar, .pf-shortcuts-overlay, .pf-overview, .pf-blank,
-  .pf-notes-btn, .pf-notes-panel, .pf-notes-backdrop { display: none !important; }
-
-  /* A printed deck shows every fragment, regardless of reveal state. */
-  .pf-canvas .fragment { opacity: 1 !important; }
-
-  .pf-stage { position: static; overflow: visible; background: none; }
-
-  .pf-canvas {
-    position: static;
-    -webkit-transform: none;
-    transform: none;
-    width: var(--design-w, 1920px) !important;
-    height: auto !important;
-  }
-
-  .pf-canvas > * {
-    position: relative;
-    top: auto; right: auto; bottom: auto; left: auto;
-    visibility: visible !important;
-    opacity: 1 !important;
-    width: var(--design-w, 1920px);
-    height: var(--design-h, 1080px);
-    break-after: page;
-    page-break-after: always;
-  }
 }
