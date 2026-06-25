@@ -1168,9 +1168,31 @@ deck-stage[no-rail] .pf-rail { display: none; }
   height: 3px;
   background: linear-gradient(90deg, var(--accent) 0%, transparent 45%, var(--accent-soft) 100%);
   opacity: 0.7;
+  z-index: 2;
+}
+
+
+.slide::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(640px 460px at 26% 32%, var(--accent-tint) 0%, transparent 62%),
+    radial-gradient(520px 420px at 78% 70%, #4fd6e60f 0%, transparent 60%);
+  animation: pf-ambient-drift 32s ease-in-out infinite alternate;
+}
+
+@keyframes pf-ambient-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(2.4%, -1.8%, 0) scale(1.05); }
+  100% { transform: translate3d(-1.6%, 2.2%, 0) scale(1.02); }
 }
 
 .slide > * {
+  position: relative;
+  z-index: 1;
   margin: 0;
 }
 
@@ -1199,10 +1221,12 @@ deck-stage[no-rail] .pf-rail { display: none; }
 }
 
 .display {
+  display: block;
   font-family: var(--font-serif);
   font-size: var(--type-display);
   font-weight: 400;
-  line-height: 1.0;
+  line-height: 1.18;
+  padding-bottom: 0.06em;
   letter-spacing: -0.02em;
   background: linear-gradient(118deg, #ffffff 0%, #cbbcff 46%, var(--accent-soft) 100%);
   -webkit-background-clip: text;
@@ -1309,13 +1333,18 @@ blockquote {
 blockquote::before {
   content: "\201C";
   position: absolute;
-  left: 36px;
-  top: -0.36em;
-  font-size: 200px;
+  left: 4px;
+  right: auto;
+  top: -0.4em;
+  width: max-content;
+  font-size: 170px;
   line-height: 1;
+  font-style: normal;
+  white-space: nowrap;
   color: var(--accent);
-  opacity: 0.12;
+  opacity: 0.14;
   pointer-events: none;
+  z-index: -1;
 }
 
 
@@ -1340,9 +1369,9 @@ pre {
   color: #dbe4f6;
   border: 1px solid var(--rule);
   border-radius: 16px;
-  padding: 64px 40px 36px;
+  padding: 64px 0 28px;
   overflow: auto;
-  line-height: 1.55;
+  line-height: 1.6;
   box-shadow: 0 30px 70px -45px #000;
 }
 
@@ -1357,13 +1386,55 @@ pre::before {
   border-radius: 50%;
   background: #ff5f57;
   box-shadow: 22px 0 #febc2e, 44px 0 #28c840;
+  z-index: 1;
+}
+
+
+pre::after {
+  content: attr(data-filename);
+  position: absolute;
+  top: 24px;
+  left: 96px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+  opacity: 0.7;
 }
 
 pre code {
+  display: block;
   background: none;
   color: inherit;
-  padding: 0;
+  padding: 0 40px;
+  counter-reset: pf-line;
 }
+
+
+pre code .line {
+  counter-increment: pf-line;
+  position: relative;
+  display: block;
+  padding-left: 3em;
+  white-space: pre;
+}
+
+pre code .line::before {
+  content: counter(pf-line);
+  position: absolute;
+  left: 0;
+  width: 2.2em;
+  text-align: right;
+  color: #4a5578;
+  font-variant-numeric: tabular-nums;
+}
+
+
+.tok-tag     { color: var(--accent-soft); }
+.tok-attr    { color: #caa6ff; }
+.tok-str     { color: #f0c987; }
+.tok-punc    { color: #5d6a8c; }
+.tok-comment { color: #5d6a8c; font-style: italic; }
 
 
 
@@ -1433,6 +1504,447 @@ pre code {
     var(--bg);
 }
 
+
+
+
+
+
+.diagram {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.diagram__node {
+  flex: 1 1 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 30px 26px;
+  text-align: center;
+}
+
+.diagram__node h3 {
+  margin: 0 0 10px;
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.diagram__node p {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.diagram__arrow {
+  flex: 0 0 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-soft);
+}
+
+.diagram__arrow svg {
+  width: 38px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+.diagram--pipeline {
+  align-items: center;
+}
+
+.diagram__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.diagram__chip {
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+
+
+
+
+
+.vs {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  row-gap: 18px;
+  column-gap: 36px;
+}
+
+.vs__head {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.vs__head--a,
+.vs__head--b {
+  text-align: center;
+}
+
+.vs__row {
+  font-size: 25px;
+  color: var(--ink);
+}
+
+.vs__mark {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.vs__mark--yes {
+  background: #163829;
+  color: #74e3ad;
+}
+
+.vs__mark--partial {
+  background: #3c2f10;
+  color: #f3c178;
+}
+
+.vs__mark--no {
+  background: #3a1717;
+  color: #ff8a8a;
+}
+
+
+
+
+
+.context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--accent-soft);
+}
+
+.context-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: 0 0 10px var(--accent-soft);
+}
+
+
+
+
+
+
+
+
+.tour {
+  position: relative;
+  height: 220px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0c1220, #080c16);
+  border: 1px solid var(--rule);
+  box-shadow: 0 30px 70px -45px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.tour__caption {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96px;
+}
+
+.tour__caption span {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 19px;
+  color: var(--ink);
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 8px 20px;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.tour__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 36px;
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.tour--toolbar .tour__bar { padding: 0 14%; }
+.tour--presenter .tour__bar { padding: 0 23%; }
+
+.tour__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd8ee;
+}
+
+.tour__btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tour__cursor {
+  position: absolute;
+  bottom: 30px;
+  width: 16px;
+  height: 20px;
+  background: #f4f7ff;
+  clip-path: polygon(0 0, 0 70%, 22% 56%, 38% 100%, 52% 92%, 36% 54%, 70% 54%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  z-index: 3;
+}
+
+
+
+.tour--toolbar .tour__cursor { animation: pf-t6-cursor 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(1)     { animation: pf-t6-btn-0 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(2)     { animation: pf-t6-btn-1 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(3)     { animation: pf-t6-btn-2 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(4)     { animation: pf-t6-btn-3 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(5)     { animation: pf-t6-btn-4 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(6)     { animation: pf-t6-btn-5 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(1) { animation: pf-t6-cap-0 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(2) { animation: pf-t6-cap-1 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(3) { animation: pf-t6-cap-2 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(4) { animation: pf-t6-cap-3 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(5) { animation: pf-t6-cap-4 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(6) { animation: pf-t6-cap-5 9.6s ease-in-out infinite; }
+
+@keyframes pf-t6-cursor {
+  0%, 4%    { left: 16%; }
+  16%, 20%  { left: 30%; }
+  32%, 36%  { left: 44%; }
+  48%, 52%  { left: 58%; }
+  64%, 68%  { left: 72%; }
+  80%, 84%  { left: 86%; }
+  96%, 100% { left: 16%; }
+}
+
+@keyframes pf-t6-btn-0 { 0%,29%{transform:scale(1);background:rgba(255,255,255,.08)} 2%{transform:scale(.82);background:var(--accent)} 4%,14%{transform:scale(1);background:var(--accent)} 20%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-1 { 0%,15%{transform:scale(1);background:rgba(255,255,255,.08)} 18%{transform:scale(.82);background:var(--accent)} 20%,30%{transform:scale(1);background:var(--accent)} 36%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-2 { 0%,31%{transform:scale(1);background:rgba(255,255,255,.08)} 34%{transform:scale(.82);background:var(--accent)} 36%,46%{transform:scale(1);background:var(--accent)} 52%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-3 { 0%,47%{transform:scale(1);background:rgba(255,255,255,.08)} 50%{transform:scale(.82);background:var(--accent)} 52%,62%{transform:scale(1);background:var(--accent)} 68%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-4 { 0%,63%{transform:scale(1);background:rgba(255,255,255,.08)} 66%{transform:scale(.82);background:var(--accent)} 68%,78%{transform:scale(1);background:var(--accent)} 84%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-5 { 0%,79%{transform:scale(1);background:rgba(255,255,255,.08)} 82%{transform:scale(.82);background:var(--accent)} 84%,94%{transform:scale(1);background:var(--accent)} 99%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+
+@keyframes pf-t6-cap-0 { 0%,2%{opacity:0;transform:translateY(6px)} 5%,14%{opacity:1;transform:translateY(0)} 19%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-1 { 0%,18%{opacity:0;transform:translateY(6px)} 21%,30%{opacity:1;transform:translateY(0)} 35%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-2 { 0%,34%{opacity:0;transform:translateY(6px)} 37%,46%{opacity:1;transform:translateY(0)} 51%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-3 { 0%,50%{opacity:0;transform:translateY(6px)} 53%,62%{opacity:1;transform:translateY(0)} 67%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-4 { 0%,66%{opacity:0;transform:translateY(6px)} 69%,78%{opacity:1;transform:translateY(0)} 83%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-5 { 0%,82%{opacity:0;transform:translateY(6px)} 85%,94%{opacity:1;transform:translateY(0)} 98%,100%{opacity:0;transform:translateY(6px)} }
+
+
+
+.tour--presenter .tour__cursor { animation: pf-t4-cursor 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(1)     { animation: pf-t4-btn-0 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(2)     { animation: pf-t4-btn-1 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(3)     { animation: pf-t4-btn-2 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(4)     { animation: pf-t4-btn-3 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(1) { animation: pf-t4-cap-0 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(2) { animation: pf-t4-cap-1 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(3) { animation: pf-t4-cap-2 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(4) { animation: pf-t4-cap-3 7.2s ease-in-out infinite; }
+
+@keyframes pf-t4-cursor {
+  0%, 6%    { left: 24%; }
+  25%, 31%  { left: 42%; }
+  50%, 56%  { left: 60%; }
+  75%, 81%  { left: 78%; }
+  100%      { left: 24%; }
+}
+
+@keyframes pf-t4-btn-0 { 0%,21%{transform:scale(1);background:rgba(255,255,255,.08)} 3%{transform:scale(.82);background:var(--accent)} 5%,18%{transform:scale(1);background:var(--accent)} 23%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-1 { 0%,46%{transform:scale(1);background:rgba(255,255,255,.08)} 28%{transform:scale(.82);background:var(--accent)} 30%,43%{transform:scale(1);background:var(--accent)} 48%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-2 { 0%,71%{transform:scale(1);background:rgba(255,255,255,.08)} 53%{transform:scale(.82);background:var(--accent)} 55%,68%{transform:scale(1);background:var(--accent)} 73%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-3 { 0%,96%{transform:scale(1);background:rgba(255,255,255,.08)} 78%{transform:scale(.82);background:var(--accent)} 80%,93%{transform:scale(1);background:var(--accent)} 98%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+
+@keyframes pf-t4-cap-0 { 0%,4%{opacity:0;transform:translateY(6px)} 7%,18%{opacity:1;transform:translateY(0)} 22%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-1 { 0%,29%{opacity:0;transform:translateY(6px)} 32%,43%{opacity:1;transform:translateY(0)} 47%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-2 { 0%,54%{opacity:0;transform:translateY(6px)} 57%,68%{opacity:1;transform:translateY(0)} 72%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-3 { 0%,79%{opacity:0;transform:translateY(6px)} 82%,93%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0;transform:translateY(6px)} }
+
+
+
+
+
+
+.switch {
+  position: relative;
+  height: 280px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0c1220, #080c16);
+  border: 1px solid var(--rule);
+  box-shadow: 0 30px 70px -45px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  display: flex;
+}
+
+.switch__main {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 18px;
+}
+
+.switch__rail {
+  flex: 0 0 64px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: pf-fs-rail 6s ease-in-out infinite;
+}
+
+.switch__toast {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  animation: pf-fs-toast 6s ease-in-out infinite;
+}
+
+.switch__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd8ee;
+}
+
+.switch__btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.switch__cursor {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  width: 16px;
+  height: 20px;
+  background: #f4f7ff;
+  clip-path: polygon(0 0, 0 70%, 22% 56%, 38% 100%, 52% 92%, 36% 54%, 70% 54%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  z-index: 3;
+}
+
+
+.switch--presenter .switch__btn       { animation: pf-pr-btn 6s ease-in-out infinite; }
+.switch--presenter .switch__btn .icon-b { animation: pf-pr-icon-in 6s ease-in-out infinite; }
+.switch--presenter .switch__btn .icon-a { animation: pf-pr-icon-out 6s ease-in-out infinite; }
+.switch--presenter .switch__sidebar {
+  flex: 0 0 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 1px solid var(--rule);
+  animation: pf-pr-sidebar 6s ease-in-out infinite;
+  overflow: hidden;
+}
+.switch--presenter .switch__sidebar-inner {
+  width: 220px;
+  padding: 18px;
+  opacity: 0;
+  animation: pf-pr-sidebar-content 6s ease-in-out infinite;
+}
+.switch--presenter .switch__sidebar-inner .bar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--accent-tint);
+  margin-bottom: 10px;
+}
+.switch--presenter .switch__sidebar-inner .bar:nth-child(2) { width: 70%; }
+.switch--presenter .switch__sidebar-inner .bar:nth-child(3) { width: 85%; }
+
+@keyframes pf-pr-btn      { 0%,28%{transform:scale(1)} 31%{transform:scale(.82)} 33%,100%{transform:scale(1)} }
+@keyframes pf-pr-icon-out { 0%,30%{opacity:1} 36%,100%{opacity:0} }
+@keyframes pf-pr-icon-in  { 0%,30%{opacity:0} 36%,96%{opacity:1} 100%{opacity:0} }
+@keyframes pf-pr-sidebar  { 0%,30%{flex-basis:0} 50%,90%{flex-basis:46%} 100%{flex-basis:0} }
+@keyframes pf-pr-sidebar-content { 0%,38%{opacity:0} 50%,86%{opacity:1} 96%,100%{opacity:0} }
+
+
+.switch--fullscreen .switch__btn        { animation: pf-fs-btn 6s ease-in-out infinite; }
+.switch--fullscreen .switch__btn .icon-b { animation: pf-pr-icon-in 6s ease-in-out infinite; }
+.switch--fullscreen .switch__btn .icon-a { animation: pf-pr-icon-out 6s ease-in-out infinite; }
+
+@keyframes pf-fs-btn   { 0%,28%{transform:scale(1)} 31%{transform:scale(.82)} 33%,100%{transform:scale(1)} }
+@keyframes pf-fs-rail  { 0%,30%{opacity:1} 40%,90%{opacity:0} 100%{opacity:1} }
+@keyframes pf-fs-toast { 0%,32%{opacity:0} 38%,70%{opacity:1} 78%,100%{opacity:0} }
+
+
+.icon-a, .icon-b {
+  position: absolute;
+  display: flex;
+}
+.icon-b { opacity: 0; }
+
 </style>
 </head>
 <body>
@@ -1441,11 +1953,11 @@ pre code {
 <section class="slide slide--title">
   <p class="eyebrow">The HTML presentation engine</p>
   <h1 class="display">Slides you<br>actually own.</h1>
-  <p class="lead">Describe your talk to Claude. Get back one self-contained <code>index.html</code> — designed, offline-ready, yours forever. No app, no export, no lock-in.</p>
+  <p class="lead">Describe your talk to Claude. Get back one self-contained <code>index.html</code>: designed, offline-ready, yours forever. No app, no export, no lock-in.</p>
   <aside class="notes">
     <p>Open warm: this deck was generated by the very skill it describes. What you're looking at <em>is</em> the output.</p>
     <ul>
-      <li>The one-sentence promise: own your slides — one file, any browser, forever.</li>
+      <li>The one-sentence promise: own your slides, one file, any browser, forever.</li>
       <li>Transition: "so why not just use PowerPoint?"</li>
     </ul>
   </aside>
@@ -1455,7 +1967,7 @@ pre code {
   <h2 class="title">PowerPoint files don't travel well.</h2>
   <ul class="bullets">
     <li class="fragment">Fonts and layout drift from one machine to the next.</li>
-    <li class="fragment">It needs the app — often a paid one — just to open.</li>
+    <li class="fragment">It needs the app, often a paid one, just to open.</li>
     <li class="fragment">A binary blob you can't read, diff, or version.</li>
     <li class="fragment">Awkward to share as a plain link.</li>
   </ul>
@@ -1464,195 +1976,318 @@ pre code {
     <p>Reveal one pain at a time so each one lands instead of blurring together.</p>
     <ul>
       <li>Ask the room: who's opened a .pptx and watched the layout explode?</li>
-      <li>Transition: "plain HTML fixes every one of these."</li>
+      <li>Transition: "here's the comparison, side by side."</li>
     </ul>
   </aside>
 </section>
-<!-- 03 - Agenda -->
+<!-- 03 - HTML vs PowerPoint, straight from the README table -->
+<section class="slide">
+  <h2 class="title">Portable where PowerPoint is fragile.</h2>
+  <div class="vs">
+    <div class="vs__head"></div>
+    <div class="vs__head vs__head--a">PowerPoint</div>
+    <div class="vs__head vs__head--b">Forge</div>
+
+    <div class="vs__row">Presenter mode, notes, timer</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+
+    <div class="vs__row">Slide transitions and animation</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+
+    <div class="vs__row">Opens with no software installed</div>
+    <div class="vs__mark vs__mark--no">✗</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+
+    <div class="vs__row">Renders identically on every machine</div>
+    <div class="vs__mark vs__mark--partial">~</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+
+    <div class="vs__row">Fonts travel inside the file</div>
+    <div class="vs__mark vs__mark--partial">~</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+
+    <div class="vs__row">Readable and versionable in git</div>
+    <div class="vs__mark vs__mark--no">✗</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+
+    <div class="vs__row">Hostable as a public link</div>
+    <div class="vs__mark vs__mark--no">✗</div>
+    <div class="vs__mark vs__mark--yes">✓</div>
+  </div>
+  <div class="footer"><span>Presentation Forge</span><span>HTML vs PowerPoint</span></div>
+  <aside class="notes">
+    <p>Be fair, not smug: the top rows are everything PowerPoint already gives a presenter. Forge matches them, then adds the rest.</p>
+    <ul><li>Full 14-row table lives in the README, this is the punchy cut.</li></ul>
+  </aside>
+</section>
+<!-- 04 - Agenda -->
 <section class="slide">
   <p class="eyebrow">Agenda</p>
   <h2 class="title">Three minutes, three ideas.</h2>
   <ul class="bullets">
-    <li>The idea — three layers compile to one file.</li>
-    <li>On stage — presenter mode, notes, and reveals.</li>
-    <li>Make it yours — swap themes, import a brand.</li>
+    <li>The idea: three layers compile to one file.</li>
+    <li>On stage: every control, demonstrated live.</li>
+    <li>Make it yours: swap themes, import a brand.</li>
   </ul>
   <aside class="notes">
     <p>Set expectations and keep it to three beats, so the talk feels short and deliberate.</p>
   </aside>
 </section>
-<!-- 04 - Section divider: The idea -->
+<!-- 05 - Section divider: The idea -->
 <section class="slide slide--section">
   <p class="eyebrow">Part 01</p>
   <h1 class="display">The idea</h1>
-  <p class="lead">Three layers that stay separate — so a deck never breaks when you reskin it.</p>
+  <p class="lead">Three layers that stay separate, so a deck never breaks when you reskin it.</p>
   <aside class="notes">
     <p>Pivot into the architecture. One breath, then move on.</p>
   </aside>
 </section>
-<!-- 05 - Three layers -->
+<!-- 06 - Three layers, as a diagram -->
 <section class="slide">
-  <h2 class="title">Engine, theme, content — never tangled.</h2>
-  <div class="two-col">
-    <ul class="bullets">
-      <li><strong>Engine</strong> — scaling, navigation, presenter mode. Never touched.</li>
-      <li><strong>Theme</strong> — colours, type, spacing, fonts. The whole look.</li>
-      <li><strong>Content</strong> — your slides, one HTML file each.</li>
-    </ul>
-    <div class="card">
-      <p class="eyebrow accent">Why it matters</p>
-      <p>Change any one layer without disturbing the others. Restyle an entire deck without editing a single slide.</p>
+  <h2 class="title">Engine, theme, content. Never tangled.</h2>
+  <div class="diagram">
+    <div class="diagram__node">
+      <h3>Engine</h3>
+      <p>Scaling, navigation, presenter mode. Never touched.</p>
+    </div>
+    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
+    <div class="diagram__node">
+      <h3>Theme</h3>
+      <p>Colours, type, spacing, fonts. The whole look.</p>
+    </div>
+    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
+    <div class="diagram__node">
+      <h3>Content</h3>
+      <p>Your slides. One HTML file each.</p>
     </div>
   </div>
+  <p class="lead muted">Change one layer and the others don't move. Restyle a whole deck without touching a slide.</p>
   <div class="footer"><span>Presentation Forge</span><span>The idea</span></div>
   <aside class="notes">
     <p>This separation is the core design bet. Slides only ever use the theme's vocabulary, which is exactly why themes are swappable.</p>
-    <ul><li>Transition: "and authoring a slide is almost nothing —"</li></ul>
+    <ul><li>Transition: "and authoring a slide is almost nothing."</li></ul>
   </aside>
 </section>
-<!-- 06 - A slide is just markup -->
+<!-- 07 - A slide is just markup, styled like a real code editor -->
 <section class="slide">
   <h2 class="title">A slide is just markup.</h2>
-  <pre><code>&lt;section class="slide"&gt;
-  &lt;h2 class="title"&gt;Caching cut p99 by 40%.&lt;/h2&gt;
-  &lt;ul class="bullets"&gt;
-    &lt;li&gt;One idea per line.&lt;/li&gt;
-  &lt;/ul&gt;
-  &lt;aside class="notes"&gt;What you say, not what they read.&lt;/aside&gt;
-&lt;/section&gt;</code></pre>
+  <pre data-filename="slide.html"><code><span class="line"><span class="tok-punc">&lt;</span><span class="tok-tag">section</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"slide"</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">h2</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"title"</span><span class="tok-punc">&gt;</span>Caching cut p99 by 40%.<span class="tok-punc">&lt;/</span><span class="tok-tag">h2</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">ul</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"bullets"</span><span class="tok-punc">&gt;</span></span><span class="line">    <span class="tok-punc">&lt;</span><span class="tok-tag">li</span><span class="tok-punc">&gt;</span>One idea per line.<span class="tok-punc">&lt;/</span><span class="tok-tag">li</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;/</span><span class="tok-tag">ul</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">aside</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"notes"</span><span class="tok-punc">&gt;</span>What you say, not what they read.<span class="tok-punc">&lt;/</span><span class="tok-tag">aside</span><span class="tok-punc">&gt;</span></span><span class="line"><span class="tok-punc">&lt;/</span><span class="tok-tag">section</span><span class="tok-punc">&gt;</span></span></code></pre>
   <aside class="notes">
-    <p>No framework, no JSX, no toolchain. If you can write HTML, you can write a slide — and the classes come from the theme.</p>
+    <p>No framework, no JSX, no toolchain. If you can write HTML, you can write a slide, and the classes come from the theme.</p>
   </aside>
 </section>
-<!-- 07 - One file -->
+<!-- 08 - One file, as a pipeline diagram -->
 <section class="slide">
   <h2 class="title">One command inlines everything.</h2>
-  <div class="two-col">
-    <ul class="bullets">
-      <li>Engine, theme, fonts and images — all embedded.</li>
-      <li>No build server, no dependencies, no network.</li>
-      <li>Opens by double-click. Emails cleanly. Hosts anywhere.</li>
-    </ul>
-    <div class="card">
-      <p class="eyebrow accent">The whole pipeline</p>
-      <p><code>python3 build.py</code></p>
-      <p class="muted">Python standard library only. Out comes a single <code>index.html</code>.</p>
+  <div class="diagram diagram--pipeline">
+    <div class="diagram__inputs">
+      <div class="diagram__chip">slides/</div>
+      <div class="diagram__chip">theme/</div>
+      <div class="diagram__chip">assets/</div>
+    </div>
+    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
+    <div class="diagram__node">
+      <h3>build.py</h3>
+      <p>Python standard library only.</p>
+    </div>
+    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
+    <div class="diagram__node">
+      <h3>index.html</h3>
+      <p>One file. Opens anywhere, forever.</p>
     </div>
   </div>
+  <p class="lead muted">No build server, no dependencies, no network. Double-click to open, email it, host it.</p>
   <div class="footer"><span>Presentation Forge</span><span>The idea</span></div>
   <aside class="notes">
-    <p>Lean into "boring on purpose" — boring is exactly what makes the output portable and durable for ten years.</p>
+    <p>Lean into "boring on purpose": boring is exactly what makes the output portable and durable for ten years.</p>
   </aside>
 </section>
-<!-- 08 - Section divider: On stage -->
+<!-- 09 - Section divider: On stage -->
 <section class="slide slide--section">
   <p class="eyebrow">Part 02</p>
   <h1 class="display">On stage</h1>
-  <p class="lead">Everything a presenter needs — built into the same single file.</p>
+  <p class="lead">Every control a presenter needs, built into the same single file.</p>
   <aside class="notes">
-    <p>Shift from "how it's built" to "what it feels like to actually present."</p>
+    <p>Shift from "how it's built" to "what it feels like to actually present." The next slides demo every button, live.</p>
   </aside>
 </section>
-<!-- 09 - Presenter mode -->
+<!-- 10 - Presenter mode, the pitch -->
 <section class="slide">
   <h2 class="title">Present like you rehearsed.</h2>
   <ul class="bullets">
-    <li class="fragment">Press <code>p</code> — your speaker notes, on your screen only.</li>
+    <li class="fragment">Press <code>p</code> to see your speaker notes. Only you see them.</li>
     <li class="fragment">A timer and a wall clock, so you stay on time.</li>
-    <li class="fragment">A live preview of the next slide, so nothing surprises you.</li>
+    <li class="fragment">A live preview of the next slide. Nothing surprises you.</li>
     <li class="fragment">Press <code>?</code> for every keyboard shortcut.</li>
   </ul>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
   <aside class="notes">
     <p>Do it live: hit <strong>p</strong> right now. These notes are exactly what the audience never sees.</p>
-    <ul><li>Reveal each capability as you say it — click, talk, click.</li></ul>
+    <ul><li>Reveal each capability as you say it: click, talk, click.</li></ul>
   </aside>
 </section>
-<!-- 10 - Progressive reveal (meta demo) -->
+<!-- 11 - Windowed toolbar, every button toured in a CSS-only loop -->
+<section class="slide">
+  <p class="context-badge">Windowed toolbar</p>
+  <h2 class="title">Every slide ships its own controls.</h2>
+  <div class="tour tour--toolbar">
+    <div class="tour__caption">
+      <span>Previous / next</span>
+      <span>Draw</span>
+      <span>Erase</span>
+      <span>Laser pointer</span>
+      <span>Shortcuts</span>
+      <span>Speaker notes</span>
+    </div>
+    <div class="tour__bar">
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 5l6 7-6 7M5 5l6 7-6 7"/></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20l3.5-1 11-11-2.5-2.5-11 11L4 20z"/></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="7" opacity="0.45"></circle></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><text x="12" y="16.5" text-anchor="middle" font-size="11" font-family="sans-serif" fill="currentColor" stroke="none">?</text></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h10"/></svg></button>
+    </div>
+    <span class="tour__cursor"></span>
+  </div>
+  <p class="lead muted">Bottom-right in windowed mode. Click them, or press the matching key.</p>
+  <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
+  <aside class="notes">
+    <p>This is a CSS mockup, not a recording, looping forever so it works in any browser with no playback.</p>
+    <ul><li>Name each one as the cursor lands on it; the caption above does it too.</li></ul>
+  </aside>
+</section>
+<!-- 12 - Switching into presenter mode -->
+<section class="slide">
+  <p class="context-badge">Mode switch</p>
+  <h2 class="title">One key opens a presenter sidebar.</h2>
+  <div class="switch switch--presenter">
+    <div class="switch__main">
+      <button class="switch__btn" aria-hidden="true">
+        <span class="icon-a"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M9 21h6M12 17v4"/></svg></span>
+        <span class="icon-b"><svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></span>
+      </button>
+      <span class="switch__cursor"></span>
+    </div>
+    <div class="switch__sidebar">
+      <div class="switch__sidebar-inner">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+  </div>
+  <p class="lead muted">Press <code>p</code>. Notes, the timer and the next slide appear here, never on the screen behind you.</p>
+  <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
+  <aside class="notes">
+    <p>The audience window stays full screen and clean; the presenter sidebar is local, on this machine only.</p>
+  </aside>
+</section>
+<!-- 13 - Inside the presenter sidebar, four more tools toured -->
+<section class="slide">
+  <p class="context-badge">Presenter sidebar</p>
+  <h2 class="title">The sidebar has its own toolkit.</h2>
+  <div class="tour tour--presenter">
+    <div class="tour__caption">
+      <span>Auto-scroll notes</span>
+      <span>Resize text</span>
+      <span>Reset timer</span>
+      <span>Exit presenter</span>
+    </div>
+    <div class="tour__bar">
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7V5z" fill="currentColor" stroke="none"></path></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><text x="12" y="17" text-anchor="middle" font-size="15" font-family="serif" fill="currentColor" stroke="none">A</text></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.3 5.66"/><path d="M4 17v-4h4"/></svg></button>
+      <button class="tour__btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 4H6v16h9M21 12H10M16 8l5 4-5 4"/></svg></button>
+    </div>
+    <span class="tour__cursor"></span>
+  </div>
+  <p class="lead muted">Notes scroll themselves, text resizes for tired eyes, the timer resets in one click.</p>
+  <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
+  <aside class="notes">
+    <p>Exit asks for a confirm before it drops you back to windowed mode, so a stray key never ends the talk.</p>
+  </aside>
+</section>
+<!-- 14 - Full screen switch -->
+<section class="slide">
+  <p class="context-badge">Full screen</p>
+  <h2 class="title">Distraction-free for the room.</h2>
+  <div class="switch switch--fullscreen">
+    <div class="switch__rail"></div>
+    <div class="switch__main">
+      <span class="switch__toast">Press Esc to exit full screen</span>
+      <button class="switch__btn" aria-hidden="true">
+        <span class="icon-a"><svg viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg></span>
+        <span class="icon-b"><svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></span>
+      </button>
+      <span class="switch__cursor"></span>
+    </div>
+  </div>
+  <p class="lead muted">The rail and the chrome fade away. Only the slide stays, for a projector or a back row.</p>
+  <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
+  <aside class="notes">
+    <p>Same key, <code>f</code>, leaves full screen too. Controls fade after a few idle seconds and return on the first move.</p>
+  </aside>
+</section>
+<!-- 15 - Progressive reveal (meta demo) -->
 <section class="slide">
   <h2 class="title">Reveal a point exactly when it lands.</h2>
   <ul class="bullets">
     <li class="fragment">Add <code>class="fragment"</code> to any element.</li>
-    <li class="fragment">Each click brings the next one in…</li>
-    <li class="fragment">…so the slide builds alongside your argument.</li>
-    <li class="fragment">The presenter view even counts the steps for you.</li>
+    <li class="fragment">Each click brings the next one in.</li>
+    <li class="fragment">The slide builds alongside your argument.</li>
+    <li class="fragment">The presenter view counts the steps for you.</li>
   </ul>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
   <aside class="notes">
-    <p>Meta moment: the bullets you're revealing right now <em>are</em> fragments. Say it out loud — the demo is the feature.</p>
+    <p>Meta moment: the bullets you're revealing right now <em>are</em> fragments. Say it out loud, the demo is the feature.</p>
   </aside>
 </section>
-<!-- 11 - HTML vs PowerPoint -->
-<section class="slide">
-  <h2 class="title">Portable where PowerPoint is fragile.</h2>
-  <div class="two-col">
-    <div class="card">
-      <p class="eyebrow">PowerPoint</p>
-      <ul class="bullets">
-        <li class="muted">Needs the app to open</li>
-        <li class="muted">Fonts drift between machines</li>
-        <li class="muted">Binary — can't diff or host</li>
-      </ul>
-    </div>
-    <div class="card">
-      <p class="eyebrow accent">Presentation Forge</p>
-      <ul class="bullets">
-        <li>Opens in any browser</li>
-        <li>Fonts travel inside the file</li>
-        <li>Readable, versionable, hostable</li>
-      </ul>
-    </div>
-  </div>
-  <aside class="notes">
-    <p>Be fair, not smug: you keep everything PowerPoint gives a presenter, and add portability and longevity on top.</p>
-  </aside>
-</section>
-<!-- 12 - Section divider: Make it yours -->
+<!-- 16 - Section divider: Make it yours -->
 <section class="slide slide--section">
   <p class="eyebrow">Part 03</p>
   <h1 class="display">Make it yours</h1>
-  <p class="lead">One identity, every deck — without redesigning a thing.</p>
+  <p class="lead">One identity, every deck, without redesigning a thing.</p>
   <aside class="notes">
     <p>Final beat: theming and reusing a brand across decks.</p>
   </aside>
 </section>
-<!-- 13 - Themes -->
+<!-- 17 - Themes -->
 <section class="slide">
   <h2 class="title">Swap the whole look in one line.</h2>
   <div class="two-col">
     <ul class="bullets">
-      <li>This deck is the <strong>obsidian</strong> theme — dark and editorial.</li>
+      <li>This deck is the <strong>obsidian</strong> theme: dark and editorial.</li>
       <li>Ship <strong>ink-blue</strong> instead for a clean, light look.</li>
       <li>Import a brand from a <code>.pptx</code>, an image, or a description.</li>
       <li>Save any look as a portable <code>.pfstyle.json</code>.</li>
     </ul>
     <div class="card">
       <p class="eyebrow accent">deck.config.json</p>
-      <pre><code>{
-  "theme": "obsidian"
-}</code></pre>
+      <pre data-filename="deck.config.json"><code><span class="line">{</span><span class="line">  <span class="tok-attr">"theme"</span><span class="tok-punc">:</span> <span class="tok-str">"obsidian"</span></span><span class="line">}</span></code></pre>
     </div>
   </div>
   <div class="footer"><span>Presentation Forge</span><span>Make it yours</span></div>
   <aside class="notes">
-    <p>The strongest demo of all: the same slides under a different theme. The content never changes; the look completely does.</p>
+    <p>The strongest demo of all: the same slides under a different theme. The content never changes, the look completely does.</p>
   </aside>
 </section>
-<!-- 14 - Quote -->
+<!-- 18 - Quote -->
 <section class="slide">
   <p class="eyebrow">The point</p>
   <blockquote>Own your slides. Don't rent them from an app that might not open them in ten years.</blockquote>
   <aside class="notes">
-    <p>A beat of silence. This is the thesis of the whole talk — let it sit before the call to action.</p>
+    <p>A beat of silence. This is the thesis of the whole talk, let it sit before the call to action.</p>
   </aside>
 </section>
-<!-- 15 - Closing / call to action -->
+<!-- 19 - Closing / call to action -->
 <section class="slide slide--conclude">
   <p class="eyebrow">Your turn</p>
   <h1 class="display">Describe your next talk.</h1>
   <p class="lead">Claude writes the slides and hands you one file you can open, present, and keep.</p>
-  <pre><code>git clone https://github.com/thmsgo18/presentation-forge.git \
-  ~/.claude/skills/presentation-forge</code></pre>
+  <pre data-filename="terminal"><code><span class="line">git clone https://github.com/thmsgo18/presentation-forge.git \</span><span class="line">  ~/.claude/skills/presentation-forge</span></code></pre>
+  <p class="muted">This deck itself was written and built with Presentation Forge, the skill it just described.</p>
   <aside class="notes">
     <p>Close on the call to action: install once, then just ask in plain language. Point people to the live demo URL.</p>
   </aside>

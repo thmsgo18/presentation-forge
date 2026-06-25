@@ -42,9 +42,33 @@
   height: 3px;
   background: linear-gradient(90deg, var(--accent) 0%, transparent 45%, var(--accent-soft) 100%);
   opacity: 0.7;
+  z-index: 2;
+}
+
+/* A slow-drifting glow behind the content - the same backdrop, always
+   moving a little, so a slide never looks like a static image. Content
+   sits above it via the z-index on ".slide > *" below. */
+.slide::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(640px 460px at 26% 32%, var(--accent-tint) 0%, transparent 62%),
+    radial-gradient(520px 420px at 78% 70%, #4fd6e60f 0%, transparent 60%);
+  animation: pf-ambient-drift 32s ease-in-out infinite alternate;
+}
+
+@keyframes pf-ambient-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(2.4%, -1.8%, 0) scale(1.05); }
+  100% { transform: translate3d(-1.6%, 2.2%, 0) scale(1.02); }
 }
 
 .slide > * {
+  position: relative;
+  z-index: 1;
   margin: 0;
 }
 
@@ -73,10 +97,12 @@
 }
 
 .display {
+  display: block;
   font-family: var(--font-serif);
   font-size: var(--type-display);
   font-weight: 400;
-  line-height: 1.0;
+  line-height: 1.18;
+  padding-bottom: 0.06em;
   letter-spacing: -0.02em;
   background: linear-gradient(118deg, #ffffff 0%, #cbbcff 46%, var(--accent-soft) 100%);
   -webkit-background-clip: text;
@@ -183,13 +209,18 @@ blockquote {
 blockquote::before {
   content: "\201C";
   position: absolute;
-  left: 36px;
-  top: -0.36em;
-  font-size: 200px;
+  left: 4px;
+  right: auto;
+  top: -0.4em;
+  width: max-content;
+  font-size: 170px;
   line-height: 1;
+  font-style: normal;
+  white-space: nowrap;
   color: var(--accent);
-  opacity: 0.12;
+  opacity: 0.14;
   pointer-events: none;
+  z-index: -1;
 }
 
 /* ---- code ---- */
@@ -214,9 +245,9 @@ pre {
   color: #dbe4f6;
   border: 1px solid var(--rule);
   border-radius: 16px;
-  padding: 64px 40px 36px;
+  padding: 64px 0 28px;
   overflow: auto;
-  line-height: 1.55;
+  line-height: 1.6;
   box-shadow: 0 30px 70px -45px #000;
 }
 
@@ -231,13 +262,55 @@ pre::before {
   border-radius: 50%;
   background: #ff5f57;
   box-shadow: 22px 0 #febc2e, 44px 0 #28c840;
+  z-index: 1;
+}
+
+/* the file name, read off pre's own data-filename attribute - no extra markup */
+pre::after {
+  content: attr(data-filename);
+  position: absolute;
+  top: 24px;
+  left: 96px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+  opacity: 0.7;
 }
 
 pre code {
+  display: block;
   background: none;
   color: inherit;
-  padding: 0;
+  padding: 0 40px;
+  counter-reset: pf-line;
 }
+
+/* one line per .line span -> real line numbers via CSS counters */
+pre code .line {
+  counter-increment: pf-line;
+  position: relative;
+  display: block;
+  padding-left: 3em;
+  white-space: pre;
+}
+
+pre code .line::before {
+  content: counter(pf-line);
+  position: absolute;
+  left: 0;
+  width: 2.2em;
+  text-align: right;
+  color: #4a5578;
+  font-variant-numeric: tabular-nums;
+}
+
+/* hand-set syntax token colours - no JS highlighter, just marked-up spans */
+.tok-tag     { color: var(--accent-soft); }
+.tok-attr    { color: #caa6ff; }
+.tok-str     { color: #f0c987; }
+.tok-punc    { color: #5d6a8c; }
+.tok-comment { color: #5d6a8c; font-style: italic; }
 
 /* ---- footer ---- */
 
@@ -306,3 +379,445 @@ pre code {
     radial-gradient(900px 640px at 10% 96%, #0b3b46 0%, transparent 55%),
     var(--bg);
 }
+
+/* ==================================================================== */
+/* Diagrams - the architecture and pipeline shown as connected boxes,   */
+/* not bullet lists.                                                    */
+/* ==================================================================== */
+
+.diagram {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.diagram__node {
+  flex: 1 1 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 30px 26px;
+  text-align: center;
+}
+
+.diagram__node h3 {
+  margin: 0 0 10px;
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.diagram__node p {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.diagram__arrow {
+  flex: 0 0 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-soft);
+}
+
+.diagram__arrow svg {
+  width: 38px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* pipeline variant: several inputs converge into one node */
+.diagram--pipeline {
+  align-items: center;
+}
+
+.diagram__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.diagram__chip {
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* ==================================================================== */
+/* Comparison table - reused for the PowerPoint vs Presentation Forge   */
+/* slide, real rows instead of two separate bullet lists.                */
+/* ==================================================================== */
+
+.vs {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  row-gap: 18px;
+  column-gap: 36px;
+}
+
+.vs__head {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.vs__head--a,
+.vs__head--b {
+  text-align: center;
+}
+
+.vs__row {
+  font-size: 25px;
+  color: var(--ink);
+}
+
+.vs__mark {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.vs__mark--yes {
+  background: #163829;
+  color: #74e3ad;
+}
+
+.vs__mark--partial {
+  background: #3c2f10;
+  color: #f3c178;
+}
+
+.vs__mark--no {
+  background: #3a1717;
+  color: #ff8a8a;
+}
+
+/* ==================================================================== */
+/* Context badge - which UI the demo below belongs to.                  */
+/* ==================================================================== */
+
+.context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--accent-soft);
+}
+
+.context-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: 0 0 10px var(--accent-soft);
+}
+
+/* ==================================================================== */
+/* Button-click demos - a real, mocked-up control row with a fake       */
+/* cursor that clicks each button in turn, in a slow infinite loop,     */
+/* and a caption that names what just happened. Pure CSS: no JS, no     */
+/* recorded media, so it stays crisp and on-theme forever.              */
+/* ==================================================================== */
+
+.tour {
+  position: relative;
+  height: 220px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0c1220, #080c16);
+  border: 1px solid var(--rule);
+  box-shadow: 0 30px 70px -45px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.tour__caption {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96px;
+}
+
+.tour__caption span {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 19px;
+  color: var(--ink);
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 8px 20px;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.tour__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 36px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* padding is a % of the bar's own width, so button centres line up with
+   the cursor keyframes below no matter the slide's rendered size */
+.tour--toolbar .tour__bar { padding: 0 14%; }
+.tour--presenter .tour__bar { padding: 0 23%; }
+
+.tour__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd8ee;
+}
+
+.tour__btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tour__cursor {
+  position: absolute;
+  bottom: 30px;
+  width: 16px;
+  height: 20px;
+  background: #f4f7ff;
+  clip-path: polygon(0 0, 0 70%, 22% 56%, 38% 100%, 52% 92%, 36% 54%, 70% 54%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  z-index: 3;
+}
+
+/* ---- 6-stop tour: the windowed toolbar ---- */
+
+.tour--toolbar .tour__cursor { animation: pf-t6-cursor 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(1)     { animation: pf-t6-btn-0 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(2)     { animation: pf-t6-btn-1 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(3)     { animation: pf-t6-btn-2 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(4)     { animation: pf-t6-btn-3 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(5)     { animation: pf-t6-btn-4 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(6)     { animation: pf-t6-btn-5 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(1) { animation: pf-t6-cap-0 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(2) { animation: pf-t6-cap-1 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(3) { animation: pf-t6-cap-2 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(4) { animation: pf-t6-cap-3 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(5) { animation: pf-t6-cap-4 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(6) { animation: pf-t6-cap-5 9.6s ease-in-out infinite; }
+
+@keyframes pf-t6-cursor {
+  0%, 4%    { left: 16%; }
+  16%, 20%  { left: 30%; }
+  32%, 36%  { left: 44%; }
+  48%, 52%  { left: 58%; }
+  64%, 68%  { left: 72%; }
+  80%, 84%  { left: 86%; }
+  96%, 100% { left: 16%; }
+}
+
+@keyframes pf-t6-btn-0 { 0%,29%{transform:scale(1);background:rgba(255,255,255,.08)} 2%{transform:scale(.82);background:var(--accent)} 4%,14%{transform:scale(1);background:var(--accent)} 20%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-1 { 0%,15%{transform:scale(1);background:rgba(255,255,255,.08)} 18%{transform:scale(.82);background:var(--accent)} 20%,30%{transform:scale(1);background:var(--accent)} 36%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-2 { 0%,31%{transform:scale(1);background:rgba(255,255,255,.08)} 34%{transform:scale(.82);background:var(--accent)} 36%,46%{transform:scale(1);background:var(--accent)} 52%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-3 { 0%,47%{transform:scale(1);background:rgba(255,255,255,.08)} 50%{transform:scale(.82);background:var(--accent)} 52%,62%{transform:scale(1);background:var(--accent)} 68%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-4 { 0%,63%{transform:scale(1);background:rgba(255,255,255,.08)} 66%{transform:scale(.82);background:var(--accent)} 68%,78%{transform:scale(1);background:var(--accent)} 84%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-5 { 0%,79%{transform:scale(1);background:rgba(255,255,255,.08)} 82%{transform:scale(.82);background:var(--accent)} 84%,94%{transform:scale(1);background:var(--accent)} 99%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+
+@keyframes pf-t6-cap-0 { 0%,2%{opacity:0;transform:translateY(6px)} 5%,14%{opacity:1;transform:translateY(0)} 19%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-1 { 0%,18%{opacity:0;transform:translateY(6px)} 21%,30%{opacity:1;transform:translateY(0)} 35%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-2 { 0%,34%{opacity:0;transform:translateY(6px)} 37%,46%{opacity:1;transform:translateY(0)} 51%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-3 { 0%,50%{opacity:0;transform:translateY(6px)} 53%,62%{opacity:1;transform:translateY(0)} 67%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-4 { 0%,66%{opacity:0;transform:translateY(6px)} 69%,78%{opacity:1;transform:translateY(0)} 83%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-5 { 0%,82%{opacity:0;transform:translateY(6px)} 85%,94%{opacity:1;transform:translateY(0)} 98%,100%{opacity:0;transform:translateY(6px)} }
+
+/* ---- 4-stop tour: inside the presenter sidebar ---- */
+
+.tour--presenter .tour__cursor { animation: pf-t4-cursor 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(1)     { animation: pf-t4-btn-0 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(2)     { animation: pf-t4-btn-1 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(3)     { animation: pf-t4-btn-2 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(4)     { animation: pf-t4-btn-3 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(1) { animation: pf-t4-cap-0 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(2) { animation: pf-t4-cap-1 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(3) { animation: pf-t4-cap-2 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(4) { animation: pf-t4-cap-3 7.2s ease-in-out infinite; }
+
+@keyframes pf-t4-cursor {
+  0%, 6%    { left: 24%; }
+  25%, 31%  { left: 42%; }
+  50%, 56%  { left: 60%; }
+  75%, 81%  { left: 78%; }
+  100%      { left: 24%; }
+}
+
+@keyframes pf-t4-btn-0 { 0%,21%{transform:scale(1);background:rgba(255,255,255,.08)} 3%{transform:scale(.82);background:var(--accent)} 5%,18%{transform:scale(1);background:var(--accent)} 23%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-1 { 0%,46%{transform:scale(1);background:rgba(255,255,255,.08)} 28%{transform:scale(.82);background:var(--accent)} 30%,43%{transform:scale(1);background:var(--accent)} 48%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-2 { 0%,71%{transform:scale(1);background:rgba(255,255,255,.08)} 53%{transform:scale(.82);background:var(--accent)} 55%,68%{transform:scale(1);background:var(--accent)} 73%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-3 { 0%,96%{transform:scale(1);background:rgba(255,255,255,.08)} 78%{transform:scale(.82);background:var(--accent)} 80%,93%{transform:scale(1);background:var(--accent)} 98%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+
+@keyframes pf-t4-cap-0 { 0%,4%{opacity:0;transform:translateY(6px)} 7%,18%{opacity:1;transform:translateY(0)} 22%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-1 { 0%,29%{opacity:0;transform:translateY(6px)} 32%,43%{opacity:1;transform:translateY(0)} 47%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-2 { 0%,54%{opacity:0;transform:translateY(6px)} 57%,68%{opacity:1;transform:translateY(0)} 72%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-3 { 0%,79%{opacity:0;transform:translateY(6px)} 82%,93%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0;transform:translateY(6px)} }
+
+/* ==================================================================== */
+/* Mode-switch demos - the two transitions that change the whole layout:*/
+/* entering presenter mode, and entering full screen.                   */
+/* ==================================================================== */
+
+.switch {
+  position: relative;
+  height: 280px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0c1220, #080c16);
+  border: 1px solid var(--rule);
+  box-shadow: 0 30px 70px -45px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  display: flex;
+}
+
+.switch__main {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 18px;
+}
+
+.switch__rail {
+  flex: 0 0 64px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: pf-fs-rail 6s ease-in-out infinite;
+}
+
+.switch__toast {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  animation: pf-fs-toast 6s ease-in-out infinite;
+}
+
+.switch__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd8ee;
+}
+
+.switch__btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.switch__cursor {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  width: 16px;
+  height: 20px;
+  background: #f4f7ff;
+  clip-path: polygon(0 0, 0 70%, 22% 56%, 38% 100%, 52% 92%, 36% 54%, 70% 54%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  z-index: 3;
+}
+
+/* presenter switch: a sidebar slides in from the right */
+.switch--presenter .switch__btn       { animation: pf-pr-btn 6s ease-in-out infinite; }
+.switch--presenter .switch__btn .icon-b { animation: pf-pr-icon-in 6s ease-in-out infinite; }
+.switch--presenter .switch__btn .icon-a { animation: pf-pr-icon-out 6s ease-in-out infinite; }
+.switch--presenter .switch__sidebar {
+  flex: 0 0 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 1px solid var(--rule);
+  animation: pf-pr-sidebar 6s ease-in-out infinite;
+  overflow: hidden;
+}
+.switch--presenter .switch__sidebar-inner {
+  width: 220px;
+  padding: 18px;
+  opacity: 0;
+  animation: pf-pr-sidebar-content 6s ease-in-out infinite;
+}
+.switch--presenter .switch__sidebar-inner .bar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--accent-tint);
+  margin-bottom: 10px;
+}
+.switch--presenter .switch__sidebar-inner .bar:nth-child(2) { width: 70%; }
+.switch--presenter .switch__sidebar-inner .bar:nth-child(3) { width: 85%; }
+
+@keyframes pf-pr-btn      { 0%,28%{transform:scale(1)} 31%{transform:scale(.82)} 33%,100%{transform:scale(1)} }
+@keyframes pf-pr-icon-out { 0%,30%{opacity:1} 36%,100%{opacity:0} }
+@keyframes pf-pr-icon-in  { 0%,30%{opacity:0} 36%,96%{opacity:1} 100%{opacity:0} }
+@keyframes pf-pr-sidebar  { 0%,30%{flex-basis:0} 50%,90%{flex-basis:46%} 100%{flex-basis:0} }
+@keyframes pf-pr-sidebar-content { 0%,38%{opacity:0} 50%,86%{opacity:1} 96%,100%{opacity:0} }
+
+/* fullscreen switch: rail fades, controls dim, an exit-hint toast shows once */
+.switch--fullscreen .switch__btn        { animation: pf-fs-btn 6s ease-in-out infinite; }
+.switch--fullscreen .switch__btn .icon-b { animation: pf-pr-icon-in 6s ease-in-out infinite; }
+.switch--fullscreen .switch__btn .icon-a { animation: pf-pr-icon-out 6s ease-in-out infinite; }
+
+@keyframes pf-fs-btn   { 0%,28%{transform:scale(1)} 31%{transform:scale(.82)} 33%,100%{transform:scale(1)} }
+@keyframes pf-fs-rail  { 0%,30%{opacity:1} 40%,90%{opacity:0} 100%{opacity:1} }
+@keyframes pf-fs-toast { 0%,32%{opacity:0} 38%,70%{opacity:1} 78%,100%{opacity:0} }
+
+/* shared: two stacked icons inside a .switch__btn / .tour__btn cross-fade */
+.icon-a, .icon-b {
+  position: absolute;
+  display: flex;
+}
+.icon-b { opacity: 0; }

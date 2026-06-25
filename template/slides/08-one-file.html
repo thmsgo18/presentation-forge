@@ -1,0 +1,26 @@
+<!-- 08 - One file, as a pipeline diagram -->
+<section class="slide">
+  <h2 class="title">One command inlines everything.</h2>
+  <div class="diagram diagram--pipeline">
+    <div class="diagram__inputs">
+      <div class="diagram__chip">slides/</div>
+      <div class="diagram__chip">theme/</div>
+      <div class="diagram__chip">assets/</div>
+    </div>
+    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
+    <div class="diagram__node">
+      <h3>build.py</h3>
+      <p>Python standard library only.</p>
+    </div>
+    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
+    <div class="diagram__node">
+      <h3>index.html</h3>
+      <p>One file. Opens anywhere, forever.</p>
+    </div>
+  </div>
+  <p class="lead muted">No build server, no dependencies, no network. Double-click to open, email it, host it.</p>
+  <div class="footer"><span>Presentation Forge</span><span>The idea</span></div>
+  <aside class="notes">
+    <p>Lean into "boring on purpose": boring is exactly what makes the output portable and durable for ten years.</p>
+  </aside>
+</section>
