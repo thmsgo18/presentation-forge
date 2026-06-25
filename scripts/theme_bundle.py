@@ -86,6 +86,28 @@ def pack(theme_dir: Path, out: Path | None) -> Path:
     return out
 
 
+def _safe_name(name: str) -> str:
+    """A theme folder name must be a single, plain path component.
+
+    The name can come from an untrusted style file, so reject anything that
+    could escape the destination (separators, ``..``, absolute paths)."""
+    if name in ("", ".", "..") or "/" in name or "\\" in name or Path(name).is_absolute():
+        raise SystemExit(f"error: unsafe theme name in style file, refusing: {name!r}")
+    return name
+
+
+def _safe_member(base: Path, rel: str) -> Path:
+    """Resolve ``rel`` under ``base``, refusing anything that escapes it.
+
+    A ``.pfstyle.json`` is shared between people and across conversations, so its
+    file keys are untrusted input. Reject absolute paths and ``..`` traversal so
+    an unpack can never write outside the theme folder (zip-slip)."""
+    dest = (base / rel).resolve()
+    if dest != base and base not in dest.parents:
+        raise SystemExit(f"error: unsafe path in style file, refusing: {rel!r}")
+    return dest
+
+
 def unpack(bundle_path: Path, dest_themes: Path, name: str | None) -> Path:
     try:
         bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
@@ -94,11 +116,11 @@ def unpack(bundle_path: Path, dest_themes: Path, name: str | None) -> Path:
     if bundle.get("format") != FORMAT:
         raise SystemExit(f"error: not a {FORMAT} style file: {bundle_path}")
 
-    theme_name = name or bundle.get("name") or "imported-theme"
-    target = dest_themes / theme_name
+    theme_name = _safe_name(name or bundle.get("name") or "imported-theme")
+    target = (dest_themes / theme_name).resolve()
     target.mkdir(parents=True, exist_ok=True)
     for rel, entry in bundle.get("files", {}).items():
-        dest = target / rel
+        dest = _safe_member(target, rel)
         dest.parent.mkdir(parents=True, exist_ok=True)
         if entry.get("encoding") == "utf-8":
             dest.write_text(entry.get("text", ""), encoding="utf-8")
