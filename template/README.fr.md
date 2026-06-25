@@ -97,4 +97,4 @@ pour en ajouter une, déposez un nouveau fichier dans `slides/`. Voir
 
 ## Licence
 
-[MIT](LICENSE) © Thomas Gourmelen
+Le moteur et les outils de build sont sous licence [MIT](LICENSE) © Thomas Gourmelen. Les slides que vous écrivez vous appartiennent.

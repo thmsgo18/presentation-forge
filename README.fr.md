@@ -7,6 +7,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml"><img src="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="License MIT"></a>
   <img src="https://img.shields.io/badge/claude-skill-d97757?style=for-the-badge" alt="Claude Skill">
   <img src="https://img.shields.io/badge/sortie-fichier%20unique-2563eb?style=for-the-badge" alt="Fichier unique">
@@ -84,8 +85,10 @@ Vous ne perdez rien de ce que PowerPoint offre à un présentateur, et vous gagn
 - 💾 **Enregistrer un style une fois** : exporter tout thème en un seul `.pfstyle.json` et recréer exactement le même look dans n'importe quelle conversation future, sans fichier d'origine.
 - 📦 **Sortie en fichier unique** : un `index.html`, prêt hors ligne, zéro dépendance, qui s'ouvre partout où il y a un navigateur.
 
-<!-- screenshot : mode présentateur avec notes + minuteur + aperçu de la slide suivante -->
-<!-- screenshot : une slide de contenu avec révélation progressive (fragments) -->
+<p align="center">
+  <img src="docs/screenshots/presenter-mode.png" width="49%" alt="Mode présentateur : notes, minuteur et aperçu de la slide suivante">
+  <img src="docs/screenshots/comparison-table.png" width="49%" alt="Une slide de contenu construite avec le thème obsidian, comparant PowerPoint et Presentation Forge">
+</p>
 
 ## Exemple
 
@@ -134,6 +137,10 @@ Quelle que soit la source, le thème s'exporte en un seul fichier portable **`.p
 - Un client Claude qui supporte les skills ([Claude Code](https://docs.claude.com/en/docs/claude-code), les apps Claude ou l'API).
 - **Python 3.10+**, bibliothèque standard uniquement, pour construire les decks et lire les `.pptx`. Rien d'autre.
 - Un navigateur pour voir le résultat.
+
+## Contribuer
+
+Les rapports de bugs et les pull requests sont bienvenus - voir [`CONTRIBUTING.md`](CONTRIBUTING.md) (en anglais). Les changements notables sont suivis dans [`CHANGELOG.md`](CHANGELOG.md) (en anglais).
 
 ## Licence
 

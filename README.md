@@ -7,6 +7,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml"><img src="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="License MIT"></a>
   <img src="https://img.shields.io/badge/claude-skill-d97757?style=for-the-badge" alt="Claude Skill">
   <img src="https://img.shields.io/badge/output-single%20file-2563eb?style=for-the-badge" alt="Single file output">
@@ -84,8 +85,10 @@ You lose nothing PowerPoint gives a presenter, and you gain portability, longevi
 - 💾 **Save a style once** : export any theme to a single `.pfstyle.json` and recreate the exact same look in any future conversation, no original files needed.
 - 📦 **Single-file output** : one `index.html`, offline ready, zero dependencies, opens anywhere a browser exists.
 
-<!-- screenshot: presenter mode showing speaker notes + timer + next-slide preview -->
-<!-- screenshot: a content slide with progressive reveal (fragments) -->
+<p align="center">
+  <img src="docs/screenshots/presenter-mode.png" width="49%" alt="Presenter mode: speaker notes, timer and next-slide preview">
+  <img src="docs/screenshots/comparison-table.png" width="49%" alt="A content slide built with the obsidian theme, comparing PowerPoint and Presentation Forge">
+</p>
 
 ## Example
 
@@ -134,6 +137,10 @@ Whatever the source, the theme exports to one portable **`.pfstyle.json`**. Keep
 - A Claude client that supports skills ([Claude Code](https://docs.claude.com/en/docs/claude-code), the Claude apps, or the API).
 - **Python 3.10+**, standard library only, to build decks and read `.pptx` files. Nothing else.
 - A browser to view the result.
+
+## Contributing
+
+Bug reports and pull requests are welcome - see [`CONTRIBUTING.md`](CONTRIBUTING.md). Notable changes are tracked in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 

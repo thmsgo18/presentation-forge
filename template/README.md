@@ -95,4 +95,4 @@ full guide.
 
 ## License
 
-[MIT](LICENSE) © Thomas Gourmelen
+The engine and build tooling are [MIT](LICENSE) © Thomas Gourmelen. The slides you write are yours.
