@@ -14,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="https://thmsgo18.github.io/presentation-forge/"><b>Live demo</b></a> •
   <a href="#install">Install</a> •
   <a href="#why-html-not-powerpoint">Why HTML</a> •
   <a href="#what-it-can-do">What it can do</a> •
@@ -131,7 +132,7 @@ Whatever the source, the theme exports to one portable **`.pfstyle.json`**. Keep
 ## Requirements
 
 - A Claude client that supports skills ([Claude Code](https://docs.claude.com/en/docs/claude-code), the Claude apps, or the API).
-- **Python 3**, standard library only, to build decks and read `.pptx` files. Nothing else.
+- **Python 3.10+**, standard library only, to build decks and read `.pptx` files. Nothing else.
 - A browser to view the result.
 
 ## License

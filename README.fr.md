@@ -14,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="https://thmsgo18.github.io/presentation-forge/"><b>Démo live</b></a> •
   <a href="#installation">Installation</a> •
   <a href="#pourquoi-du-html-pas-du-powerpoint">Pourquoi le HTML</a> •
   <a href="#ce-quil-sait-faire">Ce qu'il sait faire</a> •
@@ -131,7 +132,7 @@ Quelle que soit la source, le thème s'exporte en un seul fichier portable **`.p
 ## Prérequis
 
 - Un client Claude qui supporte les skills ([Claude Code](https://docs.claude.com/en/docs/claude-code), les apps Claude ou l'API).
-- **Python 3**, bibliothèque standard uniquement, pour construire les decks et lire les `.pptx`. Rien d'autre.
+- **Python 3.10+**, bibliothèque standard uniquement, pour construire les decks et lire les `.pptx`. Rien d'autre.
 - Un navigateur pour voir le résultat.
 
 ## Licence

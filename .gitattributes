@@ -1,0 +1,16 @@
+# Normalize line endings: text files use LF in the repo, regardless of OS.
+* text=auto eol=lf
+
+# Binary artifacts: no diff, no merge, no line-ending munging.
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+
+# Generated files: collapse in diffs and keep them out of GitHub's language
+# stats. Both are rebuilt from source (build.py / tools/pack.py).
+template/index.html linguist-generated=true
+dist/presentation-forge-skill.zip linguist-generated=true
