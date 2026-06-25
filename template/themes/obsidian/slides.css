@@ -461,21 +461,43 @@ pre code .line::before {
 /* ==================================================================== */
 
 .vs {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 8px 36px;
+}
+
+.vs__head-row,
+.vs__data-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr 124px 124px;
+  column-gap: 20px;
   align-items: center;
-  row-gap: 18px;
-  column-gap: 36px;
+}
+
+.vs__head-row {
+  padding: 18px 0 16px;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--accent) 0%, transparent 55%, var(--accent-soft) 100%) 1;
+}
+
+.vs__data-row {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.vs__data-row:last-child {
+  border-bottom: none;
 }
 
 .vs__head {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--rule);
 }
 
 .vs__head--a,
@@ -489,14 +511,14 @@ pre code .line::before {
 }
 
 .vs__mark {
-  width: 36px;
-  height: 36px;
+  width: 46px;
+  height: 46px;
   margin: 0 auto;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
 }
 
@@ -521,6 +543,7 @@ pre code .line::before {
 
 .context-badge {
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   gap: 12px;
   padding: 9px 20px;
@@ -595,8 +618,8 @@ pre code .line::before {
 .tour--presenter .tour__bar { padding: 0 23%; }
 
 .tour__btn {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -606,8 +629,8 @@ pre code .line::before {
 }
 
 .tour__btn svg {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -742,8 +765,8 @@ pre code .line::before {
 }
 
 .switch__btn {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -753,8 +776,8 @@ pre code .line::before {
 }
 
 .switch__btn svg {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
