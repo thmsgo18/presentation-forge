@@ -27,6 +27,8 @@
 (() => {
   "use strict";
 
+  const VERSION = "1.0.0";
+
   const DESIGN_W = 1920;
   const DESIGN_H = 1080;
   const IDLE_MS = 2500;
@@ -1455,6 +1457,8 @@ ${linkTags}
       );
     }
   }
+
+  DeckStage.version = VERSION;
 
   if (!customElements.get("deck-stage")) {
     customElements.define("deck-stage", DeckStage);
