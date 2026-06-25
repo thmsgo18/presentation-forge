@@ -8,6 +8,11 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
+- **obsidian** — a second bundled theme: a dark, editorial look with embedded
+  Fraunces, Inter and JetBrains Mono fonts. The template now ships it by default;
+  the light `ink-blue` theme remains available.
+- A 15-slide showcase deck (the template's example slides) that tours the
+  engine's features and doubles as the GitHub Pages live demo.
 - Continuous integration (GitHub Actions): syntax check, test suite, and a check
   that the committed skill archive stays in sync with the sources.
 - `tools/pack.py` — deterministic, reproducible build of

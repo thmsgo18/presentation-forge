@@ -43,8 +43,8 @@ This skill supports two workflows, chosen from what the user asks:
 ## Where the engine lives
 
 This skill bundles the deck scaffold in **`template/`**, a sibling of this
-`SKILL.md`. It contains `engine/`, `themes/ink-blue/`, example `slides/`,
-`assets/`, `build.py` and `deck.config.json`.
+`SKILL.md`. It contains `engine/`, `themes/` (the dark `obsidian` and the light
+`ink-blue`), example `slides/`, `assets/`, `build.py` and `deck.config.json`.
 
 Resolve the skill's own directory first (it's wherever this `SKILL.md` was read
 from), then treat `template/` as relative to it. A robust way to locate it:

@@ -16,13 +16,14 @@ presentation-forge/
 │   ├── deck-stage.js    #   the engine: a <deck-stage> custom element
 │   └── base.css         #   its mechanics: scaling, controls, presenter UI
 ├── themes/              # the looks - one folder per theme, swap freely
-│   └── ink-blue/
-│       ├── tokens.css   #     the dials: colours, type scale, spacing, fonts
-│       ├── fonts.css    #     @font-face declarations
-│       ├── slides.css   #     how blocks are styled (.title, .bullets, variants…)
-│       ├── fonts/       #     font files            ┐ the look - travels
-│       ├── images/      #     backgrounds, textures │ with the theme
-│       └── logos/       #     logos                 ┘
+│   ├── obsidian/        #   dark, editorial (this deck's default)
+│   │   ├── tokens.css   #     the dials: colours, type scale, spacing, fonts
+│   │   ├── fonts.css    #     @font-face declarations
+│   │   ├── slides.css   #     how blocks are styled (.title, .bullets, variants…)
+│   │   ├── fonts/       #     font files            ┐ the look - travels
+│   │   ├── images/      #     backgrounds, textures │ with the theme
+│   │   └── logos/       #     logos                 ┘
+│   └── ink-blue/        #   clean, light alternative
 ├── slides/              # your content - one file per slide, ordered by name
 │   ├── 01-title.html
 │   ├── 02-agenda.html

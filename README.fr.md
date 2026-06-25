@@ -118,7 +118,7 @@ Le build est volontairement banal, et c'est ce qui le rend portable : on écrit 
 
 ## Thèmes
 
-Un thème est un dossier autonome (`tokens.css`, `fonts.css`, `slides.css`, plus `fonts/`, `images/`, `logos/`). Chaque thème définit les mêmes tokens et stylise les mêmes classes de slide, donc changer de thème ne casse jamais un deck. On en construit un à partir d'une charte de quatre façons :
+Un thème est un dossier autonome (`tokens.css`, `fonts.css`, `slides.css`, plus `fonts/`, `images/`, `logos/`). Chaque thème définit les mêmes tokens et stylise les mêmes classes de slide, donc changer de thème ne casse jamais un deck. Deux sont livrés d'origine — **obsidian** (le look sombre et éditorial de la [démo live](https://thmsgo18.github.io/presentation-forge/)) et **ink-blue** (clair et sobre). On en construit un à partir d'une charte de quatre façons :
 
 | Source | Ce que fait Claude |
 | :----- | :----------------- |

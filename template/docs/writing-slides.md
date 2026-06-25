@@ -130,7 +130,7 @@ Set these in `deck.config.json`:
 A theme is a self-contained folder under `themes/`, split by concern:
 
 ```
-themes/ink-blue/
+themes/obsidian/   # this deck's theme; a light "ink-blue" theme also ships
 ├── tokens.css   # the dials: colours, type scale, spacing, font-family names
 ├── fonts.css    # @font-face declarations
 ├── slides.css   # how the blocks above are styled

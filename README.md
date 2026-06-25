@@ -118,7 +118,7 @@ The build is deliberately boring, which is what makes it portable: write slides 
 
 ## Themes
 
-A theme is a self-contained folder (`tokens.css`, `fonts.css`, `slides.css`, plus `fonts/`, `images/`, `logos/`). Every theme defines the same tokens and styles the same slide classes, so switching themes never breaks a deck. Build one from a brand four ways:
+A theme is a self-contained folder (`tokens.css`, `fonts.css`, `slides.css`, plus `fonts/`, `images/`, `logos/`). Every theme defines the same tokens and styles the same slide classes, so switching themes never breaks a deck. Two ship out of the box — **obsidian** (the dark, editorial look in the [live demo](https://thmsgo18.github.io/presentation-forge/)) and **ink-blue** (clean and light). Build your own from a brand four ways:
 
 | Source | What Claude does |
 | :----- | :--------------- |
