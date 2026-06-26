@@ -112,6 +112,20 @@ portable file.
   `<section class="slide" id="intro">`) for a stable named link (`#intro`);
   otherwise it's the slide number (`#3`).
 
+## Editing text in the browser
+
+In Chrome, Edge, or another Chromium browser opening `index.html` directly from
+disk, a pencil button in the toolbar lets anyone fix typos or reword a line
+without touching the source files. Click it, pick the deck's `index.html` in the
+dialog that appears, and grant write access; existing titles, bullets and
+paragraphs become editable in place. Saves happen automatically when you leave a
+slide or close edit mode, plus a save button while editing. Speaker notes use the
+same mechanism once you've granted access once.
+
+This only edits existing text - it can't add or remove bullets, slides or
+images - and the button is hidden entirely in browsers that can't write back to
+disk (Safari, Firefox), so no one sees a control that wouldn't work for them.
+
 ## Deck configuration
 
 Set these in `deck.config.json`:

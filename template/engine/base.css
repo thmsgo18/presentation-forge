@@ -250,6 +250,32 @@ deck-stage.is-presenter  .pf-rail-resizer { display: none; }
   stroke-linejoin: round;
 }
 
+/* ---- in-place text editing (windowed mode only) ------------------- */
+
+.pf-save { display: none; }
+deck-stage.is-editing .pf-save { display: flex; }
+
+deck-stage.is-fullscreen .pf-edit,
+deck-stage.is-fullscreen .pf-save,
+deck-stage.is-presenter  .pf-edit,
+deck-stage.is-presenter  .pf-save { display: none !important; }
+
+.pf-editable {
+  border-radius: 4px;
+  cursor: text;
+  outline: 1px dashed transparent;
+  -webkit-transition: outline-color 0.15s ease, background 0.15s ease;
+  transition: outline-color 0.15s ease, background 0.15s ease;
+}
+deck-stage.is-editing .pf-editable:hover {
+  outline-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+.pf-editable:focus {
+  outline: 1px dashed var(--pf-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 /* ---- speaker notes (windowed mode only) ---- */
 
 /* Toggle button - bottom-left of the stage */

@@ -39,6 +39,15 @@
     'a[href], button, input, select, textarea, summary, label, ' +
     'video[controls], audio[controls], [role="button"], [onclick], [tabindex]';
 
+  // Text blocks a slide author can edit in place. Block-level only - never an
+  // inline span inside one of these, so two contenteditable regions never
+  // overlap. Skipped entirely inside decorative/structural zones (see
+  // _editableElements) such as code blocks, diagrams and the demo mockups.
+  const EDITABLE_SELECTOR =
+    '.eyebrow, .display, h1, .title, h2, .subtitle, .lead, ul.bullets > li, blockquote, p';
+  const EDITABLE_EXCLUDE_ANCESTOR =
+    'pre, svg, .diagram, .tour, .switch, .vs, aside.notes, [aria-hidden="true"]';
+
   const ICONS = {
     prev:     '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
     next:     '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
@@ -54,6 +63,8 @@
     laser:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M19.1 4.9l-2.1 2.1M7.1 16.9l-2.1 2.1"/></svg>',
     help:     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>',
     exit:     '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+    editText: '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>',
+    save:     '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
   };
 
   const el = (tag, cls) => {
@@ -104,6 +115,7 @@
       this._buildRail();
       this._buildStage();    // appends overlay to this.stage
       this._buildControls();
+      if ("showOpenFilePicker" in window) this._buildEditing();
       this.append(this.toast);
 
       this.index = this._indexFromHash();
@@ -312,6 +324,161 @@
       this.appendChild(this.controls);
     }
 
+    /* ---- In-place text editing (windowed mode only) ------------------ */
+    /* Only built when the browser can actually write the result back to */
+    /* disk (window.showOpenFilePicker) - never shown where it can't work.*/
+
+    _buildEditing() {
+      this._editing    = false;
+      this._fileHandle = null;
+      this._onEditableFocus   = (e) => { e.target.dataset.pfOrig = e.target.textContent; };
+      this._onEditableKeyDown = (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.target.blur();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          if (e.target.dataset.pfOrig !== undefined) e.target.textContent = e.target.dataset.pfOrig;
+          e.target.blur();
+        }
+      };
+
+      this.editBtn = mkBtn("pf-edit", "Edit text", ICONS.editText, () => this._toggleEdit());
+      this.saveBtn = mkBtn("pf-save", "Save",      ICONS.save,     () => this._persistToDisk());
+      this.controls.append(this.editBtn, this.saveBtn);
+    }
+
+    /* Resolve (once) the on-disk file we are allowed to write back to.
+       Returns true once we hold read-write permission, false if the person
+       cancelled the picker or declined the permission prompt. */
+    async _ensureFileHandle() {
+      if (this._fileHandle) return true;
+      try {
+        const name = decodeURIComponent(location.pathname.split("/").pop() || "index.html");
+        this._showToast(`Choose "${name}" in the next window to turn on editing.`);
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{ description: "Presentation", accept: { "text/html": [".html", ".htm"] } }],
+        });
+        const perm = await handle.requestPermission({ mode: "readwrite" });
+        if (perm !== "granted") {
+          this._showToast("Editing needs permission to save this file.");
+          return false;
+        }
+        this._fileHandle = handle;
+        return true;
+      } catch (err) {
+        // AbortError = the person closed the picker; not a real error.
+        if (err && err.name !== "AbortError") {
+          this._showToast("Could not open that file for editing.");
+        }
+        return false;
+      }
+    }
+
+    /* Every editable block, across every slide, never inside a decorative or
+       structural zone (code, diagrams, the engine's own demo mockups). */
+    _editableElements() {
+      const all = [];
+      this.slides.forEach((slide) => {
+        slide.querySelectorAll(EDITABLE_SELECTOR).forEach((node) => {
+          if (!node.closest(EDITABLE_EXCLUDE_ANCESTOR)) all.push(node);
+        });
+      });
+      return all;
+    }
+
+    async _toggleEdit() {
+      if (this._editing) {
+        await this._exitEditMode();
+      } else {
+        if (!(await this._ensureFileHandle())) return;
+        this._enterEditMode();
+      }
+    }
+
+    _enterEditMode() {
+      this._editing = true;
+      this.classList.add("is-editing");
+      this.editBtn.classList.add("is-active");
+      this.editBtn.innerHTML = ICONS.exit;
+      this.editBtn.title = "Done editing";
+      this.editBtn.setAttribute("aria-label", "Done editing");
+
+      this._editableElements().forEach((node) => {
+        node.contentEditable = "true";
+        node.classList.add("pf-editable");
+        node.addEventListener("keydown", this._onEditableKeyDown);
+        node.addEventListener("focus",   this._onEditableFocus);
+      });
+    }
+
+    async _exitEditMode() {
+      this._editing = false;
+      this.classList.remove("is-editing");
+      this.editBtn.classList.remove("is-active");
+      this.editBtn.innerHTML = ICONS.editText;
+      this.editBtn.title = "Edit text";
+      this.editBtn.setAttribute("aria-label", "Edit text");
+
+      this._editableElements().forEach((node) => {
+        node.removeAttribute("contenteditable");
+        node.classList.remove("pf-editable");
+        node.removeEventListener("keydown", this._onEditableKeyDown);
+        node.removeEventListener("focus",   this._onEditableFocus);
+      });
+
+      await this._persistToDisk();
+    }
+
+    /* Write the deck back to disk, exactly as build.py would have produced it
+       (plus whatever text was just edited) - never the live, JS-grown DOM. */
+    async _persistToDisk() {
+      if (!this._fileHandle) return;
+      try {
+        const html = this._serializeForSave();
+        const writable = await this._fileHandle.createWritable();
+        await writable.write(html);
+        await writable.close();
+        this._showToast("Saved.");
+      } catch (err) {
+        this._showToast("Could not save - check the file is still there and try again.");
+      }
+    }
+
+    _serializeForSave() {
+      const cleanSlide = (slide) => {
+        const clone = slide.cloneNode(true);
+        clone.removeAttribute("data-active");
+        clone.removeAttribute("data-index");
+        clone.removeAttribute("role");
+        clone.removeAttribute("aria-roledescription");
+        clone.querySelectorAll("[contenteditable]").forEach((n) => {
+          n.removeAttribute("contenteditable");
+          n.classList.remove("pf-editable");
+        });
+        clone.querySelectorAll(".fragment.is-visible").forEach((n) => n.classList.remove("is-visible"));
+        return clone.outerHTML;
+      };
+
+      const slidesHtml = this.slides.map(cleanSlide).join("\n");
+      const script = document.querySelector("body > script:not([src])");
+      const lang = document.documentElement.getAttribute("lang") || "en";
+
+      return (
+        "<!doctype html>\n" +
+        `<html lang="${lang}">\n` +
+        document.head.outerHTML + "\n" +
+        "<body>\n" +
+        `<deck-stage width="${this.getAttribute("width")}" height="${this.getAttribute("height")}" ` +
+        `transition="${this.getAttribute("transition")}" exit-hint="${this.getAttribute("exit-hint")}">\n` +
+        slidesHtml + "\n" +
+        "</deck-stage>\n" +
+        (script ? script.outerHTML : "") + "\n" +
+        "</body>\n</html>\n"
+      );
+    }
+
     /* ------------------------------------------------------------------ */
     /* Navigation                                                           */
     /* ------------------------------------------------------------------ */
@@ -333,6 +500,8 @@
       // Auto-save notes for the slide we are leaving, then reload for the new one.
       const editorOpen = this.notesPanel && this.notesPanel.classList.contains("is-open");
       if (editorOpen) this._saveNotes();
+      // Leaving a slide while editing text writes it to disk too.
+      if (this._editing) this._persistToDisk();
 
       const prevIndex = this.index;
 
@@ -743,6 +912,10 @@
         notesEl.remove();
       }
       this._updatePresenterView();
+      // Notes only reach disk once editing has been turned on at least once
+      // (that's the one action that asks for file permission) - never prompt
+      // a file picker just because someone closed the notes panel.
+      if (this._fileHandle) this._persistToDisk();
     }
 
     /* ---- Presenter sidebar ------------------------------------------ */
