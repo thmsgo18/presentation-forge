@@ -845,13 +845,14 @@ pre code .line::before {
 }
 .icon-b { opacity: 0; }
 
-/* edit-mode switch: cursor clicks the pencil top-right, moves down to a
-   single word, which gets a dashed box and a blinking caret, the typo
-   corrects itself, and a "Saved" toast confirms it. .switch--edit is the
-   full-width 1680x280 box (theme content width minus --pad-x); the cursor
-   keyframe below is hand-aligned to the pencil button's actual position
-   (right:16px/top:16px on a 64px button -> centre at x=1632, y=48), not a
-   rough percentage guess. */
+/* edit-mode switch: cursor clicks the pencil top-right, the whole line gets
+   selected (matching how a real contenteditable block highlights on focus),
+   then it's genuinely erased character by character and the fix is typed
+   back in, the same way the code-block typewriter effect works elsewhere in
+   this theme. .switch--edit is the full-width 1680x280 box (theme content
+   width minus --pad-x); the cursor keyframe is hand-aligned to the pencil
+   button's actual position (right:16px/top:16px on a 64px button -> centre
+   at x=1632, y=48), not a rough percentage guess. */
 .switch--edit {
   align-items: center;
   justify-content: center;
@@ -864,36 +865,49 @@ pre code .line::before {
 }
 .switch--edit .switch__edit-btn { animation: pf-ed-btn 7s ease-in-out infinite; }
 
+.switch--edit .switch__edit-slide {
+  position: relative;
+  display: inline-grid;
+  padding: 10px 16px;
+  border-radius: 6px;
+  outline: 1px dashed transparent;
+  outline-offset: 6px;
+  animation: pf-ed-outline 7s ease-in-out infinite;
+}
+.switch--edit .switch__edit-slide::before {
+  content: "";
+  position: absolute;
+  inset: 4px 10px;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: pf-ed-select 7s ease-in-out infinite;
+}
+
 .switch--edit .switch__edit-text {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
   margin: 0;
   font-size: 34px;
   font-weight: 600;
   color: #e7ecf8;
-  text-align: center;
+  white-space: nowrap;
 }
-
-.switch--edit .switch__edit-word {
-  position: relative;
-  display: inline-grid;
-  vertical-align: baseline;
-  padding: 2px 6px;
-  border-radius: 5px;
-  outline: 1px dashed transparent;
-  outline-offset: 5px;
-  animation: pf-ed-outline 7s ease-in-out infinite;
-}
-.switch--edit .switch__edit-word > span { grid-area: 1 / 1; }
-.switch--edit .switch__edit-word--before { animation: pf-ed-text-before 7s ease-in-out infinite; }
-.switch--edit .switch__edit-word--after  { animation: pf-ed-text-after  7s ease-in-out infinite; }
+.switch--edit .switch__edit-text--before { animation: pf-ed-erase 7s ease-in-out infinite; }
+.switch--edit .switch__edit-text--after  { animation: pf-ed-type  7s ease-in-out infinite; }
 
 .switch--edit .switch__edit-caret {
-  display: inline-block;
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  right: 14px;
   width: 2px;
-  height: 0.85em;
-  margin-left: 2px;
-  vertical-align: -0.12em;
   background: var(--accent);
   opacity: 0;
+  z-index: 2;
   animation: pf-ed-caret 7s steps(1) infinite;
 }
 
@@ -906,39 +920,53 @@ pre code .line::before {
 .switch--edit .switch__edit-toast { animation: pf-ed-toast 7s ease-in-out infinite; }
 
 @keyframes pf-ed-cursor {
-  0%, 8%    { left: 860px; top: 172px; }
-  20%, 27%  { left: 1608px; top: 36px; }
-  36%, 90%  { left: 860px; top: 172px; }
-  100%      { left: 860px; top: 172px; }
+  0%, 8%    { left: 820px; top: 190px; }
+  20%, 27%  { left: 1618px; top: 40px; }
+  36%, 90%  { left: 820px; top: 190px; }
+  100%      { left: 820px; top: 190px; }
 }
 @keyframes pf-ed-btn {
   0%, 17%   { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
   21%       { transform: scale(0.82); background: var(--accent); }
-  24%, 56%  { transform: scale(1); background: var(--accent); }
-  62%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
+  24%, 64%  { transform: scale(1); background: var(--accent); }
+  70%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
 }
 @keyframes pf-ed-outline {
-  0%, 22%   { outline-color: transparent; background: transparent; }
-  27%, 58%  { outline-color: rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.07); }
-  64%, 100% { outline-color: transparent; background: transparent; }
+  0%, 25%   { outline-color: transparent; }
+  29%, 66%  { outline-color: rgba(255, 255, 255, 0.45); }
+  70%, 100% { outline-color: transparent; }
+}
+/* select-all sweep: a flat highlight grows across the whole line, like a
+   click-drag selection, then clears once the retyping starts. */
+@keyframes pf-ed-select {
+  0%, 26%   { opacity: 0; transform: scaleX(0); }
+  30%, 36%  { opacity: 0.35; transform: scaleX(1); }
+  40%, 100% { opacity: 0; transform: scaleX(1); }
+}
+/* erase: the wrong line is deleted from the end, like backspacing it out,
+   in discrete character-sized jumps (steps), not a smooth wipe. */
+@keyframes pf-ed-erase {
+  0%        { clip-path: inset(0 0 0 0); }
+  38%       { clip-path: inset(0 0 0 0); animation-timing-function: steps(9); }
+  50%       { clip-path: inset(0 100% 0 0); }
+  100%      { clip-path: inset(0 100% 0 0); }
+}
+/* type: the fix is typed back in left to right, same technique as the
+   pre-code typewriter reveal elsewhere in this theme. */
+@keyframes pf-ed-type {
+  0%        { clip-path: inset(0 100% 0 0); }
+  50%       { clip-path: inset(0 100% 0 0); animation-timing-function: steps(9); }
+  64%       { clip-path: inset(0 0 0 0); }
+  100%      { clip-path: inset(0 0 0 0); }
 }
 @keyframes pf-ed-caret {
-  0%, 24%, 31%, 38%, 45%, 60%, 100% { opacity: 0; }
-  27%, 34%, 41%, 56%                { opacity: 1; }
-}
-@keyframes pf-ed-text-before {
-  0%, 44%   { opacity: 1; }
-  48%, 100% { opacity: 0; }
-}
-@keyframes pf-ed-text-after {
-  0%, 44%   { opacity: 0; }
-  48%, 96%  { opacity: 1; }
-  100%      { opacity: 0; }
+  0%, 25%, 33%, 41%, 49%, 57%, 67%, 100% { opacity: 0; }
+  29%, 37%, 45%, 53%, 61%                { opacity: 1; }
 }
 @keyframes pf-ed-toast {
-  0%, 50%   { opacity: 0; }
-  56%, 76%  { opacity: 1; }
-  84%, 100% { opacity: 0; }
+  0%, 56%   { opacity: 0; }
+  62%, 80%  { opacity: 1; }
+  88%, 100% { opacity: 0; }
 }
 
 /* ==================================================================== */
