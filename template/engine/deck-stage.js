@@ -112,10 +112,15 @@
       this._blank          = null;     // null | "black" | "white"
       this._warnedOverflow = new Set();
 
+      // Saving back to disk only makes sense for a deck opened as a local
+      // file: a hosted copy has no real "this file" to write to, and the
+      // picker would just confuse people into choosing an unrelated file.
+      this._canEdit = "showOpenFilePicker" in window && location.protocol === "file:";
+
       this._buildRail();
       this._buildStage();    // appends overlay to this.stage
       this._buildControls();
-      if ("showOpenFilePicker" in window) this._buildEditing();
+      if (this._canEdit) this._buildEditing();
       this.append(this.toast);
 
       this.index = this._indexFromHash();
@@ -229,8 +234,16 @@
 
       this.notesTA = document.createElement("textarea");
       this.notesTA.className   = "pf-notes-ta";
-      this.notesTA.placeholder = "Speaker notes for this slide...";
       this.notesTA.setAttribute("aria-label", "Speaker notes");
+      if (this._canEdit) {
+        this.notesTA.placeholder = "Speaker notes for this slide...";
+      } else {
+        // No real save path here (hosted page, or a browser without the
+        // File System Access API) - offer reading notes, never editing ones
+        // that would silently be lost on reload.
+        this.notesTA.placeholder = "No speaker notes for this slide.";
+        this.notesTA.readOnly = true;
+      }
 
       this.notesPanel.append(header, this.notesTA);
 
@@ -324,9 +337,10 @@
       this.appendChild(this.controls);
     }
 
-    /* ---- In-place text editing (windowed mode only) ------------------ */
-    /* Only built when the browser can actually write the result back to */
-    /* disk (window.showOpenFilePicker) - never shown where it can't work.*/
+    /* ---- In-place text editing (local file, supporting browser only) - */
+    /* Only built when the page can actually write the result back to    */
+    /* disk: window.showOpenFilePicker exists AND this is a local file    */
+    /* (a hosted copy has no real "this file" to save over).             */
 
     _buildEditing() {
       this._editing    = false;
@@ -343,9 +357,11 @@
         }
       };
 
-      this.editBtn = mkBtn("pf-edit", "Edit text", ICONS.editText, () => this._toggleEdit());
-      this.saveBtn = mkBtn("pf-save", "Save",      ICONS.save,     () => this._persistToDisk());
-      this.controls.append(this.editBtn, this.saveBtn);
+      this.editBtn = mkBtn("pf-edit", "Edit", ICONS.editText, () => this._toggleEdit());
+      this.saveBtn = mkBtn("pf-save", "Save", ICONS.save,     () => this._persistToDisk());
+      this.editControls = el("div", "pf-edit-controls");
+      this.editControls.append(this.editBtn, this.saveBtn);
+      this.appendChild(this.editControls);
     }
 
     /* Resolve (once) the on-disk file we are allowed to write back to.
@@ -402,7 +418,7 @@
       this.classList.add("is-editing");
       this.editBtn.classList.add("is-active");
       this.editBtn.innerHTML = ICONS.exit;
-      this.editBtn.title = "Done editing";
+      this.editBtn.title = "Done";
       this.editBtn.setAttribute("aria-label", "Done editing");
 
       this._editableElements().forEach((node) => {
@@ -418,8 +434,8 @@
       this.classList.remove("is-editing");
       this.editBtn.classList.remove("is-active");
       this.editBtn.innerHTML = ICONS.editText;
-      this.editBtn.title = "Edit text";
-      this.editBtn.setAttribute("aria-label", "Edit text");
+      this.editBtn.title = "Edit";
+      this.editBtn.setAttribute("aria-label", "Edit");
 
       this._editableElements().forEach((node) => {
         node.removeAttribute("contenteditable");

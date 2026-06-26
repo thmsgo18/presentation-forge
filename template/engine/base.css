@@ -250,15 +250,22 @@ deck-stage.is-presenter  .pf-rail-resizer { display: none; }
   stroke-linejoin: round;
 }
 
-/* ---- in-place text editing (windowed mode only) ------------------- */
+/* ---- in-place text editing (local files only) --------------------- */
+
+.pf-edit-controls {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
 
 .pf-save { display: none; }
 deck-stage.is-editing .pf-save { display: flex; }
 
-deck-stage.is-fullscreen .pf-edit,
-deck-stage.is-fullscreen .pf-save,
-deck-stage.is-presenter  .pf-edit,
-deck-stage.is-presenter  .pf-save { display: none !important; }
+deck-stage.is-fullscreen .pf-edit-controls,
+deck-stage.is-presenter  .pf-edit-controls { display: none !important; }
 
 .pf-editable {
   border-radius: 4px;
