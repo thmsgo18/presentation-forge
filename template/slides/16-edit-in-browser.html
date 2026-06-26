@@ -1,19 +1,27 @@
-<!-- 16 - Editing text straight in the browser -->
+<!-- 16 - Editing text straight in the browser, demoed as a looping mockup -->
 <section class="slide">
+  <p class="context-badge">Edit mode</p>
   <h2 class="title">Fix a typo without opening an editor.</h2>
-  <ul class="bullets">
-    <li class="fragment">Click the pencil at the top: titles, bullets and notes turn editable, right on the slide.</li>
-    <li class="fragment">It saves itself when you move on, or you press save yourself.</li>
-    <li class="fragment">Chrome, Edge, or another Chromium browser. Never Safari or Firefox, the button just isn't there.</li>
-    <li class="fragment">Only for a copy on your own machine, an emailed deck included, never a hosted link.</li>
-  </ul>
+  <div class="switch switch--edit">
+    <div class="switch__edit-slide">
+      <span class="switch__edit-text switch__edit-text--before">Slides you atcually own.</span>
+      <span class="switch__edit-text switch__edit-text--after">Slides you actually own.</span>
+      <span class="switch__edit-caret"></span>
+    </div>
+    <button class="switch__btn switch__edit-btn" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+    </button>
+    <span class="switch__cursor switch__edit-cursor"></span>
+    <span class="switch__toast switch__edit-toast">Saved</span>
+  </div>
+  <p class="lead muted">Chrome, Edge, or another Chromium browser, never Safari or Firefox. Works on a deck already on disk, emailed copies included, not a hosted link.</p>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
   <aside class="notes">
-    <p>The pencil only shows up where saving could actually work, so nobody on Safari or Firefox sees a control that would just disappoint them.</p>
+    <p>This is a CSS mockup, not a recording, looping forever so it works in any browser with no playback.</p>
     <ul>
+      <li>The pencil only shows up where saving could actually work, so nobody on Safari or Firefox sees a control that would just disappoint them.</li>
       <li>This rewords existing text only, it doesn't add or remove bullets, slides or images.</li>
       <li>Speaker notes follow the same rule: always readable, only editable once the pencil is available.</li>
-      <li>"Local machine" covers a downloaded or emailed copy too, it only excludes a deck opened from a hosted link.</li>
     </ul>
   </aside>
 </section>
