@@ -845,93 +845,100 @@ pre code .line::before {
 }
 .icon-b { opacity: 0; }
 
-/* edit-mode switch: cursor clicks the pencil top-right, a line of text gets
-   a dashed outline and a caret, then the typo corrects itself and a "Saved"
-   toast confirms it - the whole click-to-save story in one loop. */
+/* edit-mode switch: cursor clicks the pencil top-right, moves down to a
+   single word, which gets a dashed box and a blinking caret, the typo
+   corrects itself, and a "Saved" toast confirms it. .switch--edit is the
+   full-width 1680x280 box (theme content width minus --pad-x); the cursor
+   keyframe below is hand-aligned to the pencil button's actual position
+   (right:16px/top:16px on a 64px button -> centre at x=1632, y=48), not a
+   rough percentage guess. */
+.switch--edit {
+  align-items: center;
+  justify-content: center;
+}
+
 .switch--edit .switch__edit-btn {
   position: absolute;
   top: 16px;
   right: 16px;
 }
-.switch--edit .switch__edit-btn { animation: pf-ed-btn 6s ease-in-out infinite; }
+.switch--edit .switch__edit-btn { animation: pf-ed-btn 7s ease-in-out infinite; }
 
-.switch--edit .switch__edit-slide {
-  position: absolute;
-  left: 30px;
-  bottom: 40px;
-  width: 320px;
-  height: 30px;
-  border-radius: 5px;
-  outline: 1px dashed transparent;
-  outline-offset: 6px;
-  animation: pf-ed-outline 6s ease-in-out infinite;
-}
 .switch--edit .switch__edit-text {
-  position: absolute;
-  top: 0;
-  left: 0;
-  white-space: nowrap;
-  font-size: 22px;
+  margin: 0;
+  font-size: 34px;
   font-weight: 600;
   color: #e7ecf8;
+  text-align: center;
 }
-.switch--edit .switch__edit-text--before { animation: pf-ed-text-before 6s ease-in-out infinite; }
-.switch--edit .switch__edit-text--after  { animation: pf-ed-text-after  6s ease-in-out infinite; }
+
+.switch--edit .switch__edit-word {
+  position: relative;
+  display: inline-grid;
+  vertical-align: baseline;
+  padding: 2px 6px;
+  border-radius: 5px;
+  outline: 1px dashed transparent;
+  outline-offset: 5px;
+  animation: pf-ed-outline 7s ease-in-out infinite;
+}
+.switch--edit .switch__edit-word > span { grid-area: 1 / 1; }
+.switch--edit .switch__edit-word--before { animation: pf-ed-text-before 7s ease-in-out infinite; }
+.switch--edit .switch__edit-word--after  { animation: pf-ed-text-after  7s ease-in-out infinite; }
 
 .switch--edit .switch__edit-caret {
-  position: absolute;
-  left: 0;
-  bottom: -3px;
+  display: inline-block;
   width: 2px;
-  height: 26px;
+  height: 0.85em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
   background: var(--accent);
   opacity: 0;
-  animation: pf-ed-caret 6s ease-in-out infinite;
+  animation: pf-ed-caret 7s steps(1) infinite;
 }
 
 .switch--edit .switch__edit-cursor {
   bottom: auto;
   right: auto;
-  animation: pf-ed-cursor 6s ease-in-out infinite;
+  animation: pf-ed-cursor 7s ease-in-out infinite;
 }
 
-.switch--edit .switch__edit-toast { animation: pf-ed-toast 6s ease-in-out infinite; }
+.switch--edit .switch__edit-toast { animation: pf-ed-toast 7s ease-in-out infinite; }
 
 @keyframes pf-ed-cursor {
-  0%, 10%   { left: 12%; top: 84%; }
-  22%, 28%  { left: 88%; top: 18%; }
-  40%, 92%  { left: 12%; top: 84%; }
-  100%      { left: 12%; top: 84%; }
+  0%, 8%    { left: 860px; top: 172px; }
+  20%, 27%  { left: 1608px; top: 36px; }
+  36%, 90%  { left: 860px; top: 172px; }
+  100%      { left: 860px; top: 172px; }
 }
 @keyframes pf-ed-btn {
-  0%, 19%   { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
-  23%       { transform: scale(0.82); background: var(--accent); }
-  26%, 54%  { transform: scale(1); background: var(--accent); }
-  60%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
+  0%, 17%   { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
+  21%       { transform: scale(0.82); background: var(--accent); }
+  24%, 56%  { transform: scale(1); background: var(--accent); }
+  62%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
 }
 @keyframes pf-ed-outline {
-  0%, 24%   { outline-color: transparent; background: transparent; }
-  28%, 54%  { outline-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.06); }
-  60%, 100% { outline-color: transparent; background: transparent; }
+  0%, 22%   { outline-color: transparent; background: transparent; }
+  27%, 58%  { outline-color: rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.07); }
+  64%, 100% { outline-color: transparent; background: transparent; }
 }
 @keyframes pf-ed-caret {
-  0%, 26%   { opacity: 0; }
-  30%, 50%  { opacity: 1; }
-  54%, 100% { opacity: 0; }
+  0%, 24%, 31%, 38%, 45%, 60%, 100% { opacity: 0; }
+  27%, 34%, 41%, 56%                { opacity: 1; }
 }
 @keyframes pf-ed-text-before {
-  0%, 32%   { opacity: 1; }
-  36%, 100% { opacity: 0; }
+  0%, 44%   { opacity: 1; }
+  48%, 100% { opacity: 0; }
 }
 @keyframes pf-ed-text-after {
-  0%, 32%   { opacity: 0; }
-  36%, 96%  { opacity: 1; }
+  0%, 44%   { opacity: 0; }
+  48%, 96%  { opacity: 1; }
   100%      { opacity: 0; }
 }
 @keyframes pf-ed-toast {
-  0%, 38%   { opacity: 0; }
-  44%, 66%  { opacity: 1; }
-  74%, 100% { opacity: 0; }
+  0%, 50%   { opacity: 0; }
+  56%, 76%  { opacity: 1; }
+  84%, 100% { opacity: 0; }
 }
 
 /* ==================================================================== */
