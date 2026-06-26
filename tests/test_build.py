@@ -14,7 +14,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 TEMPLATE = REPO / "template"
-EXPECTED_SLIDES = 19
+EXPECTED_SLIDES = 20
 
 
 class BuildTests(unittest.TestCase):

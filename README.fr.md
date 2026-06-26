@@ -60,6 +60,7 @@ Claude sait déjà cracher un `.pptx`. Mais un `.pptx` reste prisonnier de Power
 | Images, code, citations, mises en page multi-colonnes | ✅ | ✅ |
 | Compatible télécommande ou pointeur de présentation | ✅ | ✅ |
 | Fonctionne entièrement hors ligne | ✅ | ✅ |
+| N'importe qui peut corriger une coquille, sans coder | ✅ | ✅ |
 | S'ouvre sans logiciel, dans n'importe quel navigateur | ❌ | ✅ |
 | Rendu identique sur toutes les machines | 🟠 | ✅ |
 | Les polices voyagent dans le fichier | 🟠 | ✅ |
@@ -79,11 +80,14 @@ Vous ne perdez rien de ce que PowerPoint offre à un présentateur, et vous gagn
 - 🧠 **N'importe quel brief en deck** : un sujet, un plan, des notes en vrac ou un document entier. Talks techniques, cours, pitchs, conférences, tout sujet.
 - ✍️ **Des slides qui font mouche** : titres en assertion, une idée par slide, puces serrées. Les pavés de texte vont dans les notes, pas à l'écran.
 - 🎤 **Présenter comme un pro** : mode présentateur intégré avec notes, minuteur et aperçu de la slide suivante. Navigation clavier complète, touche `?` pour les raccourcis.
+- ✏️ **Modifier sans toucher au code** : corriger une coquille ou reformuler une ligne directement dans le navigateur, sauvegardé tout de suite dans le fichier.
 - ✨ **Révélation progressive** : dérouler un point pas à pas avec `fragment`, la vue présentateur suit chaque étape.
 - 🎨 **Thèmes interchangeables** : changer tout le look sans toucher une seule slide.
 - 🏢 **Importer une charte** : recréer une identité depuis un `.pptx`, une image ou une description texte, et intégrer un logo d'entreprise.
 - 💾 **Enregistrer un style une fois** : exporter tout thème en un seul `.pfstyle.json` et recréer exactement le même look dans n'importe quelle conversation future, sans fichier d'origine.
 - 📦 **Sortie en fichier unique** : un `index.html`, prêt hors ligne, zéro dépendance, qui s'ouvre partout où il y a un navigateur.
+
+<sub>La modification fonctionne dans Chrome, Edge ou un autre navigateur basé sur Chromium - elle n'est pas disponible dans Safari ou Firefox, le bouton n'y apparaît tout simplement pas. Elle ne marche aussi que sur un deck ouvert depuis votre propre machine : une copie téléchargée ou reçue par mail convient, un lien hébergé non, puisqu'il n'y a aucun fichier réel à réécrire à cet endroit.</sub>
 
 <p align="center">
   <img src="docs/screenshots/presenter-mode.png" width="49%" alt="Mode présentateur : notes, minuteur et aperçu de la slide suivante">

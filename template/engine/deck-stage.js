@@ -440,6 +440,8 @@
       this._editableElements().forEach((node) => {
         node.removeAttribute("contenteditable");
         node.classList.remove("pf-editable");
+        if (!node.classList.length) node.removeAttribute("class");
+        delete node.dataset.pfOrig;
         node.removeEventListener("keydown", this._onEditableKeyDown);
         node.removeEventListener("focus",   this._onEditableFocus);
       });
@@ -472,7 +474,10 @@
         clone.querySelectorAll("[contenteditable]").forEach((n) => {
           n.removeAttribute("contenteditable");
           n.classList.remove("pf-editable");
+          if (!n.classList.length) n.removeAttribute("class");
+          delete n.dataset.pfOrig;
         });
+        clone.querySelectorAll("[data-pf-orig]").forEach((n) => delete n.dataset.pfOrig);
         clone.querySelectorAll(".fragment.is-visible").forEach((n) => n.classList.remove("is-visible"));
         return clone.outerHTML;
       };

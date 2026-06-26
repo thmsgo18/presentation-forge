@@ -2523,7 +2523,26 @@ pre code .line:last-child::after {
     <p>Meta moment: the bullets you're revealing right now <em>are</em> fragments. Say it out loud, the demo is the feature.</p>
   </aside>
 </section>
-<!-- 16 - Section divider: Make it yours -->
+<!-- 16 - Editing text straight in the browser -->
+<section class="slide">
+  <h2 class="title">Fix a typo without opening an editor.</h2>
+  <ul class="bullets">
+    <li class="fragment">Click the pencil at the top: titles, bullets and notes turn editable, right on the slide.</li>
+    <li class="fragment">It saves itself when you move on, or you press save yourself.</li>
+    <li class="fragment">Chrome, Edge, or another Chromium browser. Never Safari or Firefox, the button just isn't there.</li>
+    <li class="fragment">Only for a copy on your own machine, an emailed deck included, never a hosted link.</li>
+  </ul>
+  <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
+  <aside class="notes">
+    <p>The pencil only shows up where saving could actually work, so nobody on Safari or Firefox sees a control that would just disappoint them.</p>
+    <ul>
+      <li>This rewords existing text only, it doesn't add or remove bullets, slides or images.</li>
+      <li>Speaker notes follow the same rule: always readable, only editable once the pencil is available.</li>
+      <li>"Local machine" covers a downloaded or emailed copy too, it only excludes a deck opened from a hosted link.</li>
+    </ul>
+  </aside>
+</section>
+<!-- 17 - Section divider: Make it yours -->
 <section class="slide slide--section">
   <p class="eyebrow">Part 03</p>
   <h1 class="display">Make it yours</h1>
@@ -2532,7 +2551,7 @@ pre code .line:last-child::after {
     <p>Final beat: theming and reusing a brand across decks.</p>
   </aside>
 </section>
-<!-- 17 - Themes -->
+<!-- 18 - Themes -->
 <section class="slide">
   <h2 class="title">Swap the whole look in one line.</h2>
   <div class="two-col">
@@ -2552,7 +2571,7 @@ pre code .line:last-child::after {
     <p>The strongest demo of all: the same slides under a different theme. The content never changes, the look completely does.</p>
   </aside>
 </section>
-<!-- 18 - Quote -->
+<!-- 19 - Quote -->
 <section class="slide">
   <p class="eyebrow">The point</p>
   <blockquote>Own your slides. Don't rent them from an app that might not open them in ten years.</blockquote>
@@ -2560,7 +2579,7 @@ pre code .line:last-child::after {
     <p>A beat of silence. This is the thesis of the whole talk, let it sit before the call to action.</p>
   </aside>
 </section>
-<!-- 19 - Closing / call to action -->
+<!-- 20 - Closing / call to action -->
 <section class="slide slide--conclude">
   <p class="eyebrow">Your turn</p>
   <h1 class="display">Describe your next talk.</h1>
@@ -3015,6 +3034,8 @@ pre code .line:last-child::after {
       this._editableElements().forEach((node) => {
         node.removeAttribute("contenteditable");
         node.classList.remove("pf-editable");
+        if (!node.classList.length) node.removeAttribute("class");
+        delete node.dataset.pfOrig;
         node.removeEventListener("keydown", this._onEditableKeyDown);
         node.removeEventListener("focus",   this._onEditableFocus);
       });
@@ -3047,7 +3068,10 @@ pre code .line:last-child::after {
         clone.querySelectorAll("[contenteditable]").forEach((n) => {
           n.removeAttribute("contenteditable");
           n.classList.remove("pf-editable");
+          if (!n.classList.length) n.removeAttribute("class");
+          delete n.dataset.pfOrig;
         });
+        clone.querySelectorAll("[data-pf-orig]").forEach((n) => delete n.dataset.pfOrig);
         clone.querySelectorAll(".fragment.is-visible").forEach((n) => n.classList.remove("is-visible"));
         return clone.outerHTML;
       };

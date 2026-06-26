@@ -60,6 +60,7 @@ Claude can already spit out a `.pptx`. But a `.pptx` stays a prisoner of PowerPo
 | Images, code, quotes, multi-column layouts | ✅ | ✅ |
 | Works with a presenter remote or clicker | ✅ | ✅ |
 | Works fully offline | ✅ | ✅ |
+| Anyone can fix a typo, no code needed | ✅ | ✅ |
 | Opens with no software, in any browser | ❌ | ✅ |
 | Renders identically on every machine | 🟠 | ✅ |
 | Fonts travel inside the file | 🟠 | ✅ |
@@ -79,11 +80,14 @@ You lose nothing PowerPoint gives a presenter, and you gain portability, longevi
 - 🧠 **Any brief into a deck** : a topic, an outline, rough notes, or a whole document. Technical talks, courses, pitches, lectures, any subject.
 - ✍️ **Slides that land** : assertion-style titles, one idea per slide, tight bullets. Walls of text go into the notes, not on screen.
 - 🎤 **Present like a pro** : built-in presenter mode with speaker notes, a timer, and next-slide preview. Full keyboard navigation, press `?` for shortcuts.
+- ✏️ **Edit without touching code** : fix a typo or reword a line right in the browser, saved straight back to the file.
 - ✨ **Progressive reveal** : build a point step by step with `fragment`, the presenter view tracks each step.
 - 🎨 **Swappable themes** : change the entire look without touching a single slide.
 - 🏢 **Import a brand** : recreate an identity from a `.pptx`, an image, or a text description, and drop in a company logo.
 - 💾 **Save a style once** : export any theme to a single `.pfstyle.json` and recreate the exact same look in any future conversation, no original files needed.
 - 📦 **Single-file output** : one `index.html`, offline ready, zero dependencies, opens anywhere a browser exists.
+
+<sub>Editing works in Chrome, Edge, or another Chromium browser - it's not available in Safari or Firefox, the button simply won't appear there. It also only works on a deck opened from your own machine: a downloaded or emailed copy is fine, a hosted link is not, since there is no real file there to save back to.</sub>
 
 <p align="center">
   <img src="docs/screenshots/presenter-mode.png" width="49%" alt="Presenter mode: speaker notes, timer and next-slide preview">

@@ -11,8 +11,12 @@ All notable changes to this project are documented here. The format is based on
 - **obsidian** — a second bundled theme: a dark, editorial look with embedded
   Fraunces, Inter and JetBrains Mono fonts. The template now ships it by default;
   the light `ink-blue` theme remains available.
-- A 19-slide showcase deck (the template's example slides) that tours the
+- A 20-slide showcase deck (the template's example slides) that tours the
   engine's features and doubles as the GitHub Pages live demo.
+- In-browser editing of slide text and speaker notes, saved straight back to
+  disk via the File System Access API. Chrome, Edge and other Chromium
+  browsers only, and only for a deck opened from a local file - the control is
+  absent everywhere it couldn't actually save.
 - Continuous integration (GitHub Actions): syntax check, test suite, and a check
   that the committed skill archive stays in sync with the sources.
 - `tools/pack.py` — deterministic, reproducible build of
