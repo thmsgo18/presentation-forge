@@ -41,8 +41,28 @@ def is_local(ref: str) -> bool:
     return not re.match(r"^(?:[a-z]+:|//|#)", ref, re.IGNORECASE)
 
 
+# mimetypes.guess_type() partly relies on the OS's own MIME database (e.g. the
+# Windows registry), which doesn't reliably know web font types - pin the
+# extensions this project actually embeds so every build is deterministic
+# regardless of platform, falling back to guess_type() for anything else.
+KNOWN_MIME_TYPES = {
+    ".woff2": "font/woff2",
+    ".woff": "font/woff",
+    ".ttf": "font/ttf",
+    ".otf": "font/otf",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+}
+
+
 def data_uri(path: Path) -> str:
-    mime, _ = mimetypes.guess_type(str(path))
+    mime = KNOWN_MIME_TYPES.get(path.suffix.lower())
+    if mime is None:
+        mime, _ = mimetypes.guess_type(str(path))
     mime = mime or "application/octet-stream"
     payload = base64.b64encode(path.read_bytes()).decode("ascii")
     return f"data:{mime};base64,{payload}"
