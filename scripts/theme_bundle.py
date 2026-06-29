@@ -78,7 +78,7 @@ def pack(theme_dir: Path, out: Path | None) -> Path:
         "files": files,
     }
     out = out or Path(f"{theme_dir.name}.pfstyle.json")
-    out.write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8")
+    out.write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
     n_assets = sum(1 for f in files.values() if f["encoding"] == "base64")
     print(f"Packed theme '{theme_dir.name}' -> {out} "
           f"({len(files)} files, {n_assets} binary asset(s), "
@@ -123,7 +123,7 @@ def unpack(bundle_path: Path, dest_themes: Path, name: str | None) -> Path:
         dest = _safe_member(target, rel)
         dest.parent.mkdir(parents=True, exist_ok=True)
         if entry.get("encoding") == "utf-8":
-            dest.write_text(entry.get("text", ""), encoding="utf-8")
+            dest.write_text(entry.get("text", ""), encoding="utf-8", newline="\n")
         else:
             dest.write_bytes(base64.b64decode(entry.get("data", "")))
 

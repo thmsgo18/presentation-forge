@@ -170,7 +170,11 @@ def build() -> Path:
 </body>
 </html>
 """
-    OUTPUT.write_text(html, encoding="utf-8")
+    # newline="\n": keep LF endings regardless of OS, so the output is
+    # byte-identical whether build.py runs on Linux, macOS or Windows
+    # (Path.write_text defaults to translating "\n" to os.linesep, which is
+    # "\r\n" on Windows).
+    OUTPUT.write_text(html, encoding="utf-8", newline="\n")
     size_kb = OUTPUT.stat().st_size / 1024
     print(f"Built {OUTPUT.name} - {len(slides)} slides, {size_kb:.0f} KB")
     return OUTPUT
