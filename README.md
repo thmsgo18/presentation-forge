@@ -42,6 +42,9 @@ git clone https://github.com/thmsgo18/presentation-forge.git ~/.claude/skills/pr
 
 (For one project only, clone into `.claude/skills/presentation-forge/` inside that repo instead.)
 
+> On Windows, run this in Git Bash or WSL, not plain PowerShell or cmd - they
+> don't expand `~` to your home folder.
+
 **Claude apps** (claude.ai and desktop) : upload **`dist/presentation-forge-skill.zip`** in **Settings → Features → Skills** (Pro, Max, Team or Enterprise, with code execution enabled).
 
 **API** : upload the same `dist/presentation-forge-skill.zip` through the Skills API (`/v1/skills`) and reference it from the code-execution container.
@@ -121,7 +124,7 @@ Three layers, always kept separate so a deck never breaks when you reskin it:
 - **theme** (`template/themes/<name>/`) : the look: colours, type, spacing, fonts, logos, backgrounds.
 - **content** (`slides/`) : the slides, one HTML file each, ordered by name.
 
-The build is deliberately boring, which is what makes it portable: write slides in `slides/`, run `python3 build.py`, and it inlines the engine, the theme, the fonts and every image into a single `index.html`. Slides are authored on a fixed **1920x1080** canvas that the engine scales to any screen, so a deck looks the same on a laptop, a projector or a phone. Full authoring contract in [`SKILL.md`](SKILL.md) and [`reference/`](reference/).
+The build is deliberately boring, which is what makes it portable: write slides in `slides/`, run `python3 build.py` (`python build.py` on Windows if `python3` isn't on `PATH`), and it inlines the engine, the theme, the fonts and every image into a single `index.html`. Slides are authored on a fixed **1920x1080** canvas that the engine scales to any screen, so a deck looks the same on a laptop, a projector or a phone. Full authoring contract in [`SKILL.md`](SKILL.md) and [`reference/`](reference/).
 
 ## Themes
 

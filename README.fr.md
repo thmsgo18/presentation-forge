@@ -42,6 +42,9 @@ git clone https://github.com/thmsgo18/presentation-forge.git ~/.claude/skills/pr
 
 (Pour un seul projet, clonez plutôt dans `.claude/skills/presentation-forge/` au sein du dépôt concerné.)
 
+> Sur Windows, lancez cette commande dans Git Bash ou WSL, pas dans PowerShell
+> ou cmd : ils n'étendent pas `~` vers votre dossier personnel.
+
 **Apps Claude** (claude.ai et desktop) : importez **`dist/presentation-forge-skill.zip`** dans **Réglages → Fonctionnalités → Skills** (Pro, Max, Team ou Enterprise, avec l'exécution de code activée).
 
 **API** : importez le même `dist/presentation-forge-skill.zip` via l'API Skills (`/v1/skills`) et référencez-le depuis le conteneur d'exécution de code.
@@ -121,7 +124,7 @@ Trois couches, toujours séparées, pour qu'un deck ne casse jamais quand on le 
 - **thème** (`template/themes/<nom>/`) : le look (couleurs, typo, espacements, polices, logos, fonds).
 - **contenu** (`slides/`) : les slides, un fichier HTML chacune, ordonnées par nom.
 
-Le build est volontairement banal, et c'est ce qui le rend portable : on écrit les slides dans `slides/`, on lance `python3 build.py`, et il embarque le moteur, le thème, les polices et chaque image dans un unique `index.html`. Les slides sont composées sur un canevas fixe **1920x1080** que le moteur met à l'échelle de n'importe quel écran : un deck rend pareil sur un portable, un vidéoprojecteur ou un téléphone. Contrat de rédaction complet dans [`SKILL.md`](SKILL.md) et [`reference/`](reference/).
+Le build est volontairement banal, et c'est ce qui le rend portable : on écrit les slides dans `slides/`, on lance `python3 build.py` (`python build.py` sous Windows si `python3` n'est pas dans le `PATH`), et il embarque le moteur, le thème, les polices et chaque image dans un unique `index.html`. Les slides sont composées sur un canevas fixe **1920x1080** que le moteur met à l'échelle de n'importe quel écran : un deck rend pareil sur un portable, un vidéoprojecteur ou un téléphone. Contrat de rédaction complet dans [`SKILL.md`](SKILL.md) et [`reference/`](reference/).
 
 ## Thèmes
 

@@ -46,7 +46,8 @@ de variables et de classes.
 
 ```sh
 # 1. Éditez les slides dans slides/ (un <section class="slide"> par fichier).
-# 2. Construisez la présentation :
+# 2. Construisez la présentation (sous Windows, utilisez "python" au lieu de
+#    "python3" si c'est ce qui est dans votre PATH) :
 python3 build.py            # -> index.html (autonome)
 # 3. Ouvrez ou partagez index.html - un seul fichier avec tout dedans,
 #    images comprises : il marche en double-clic et hors-ligne.

@@ -89,7 +89,9 @@ next to `SKILL.md`.
      step when build-up helps. Follow the authoring contract below.
 
 5. **Build**: `python3 build.py` run inside `<target>` (or `python3
-   "<target>/build.py"`). Add `--open` to open it, `--watch` to rebuild on save.
+   "<target>/build.py"`); use `python` instead of `python3` if that's what
+   resolves on this machine (common on Windows). Add `--open` to open it,
+   `--watch` to rebuild on save.
 
 6. **Verify** the build printed `Built index.html - N slides` with the count you
    expect, and resolve any `! missing image` / `no <section class="slide">`

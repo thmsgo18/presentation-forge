@@ -45,7 +45,8 @@ tokens and slide classes.
 
 ```sh
 # 1. Edit slides in slides/ (one <section class="slide"> per file).
-# 2. Build the deck:
+# 2. Build the deck (on Windows, use "python" instead of "python3" if that's
+#    what's on your PATH):
 python3 build.py            # -> index.html (self-contained)
 # 3. Open or share index.html - it's a single file with everything inside,
 #    images included, so it works by double-click and offline.

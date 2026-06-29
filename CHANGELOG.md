@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-29
+
 ### Added
 
 - **obsidian** — a second bundled theme: a dark, editorial look with embedded
@@ -18,7 +20,9 @@ All notable changes to this project are documented here. The format is based on
   browsers only, and only for a deck opened from a local file - the control is
   absent everywhere it couldn't actually save.
 - Continuous integration (GitHub Actions): syntax check, test suite, and a check
-  that the committed skill archive stays in sync with the sources.
+  that the committed skill archive stays in sync with the sources, now run on
+  Ubuntu, Windows and macOS so the build is verified cross-platform, not just
+  on Linux.
 - `tools/pack.py` — deterministic, reproducible build of
   `dist/presentation-forge-skill.zip`, with a `--check` mode for CI.
 - Standard-library test suite under `tests/` (build smoke test, demo/archive
@@ -27,6 +31,13 @@ All notable changes to this project are documented here. The format is based on
 - Repo scaffolding: `CONTRIBUTING.md`, `.editorconfig`, `.gitattributes`, issue
   and pull-request templates.
 - Engine exposes its version as `DeckStage.version`.
+
+### Changed
+
+- Clarified the install instructions for Windows: `python` instead of
+  `python3` where Python's `python3` alias isn't on `PATH`, and a note that
+  the `git clone ... ~/.claude/skills/...` line needs a POSIX-style shell
+  (Git Bash, WSL) since plain PowerShell/cmd don't expand `~`.
 
 ### Security
 
@@ -50,5 +61,6 @@ All notable changes to this project are documented here. The format is based on
   of a portable `.pfstyle.json` style file.
 - Bilingual documentation (English and French).
 
-[Unreleased]: https://github.com/thmsgo18/presentation-forge/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/thmsgo18/presentation-forge/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/thmsgo18/presentation-forge/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/thmsgo18/presentation-forge/releases/tag/v1.0.0
