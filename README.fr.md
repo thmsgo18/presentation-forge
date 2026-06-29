@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml"><img src="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/thmsgo18/presentation-forge/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/thmsgo18/presentation-forge/ci.yml?style=for-the-badge&label=CI" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="License MIT"></a>
   <img src="https://img.shields.io/badge/claude-skill-d97757?style=for-the-badge" alt="Claude Skill">
   <img src="https://img.shields.io/badge/sortie-fichier%20unique-2563eb?style=for-the-badge" alt="Fichier unique">
