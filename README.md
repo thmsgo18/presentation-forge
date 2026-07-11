@@ -1,3 +1,6 @@
+> [!TIP]
+> ⭐ Enjoying Presentation Forge? [Starring the repo](https://github.com/thmsgo18/presentation-forge) helps more people find it, thank you!
+
 <p align="right"><b>English</b> | <a href="./README.fr.md">Français</a></p>
 
 <h1 align="center">Presentation Forge</h1>

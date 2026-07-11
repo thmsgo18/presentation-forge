@@ -1,3 +1,6 @@
+> [!TIP]
+> ⭐ Presentation Forge vous plaît ? [Mettre une étoile sur le repo](https://github.com/thmsgo18/presentation-forge) aide d'autres personnes à le découvrir, merci !
+
 <p align="right"><a href="./README.md">English</a> | <b>Français</b></p>
 
 <h1 align="center">Presentation Forge</h1>
