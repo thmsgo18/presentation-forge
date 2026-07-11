@@ -1,6 +1,3 @@
-> [!TIP]
-> ⭐ Enjoying Presentation Forge? [Starring the repo](https://github.com/thmsgo18/presentation-forge) helps more people find it, thank you!
-
 <p align="right"><b>English</b> | <a href="./README.fr.md">Français</a></p>
 
 <h1 align="center">Presentation Forge</h1>
@@ -32,6 +29,9 @@
 A [Claude](https://claude.com) skill that turns plain language into polished slide decks. You say *"make me a presentation about X"*; Claude scaffolds the deck, writes the slides, picks or builds a theme, and compiles everything into a single **self-contained `index.html`**. Engine, theme, fonts and images are all inlined, so the file opens by double-click, emails cleanly, and works fully offline. No framework, no build server, no dependencies.
 
 It is an **Agent Skill**: one folder that works the same in **Claude Code**, the **Claude apps** (claude.ai and desktop), and through the **API**. No slash command to memorize, just ask.
+
+> [!TIP]
+> ⭐ Enjoying Presentation Forge? Starring the repo helps more people find it, thank you!
 
 ## Install
 

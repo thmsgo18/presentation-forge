@@ -1,6 +1,3 @@
-> [!TIP]
-> ⭐ Presentation Forge vous plaît ? [Mettre une étoile sur le repo](https://github.com/thmsgo18/presentation-forge) aide d'autres personnes à le découvrir, merci !
-
 <p align="right"><a href="./README.md">English</a> | <b>Français</b></p>
 
 <h1 align="center">Presentation Forge</h1>
@@ -32,6 +29,9 @@
 Un skill [Claude](https://claude.com) qui transforme du langage naturel en présentations soignées. Vous dites *"fais-moi une présentation sur X"* ; Claude structure le deck, rédige les slides, choisit ou construit un thème, et compile le tout dans un unique **`index.html` autonome**. Moteur, thème, polices et images sont tous embarqués : le fichier s'ouvre d'un double-clic, s'envoie proprement par mail et fonctionne hors ligne. Pas de framework, pas de serveur de build, aucune dépendance.
 
 C'est un **Agent Skill** : un seul dossier qui fonctionne pareil dans **Claude Code**, les **apps Claude** (claude.ai et desktop) et via l'**API**. Aucune commande à retenir, il suffit de demander.
+
+> [!TIP]
+> ⭐ Presentation Forge vous plaît ? Mettre une étoile sur le repo aide d'autres personnes à le découvrir, merci !
 
 ## Installation
 
