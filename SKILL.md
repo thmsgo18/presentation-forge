@@ -230,3 +230,11 @@ never breaks a deck.
 - Don't edit `engine/` to change content or styling - that's the theme's job.
 - Don't build inside `template/`; always copy it into a per-deck folder first.
 - Prefer the theme's classes over inline styles, so themes stay swappable.
+- Never `pip install` a package into the system/global Python - it can clobber
+  a version another project on the machine relies on. Every script here is
+  stdlib-only except `scripts/image_colors.py` (needs Pillow), which already
+  handles this: on import failure it installs Pillow into a dedicated venv at
+  `~/.cache/presentation-forge/venv` via `scripts/pf_venv.py` and re-execs
+  itself there. If a future script needs another package, follow the same
+  pattern (`pf_venv.reexec_in_venv("<pypi-name>")`) instead of a bare `pip
+  install`.

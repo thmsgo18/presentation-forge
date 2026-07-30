@@ -9,8 +9,10 @@ accent, so the theme tokens can be set from real values.
     python3 image_colors.py brand.png
     python3 image_colors.py slide.jpg --colors 8
 
-Prints JSON. Needs Pillow (`pip install pillow`); if it is missing, it says so and
-you should read the colours by eye instead.
+Prints JSON. Needs Pillow; if missing, it is installed into a dedicated venv
+(`~/.cache/presentation-forge/venv`, never the system Python) automatically. If
+that isn't possible (no network, sandboxed), it says so and you should read the
+colours by eye instead.
 """
 
 import argparse
@@ -22,11 +24,16 @@ from pathlib import Path
 try:
     from PIL import Image
 except ImportError:
-    sys.exit(
-        "error: Pillow is not installed, so colours cannot be sampled.\n"
-        "Either run `pip install pillow`, or read the image's colours by eye and\n"
-        "set the theme tokens manually."
-    )
+    try:
+        from pf_venv import reexec_in_venv
+        reexec_in_venv("pillow")
+    except Exception:
+        sys.exit(
+            "error: Pillow is not installed and a dedicated venv could not be "
+            "set up automatically.\n"
+            "Either run `pip install pillow` yourself, or read the image's "
+            "colours by eye and set the theme tokens manually."
+        )
 
 
 def hex_of(rgb):
