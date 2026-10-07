@@ -95,12 +95,14 @@ class PullTests(EditedDeck):
     def test_a_block_changed_on_both_sides_is_kept_aside_not_overwritten(self):
         self.save(mark(self.built, r'(<h2 class="title" data-pf-edit="\w+")>Three wins',
                        r'\1 data-pf-changed="">Three big wins'))
-        (self.deck / "slides" / "02-list.html").write_text(LIST.replace("Three wins", "Three solid wins"))
+        (self.deck / "slides" / "02-list.html").write_text(
+            LIST.replace("Three wins", "Three solid wins"), encoding="utf-8")
         proc = self.build(self.deck)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("could not be merged", proc.stderr)
         self.assertIn("Three solid wins", self.slide("02-list.html"))
-        self.assertIn("Three big wins", (self.deck / "index.unmerged-edits.html").read_text())
+        self.assertIn("Three big wins",
+                      (self.deck / "index.unmerged-edits.html").read_text(encoding="utf-8"))
 
     def test_pull_is_idempotent(self):
         self.save(mark(self.built, r'(<p class="lead" data-pf-edit="\w+")>Revenue up',

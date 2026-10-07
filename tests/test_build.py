@@ -78,7 +78,8 @@ class BuildTests(DeckTestCase):
     def test_bad_motion_level_is_refused(self):
         deck = self.make_deck({"01.html": TITLE_SLIDE})
         config = deck / "deck.config.json"
-        config.write_text(config.read_text().replace('"balanced"', '"wild"'))
+        config.write_text(config.read_text(encoding="utf-8").replace('"balanced"', '"wild"'),
+                          encoding="utf-8")
         proc = self.build(deck)
         self.assertNotEqual(proc.returncode, 0)
         self.assertIn('"motion" must be one of', proc.stderr)
