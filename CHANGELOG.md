@@ -6,8 +6,67 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **Two questions before a deck is written**: how to build it (plan first -
+  the default -, all at once, or slide by slide with a review after each one)
+  and how much animation. Content stays the user's call: Claude builds from
+  their brief and doesn't quiz them about it.
+- **Motion levels**: `"motion"` in `deck.config.json` - `none`, `subtle`,
+  `balanced` (default), `lively`, `extra` - scales every animation in the deck
+  without touching a slide. `none` leaves the toolkit out of the build entirely.
+- **Animation toolkit** (`engine/motion.css`): entrances (`data-anim`: fade,
+  rise, drop, from-left, from-right, zoom, pop, blur, wipe, type, flip, draw),
+  one-after-the-other lists (`data-stagger`), fragment effects including a
+  `highlight` marker, ambient loops (`data-loop`), counting figures
+  (`data-count`), and per-slide transitions (`data-transition`: none, fade,
+  slide, zoom, rise, blur, flip). Entrances only play moving forward; the audience
+  window animates in sync.
+- **Components** (`engine/components/`): key figures (`stats`), bar charts
+  (`bars`), gauges (`ring`), processes (`steps`), timelines (`timeline`),
+  comparison tables (`compare`), card columns (`grid`) and decoration (`fx`),
+  all following the active theme. The build bundles only the ones a deck uses.
+- **84 line icons** (Lucide, ISC) via `<i data-icon="rocket"></i>`, inlined at
+  build time - only the icons a deck uses.
+- **Visual self-check**, `scripts/check_deck.py`: renders the deck in headless
+  Chrome / Edge, reports text past a slide's edge, content cut off and broken
+  images, and saves a contact sheet plus images of the slides asked for.
+  SKILL.md makes it a required step before handing a deck over.
+- **In-browser edits survive rebuilds**: the build stamps every editable block,
+  the engine marks what was edited, and every `build.py` run (or
+  `build.py --pull`) writes those edits back into `slides/*.html` - only the
+  edited text, leaving formatting, comments and icons as written. An edit to a
+  block that also changed in `slides/` is never forced in: the edited deck is
+  kept as `index.unmerged-edits.html`.
+- `scripts/new_deck.py`: creates an empty deck (title, language, theme, motion,
+  transition) in one command.
+- `deck.css`: optional styles for one deck only, loaded after the theme.
+- `reference/layouts.md`, `reference/components.md`, `reference/motion.md`:
+  short menus Claude reads instead of inventing layouts, CSS or keyframes.
+- Tests for the build, the edit round trip (including one driving the real
+  engine in headless Chrome) and the visual check; CI also verifies the
+  showcase build.
+
+### Changed
+
+- **New decks start empty.** The 22-slide demo moved out of `template/` into
+  `examples/showcase/` (still the live demo, built by
+  `tools/build_showcase.py`) and is no longer shipped in the skill, so a deck is
+  a first draft of the user's talk rather than a reworded copy of the demo.
+  `reference/layouts.md` and `writing-decks.md` no longer suggest a fixed arc:
+  only the title and closing slides are fixed.
+- The `obsidian` theme holds only theme styles now: the demo's mockups moved to
+  the showcase's `deck.css`, and its ambient drift and line draw follow the
+  motion level. The demo deck renders correctly under `ink-blue` too.
+- The edit mode only touches blocks the build stamped as editable (one rule set,
+  in `build.py`), types and pastes plain text only, and Esc restores a block
+  exactly, inline markup included.
+- The page title and `<deck-stage>` attributes are HTML-escaped.
+
 ### Fixed
 
+- Slide copies in the thumbnail rail and the overview (`o`) inherited the
+  centred text of their buttons and no longer looked like the slide.
 - In-browser editing: typing in an edited text block no longer triggers deck
   shortcuts. Space advanced to the next slide and letters such as `f`, `p`,
   `l` or `b` toggled full screen, presenter mode, the laser or a black screen

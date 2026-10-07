@@ -18,11 +18,22 @@
  * Progressive reveal: add class="fragment" to elements to reveal them one click
  * at a time before moving on to the next slide.
  *
+ * Motion: the canvas carries data-motion (the level), data-transition (this
+ * slide's transition) and data-dir (next / prev); motion.css and the
+ * components animate off those. data-count numbers count up here, in JS.
+ *
  * Attributes on <deck-stage>:
  *   width / height   design canvas size (default 1920x1080)
- *   transition       slide transition: fade (default), slide, or zoom
+ *   transition       default slide transition: none, fade (default), slide,
+ *                    zoom, rise, blur, flip - a slide's data-transition wins
+ *   motion           none, subtle, balanced (default), lively, extra
  *   exit-hint        toast text shown when entering single-screen full screen
  *   no-rail          always hide the thumbnail rail
+ *
+ * Render mode, for scripts/check_deck.py: ?pf=shot#3 shows slide 3 alone and
+ * finished; ?pf=sheet shows every slide on one contact sheet. Both write a
+ * layout report (overflowing content, broken images) into the page, as a
+ * JSON script element with the id pf-report.
  */
 (() => {
   "use strict";
@@ -39,14 +50,13 @@
     'a[href], button, input, select, textarea, summary, label, ' +
     'video[controls], audio[controls], [role="button"], [onclick], [tabindex]';
 
-  // Text blocks a slide author can edit in place. Block-level only - never an
-  // inline span inside one of these, so two contenteditable regions never
-  // overlap. Skipped entirely inside decorative/structural zones (see
-  // _editableElements) such as code blocks, diagrams and the demo mockups.
-  const EDITABLE_SELECTOR =
-    '.eyebrow, .display, h1, .title, h2, .subtitle, .lead, ul.bullets > li, blockquote, p';
-  const EDITABLE_EXCLUDE_ANCESTOR =
-    'pre, svg, .diagram, .tour, .switch, .vs, aside.notes, [aria-hidden="true"]';
+  // Text blocks the Edit mode may change: build.py decides which and stamps
+  // them (data-pf-edit), so the same rules find them again when it pulls the
+  // edits back into slides/. The notes carry data-pf-notes the same way.
+  const EDITABLE = "[data-pf-edit]";
+  // Count-ups run from this level up (see countUp below).
+  const COUNT_LEVELS = ["balanced", "lively", "extra"];
+  const DRAW_SHAPES = "path, line, polyline, polygon, circle, rect, ellipse";
 
   const ICONS = {
     prev:     '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
@@ -141,6 +151,60 @@
     });
   };
 
+  /* Count a figure up from 0 to the number in its text, then put the exact
+     original text back. The real figure stays in the markup, so thumbnails,
+     print and a copy without JS all show it. Self-contained (no outer names):
+     the audience window gets a copy of this very function. */
+  function countUp(el, lang) {
+    if (el.children.length) return;                     // plain-text figures only
+    if (el.__pfFinal === undefined) el.__pfFinal = el.textContent;
+    var text = el.__pfFinal;
+    var m = /\d(?:[\d\s\u00a0\u202f.,']*\d)?/.exec(text);
+    if (!m) return;
+    var raw = m[0];
+    var compact = raw.replace(/[\s\u00a0\u202f']/g, "");
+    var grouped = compact.length !== raw.length;
+    var dot = compact.lastIndexOf("."), comma = compact.lastIndexOf(",");
+    var sep = Math.max(dot, comma), decimals = 0, value;
+    var locDec = "."; try { locDec = (1.5).toLocaleString(lang).replace(/\d/g, ""); } catch (e) {}
+    if (sep >= 0) {
+      var ch = compact.charAt(sep), after = compact.length - sep - 1;
+      // "1,250" is a thousands group in English, "3,5" a decimal in French.
+      var single = compact.indexOf(ch) === sep;
+      if ((dot >= 0 && comma >= 0) || (single && (after !== 3 || ch === locDec))) decimals = after;
+      else grouped = true;
+    }
+    if (decimals) value = parseFloat(compact.slice(0, sep).replace(/[.,]/g, "") + "." + compact.slice(sep + 1));
+    else value = parseFloat(compact.replace(/[.,]/g, ""));
+    if (!isFinite(value)) return;
+    var fmt;
+    try { fmt = new Intl.NumberFormat(lang, { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: grouped }); }
+    catch (e) { fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: grouped }); }
+    var head = text.slice(0, m.index), tail = text.slice(m.index + raw.length);
+    var token = {}, start = null, dur = 1400;
+    el.__pfCount = token;
+    el.textContent = head + fmt.format(0) + tail;
+    requestAnimationFrame(function frame(now) {
+      if (el.__pfCount !== token) return;               // restarted or stopped
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / dur);
+      if (t < 1) {
+        el.textContent = head + fmt.format(value * (1 - Math.pow(1 - t, 3))) + tail;
+        requestAnimationFrame(frame);
+      } else {
+        el.textContent = text;
+        el.__pfCount = null;
+      }
+    });
+  }
+
+  const countStop = (el) => {
+    el.__pfCount = null;
+    if (el.__pfFinal !== undefined) el.textContent = el.__pfFinal;
+  };
+
+  const escAttr = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+
   class DeckStage extends HTMLElement {
     connectedCallback() {
       if (this._ready) return;
@@ -149,10 +213,25 @@
       this.designW = Number(this.getAttribute("width")) || DESIGN_W;
       this.designH = Number(this.getAttribute("height")) || DESIGN_H;
       this.exitHint = this.getAttribute("exit-hint") || DEFAULT_EXIT_HINT;
+      this._motion = this.getAttribute("motion") || "balanced";
+      this._lang = document.documentElement.getAttribute("lang") || undefined;
+
+      // Render mode (scripts/check_deck.py): the slides alone, finished, still.
+      const pf = new URLSearchParams(location.search).get("pf");
+      this._render = pf === "shot" || pf === "sheet" ? pf : null;
+      if (this._render) {
+        this._motion = "none";
+        this.classList.add("pf-render");
+        if (this._render === "sheet") this.classList.add("pf-sheet");
+      }
       this.style.setProperty("--design-w", this.designW + "px");
       this.style.setProperty("--design-h", this.designH + "px");
 
       this.slides = Array.from(this.children).filter((c) => c.nodeType === 1);
+
+      // Shapes that draw themselves (data-anim="draw") share one stroke length.
+      this.querySelectorAll('[data-anim="draw"]').forEach((el) =>
+        el.querySelectorAll(DRAW_SHAPES).forEach((s) => s.setAttribute("pathLength", "1")));
 
       // Create overlay and toast before builders so _buildStage can place
       // the overlay inside .pf-stage (centres it on the slide, not the viewport).
@@ -170,7 +249,7 @@
       // Saving back to disk only makes sense for a deck opened as a local
       // file: a hosted copy has no real "this file" to write to, and the
       // picker would just confuse people into choosing an unrelated file.
-      this._canEdit = "showOpenFilePicker" in window && location.protocol === "file:";
+      this._canEdit = !this._render && "showOpenFilePicker" in window && location.protocol === "file:";
 
       this._buildRail();
       this._buildStage();    // appends overlay to this.stage
@@ -182,6 +261,7 @@
       this.show(this.index, { updateHash: false });
       this._layout();
       this._scaleThumbs();
+      if (this._render) this._startRender();
 
       this._onResize = () => {
         this._layout();
@@ -199,7 +279,7 @@
       this.addEventListener("mousemove",         this._onMove);
       document.addEventListener("fullscreenchange",        this._onFs);
       document.addEventListener("webkitfullscreenchange",  this._onFs);
-      this._bindTouch();
+      if (!this._render) this._bindTouch();
     }
 
     disconnectedCallback() {
@@ -221,6 +301,8 @@
       this.canvas = el("div", "pf-canvas");
       this.canvas.style.width  = this.designW + "px";
       this.canvas.style.height = this.designH + "px";
+      this.canvas.setAttribute("data-motion", this._motion);
+      this.canvas.setAttribute("data-dir", "next");
       this.slides.forEach((slide, i) => {
         slide.setAttribute("data-index", String(i));
         slide.setAttribute("role", "group");
@@ -351,8 +433,7 @@
         mini.style.width  = this.designW + "px";
         mini.style.height = this.designH + "px";
 
-        const clone = slide.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(slide);
         clone.removeAttribute("data-index");
         clone.removeAttribute("id");
         clone.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
@@ -400,15 +481,28 @@
     _buildEditing() {
       this._editing    = false;
       this._fileHandle = null;
-      this._onEditableFocus   = (e) => { e.target.dataset.pfOrig = e.target.textContent; };
+      // What a block held when it got focus, so Esc can put it back exactly
+      // (inline markup included) - kept out of the DOM so it is never saved.
+      this._editOrig = new WeakMap();
+      this._onEditableFocus = (e) => {
+        const node = e.currentTarget;
+        this._editOrig.set(node, { html: node.innerHTML, changed: node.hasAttribute("data-pf-changed") });
+      };
+      // data-pf-changed tells build.py which blocks to pull back into slides/.
+      this._onEditableInput = (e) => e.currentTarget.setAttribute("data-pf-changed", "");
       this._onEditableKeyDown = (e) => {
+        const node = e.currentTarget;
         if (e.key === "Enter") {
           e.preventDefault();
-          e.target.blur();
+          node.blur();
         } else if (e.key === "Escape") {
           e.preventDefault();
-          if (e.target.dataset.pfOrig !== undefined) e.target.textContent = e.target.dataset.pfOrig;
-          e.target.blur();
+          const orig = this._editOrig.get(node);
+          if (orig) {
+            node.innerHTML = orig.html;
+            if (!orig.changed) node.removeAttribute("data-pf-changed");
+          }
+          node.blur();
         }
       };
 
@@ -447,15 +541,10 @@
       }
     }
 
-    /* Every editable block, across every slide, never inside a decorative or
-       structural zone (code, diagrams, the engine's own demo mockups). */
+    /* Every block build.py stamped as editable, across every slide. */
     _editableElements() {
       const all = [];
-      this.slides.forEach((slide) => {
-        slide.querySelectorAll(EDITABLE_SELECTOR).forEach((node) => {
-          if (!node.closest(EDITABLE_EXCLUDE_ANCESTOR)) all.push(node);
-        });
-      });
+      this.slides.forEach((slide) => all.push(...slide.querySelectorAll(EDITABLE)));
       return all;
     }
 
@@ -476,11 +565,15 @@
       this.editBtn.title = "Done";
       this.editBtn.setAttribute("aria-label", "Done editing");
 
+      // Figures show their real value while being edited, never a count.
+      this.querySelectorAll("[data-count]").forEach(countStop);
       this._editableElements().forEach((node) => {
-        node.contentEditable = "true";
+        // plaintext-only: typing and pasting add text, never stray markup.
+        try { node.contentEditable = "plaintext-only"; } catch (_) { node.contentEditable = "true"; }
         node.classList.add("pf-editable");
         node.addEventListener("keydown", this._onEditableKeyDown);
         node.addEventListener("focus",   this._onEditableFocus);
+        node.addEventListener("input",   this._onEditableInput);
       });
     }
 
@@ -496,10 +589,12 @@
         node.removeAttribute("contenteditable");
         node.classList.remove("pf-editable");
         if (!node.classList.length) node.removeAttribute("class");
-        delete node.dataset.pfOrig;
         node.removeEventListener("keydown", this._onEditableKeyDown);
         node.removeEventListener("focus",   this._onEditableFocus);
+        node.removeEventListener("input",   this._onEditableInput);
       });
+      // A figure may have been edited: count to whatever it says now.
+      this.querySelectorAll("[data-count]").forEach((el) => { el.__pfFinal = undefined; });
 
       await this._persistToDisk();
     }
@@ -520,34 +615,36 @@
     }
 
     _serializeForSave() {
+      // Engine state is stripped; the build's data-pf-* stamps and the
+      // data-pf-changed marks stay, so build.py can pull the edits back.
       const cleanSlide = (slide) => {
-        const clone = slide.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(slide);
         clone.removeAttribute("data-index");
         clone.removeAttribute("role");
         clone.removeAttribute("aria-roledescription");
-        clone.querySelectorAll("[contenteditable]").forEach((n) => {
-          n.removeAttribute("contenteditable");
+        clone.querySelectorAll("[contenteditable]").forEach((n) => n.removeAttribute("contenteditable"));
+        clone.querySelectorAll(".pf-editable").forEach((n) => {
           n.classList.remove("pf-editable");
           if (!n.classList.length) n.removeAttribute("class");
-          delete n.dataset.pfOrig;
         });
-        clone.querySelectorAll("[data-pf-orig]").forEach((n) => delete n.dataset.pfOrig);
-        clone.querySelectorAll(".fragment.is-visible").forEach((n) => n.classList.remove("is-visible"));
+        clone.querySelectorAll(".fragment").forEach((n) => n.classList.remove("is-visible", "pf-instant"));
         return clone.outerHTML;
       };
 
       const slidesHtml = this.slides.map(cleanSlide).join("\n");
       const script = document.querySelector("body > script:not([src])");
       const lang = document.documentElement.getAttribute("lang") || "en";
+      const stageAttrs = ["width", "height", "transition", "motion", "exit-hint"]
+        .filter((a) => this.hasAttribute(a))
+        .map((a) => `${a}="${escAttr(this.getAttribute(a))}"`)
+        .join(" ");
 
       return (
         "<!doctype html>\n" +
-        `<html lang="${lang}">\n` +
+        `<html lang="${escAttr(lang)}">\n` +
         document.head.outerHTML + "\n" +
         "<body>\n" +
-        `<deck-stage width="${this.getAttribute("width")}" height="${this.getAttribute("height")}" ` +
-        `transition="${this.getAttribute("transition")}" exit-hint="${this.getAttribute("exit-hint")}">\n` +
+        `<deck-stage ${stageAttrs}>\n` +
         slidesHtml + "\n" +
         "</deck-stage>\n" +
         (script ? script.outerHTML : "") + "\n" +
@@ -593,22 +690,27 @@
       this._blankEl.className = "pf-blank";
 
       this.index = this._clamp(i);
+      const slide = this.slides[this.index];
 
-      // Slide transition direction class (used by CSS slide/zoom animations).
-      const tMode = this.getAttribute("transition");
-      if (tMode === "slide") {
-        this.classList.remove("pf-going-next", "pf-going-prev");
-        this.classList.add(this.index >= prevIndex ? "pf-going-next" : "pf-going-prev");
-      }
+      // Motion keys off the canvas: the direction (a slide already seen shows
+      // finished, transitions mirror) and this slide's own transition. Set
+      // before data-active so the incoming slide animates with them.
+      const forward = this.index >= prevIndex || prevIndex === undefined;
+      this.canvas.setAttribute("data-dir", forward ? "next" : "prev");
+      this.canvas.setAttribute("data-transition",
+        slide.getAttribute("data-transition") || this.getAttribute("transition") || "fade");
 
       this.slides.forEach((s, n) =>
         n === this.index ? s.setAttribute("data-active", "") : s.removeAttribute("data-active")
       );
 
-      // Fragments: forward arrival reveals none, backward arrival reveals all.
-      this._fragmentEls = Array.from(this.slides[this.index].querySelectorAll(".fragment"));
+      // Fragments: forward arrival reveals none, backward arrival reveals all,
+      // at once (pf-instant), since those points were already made.
+      this._fragmentEls = Array.from(slide.querySelectorAll(".fragment"));
       this._step = revealAll ? this._fragmentEls.length : 0;
+      this._fragmentEls.forEach((f) => f.classList.toggle("pf-instant", revealAll));
       this._applyFragments();
+      if (forward) this._runCounts(slide);
 
       this.thumbs.forEach((t, n) => t.classList.toggle("is-active", n === this.index));
 
@@ -659,8 +761,11 @@
 
     _revealNext() {
       if (this._step >= this._fragmentEls.length) return false;
+      const frag = this._fragmentEls[this._step];
+      frag.classList.remove("pf-instant");
       this._step++;
       this._applyFragments();
+      this._runCounts(frag);
       this._syncAudience(this.index);
       this._updatePresenterView();
       return true;
@@ -935,6 +1040,8 @@
           pfStep:  this._step || 0,
           pfNotes: notesEl ? notesEl.innerHTML : "",
           pfBlank: this._blank || null,
+          pfDir:   this.canvas.getAttribute("data-dir"),
+          pfTransition: this.canvas.getAttribute("data-transition"),
         }, "*");
       }
     }
@@ -983,14 +1090,25 @@
       this._notesLoaded = this.notesTA.value;
       let notesEl  = slide.querySelector("aside.notes");
       const text   = this.notesTA.value.trim();
+      // The data-pf-* marks below are what build.py reads to pull the change
+      // back into the slide file.
       if (text) {
         if (!notesEl) {
           notesEl = document.createElement("aside");
           notesEl.className = "notes";
+          // Notes cleared then written again are an edit of the original ones.
+          const removed = slide.getAttribute("data-pf-notes-removed");
+          if (removed) {
+            notesEl.setAttribute("data-pf-notes", removed);
+            slide.removeAttribute("data-pf-notes-removed");
+          }
           slide.appendChild(notesEl);
         }
         textToNotes(notesEl, text);
+        notesEl.setAttribute("data-pf-changed", "");
       } else if (notesEl) {
+        const original = notesEl.getAttribute("data-pf-notes");
+        if (original) slide.setAttribute("data-pf-notes-removed", original);
         notesEl.remove();
       }
       this._updatePresenterView();
@@ -1171,8 +1289,7 @@
       const next = this.slides[this.index + 1];
       this._nextSlot.innerHTML = "";
       if (next) {
-        const clone = next.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(next);
         clone.querySelectorAll("aside.notes").forEach((n) => n.remove());
         this._nextSlot.appendChild(clone);
         this._nextCanvas.style.opacity = "1";
@@ -1258,6 +1375,137 @@
       }, 16);
     }
 
+    /* ---- Copies of a slide, and figures that count ---------------------- */
+
+    /* A copy for the rail, the overview, the next-slide preview, the audience
+       window or a save: a figure caught mid-count shows its real value. */
+    _cloneSlide(slide) {
+      const clone = slide.cloneNode(true);
+      clone.removeAttribute("data-active");
+      const live = slide.querySelectorAll("[data-count]");
+      if (live.length) {
+        const copies = clone.querySelectorAll("[data-count]");
+        live.forEach((n, k) => {
+          if (n.__pfFinal !== undefined && copies[k]) copies[k].textContent = n.__pfFinal;
+        });
+      }
+      return clone;
+    }
+
+    _countsAllowed() {
+      return COUNT_LEVELS.indexOf(this._motion) >= 0 &&
+        !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    /* Count up the figures in root (a slide, or a fragment just revealed),
+       skipping those still hidden in a fragment. */
+    _runCounts(root) {
+      if (!root || this._editing || !this._countsAllowed()) return;
+      const els = Array.from(root.querySelectorAll("[data-count]"));
+      if (root.matches("[data-count]")) els.unshift(root);
+      els.forEach((n) => {
+        if (!n.closest(".fragment:not(.is-visible)")) countUp(n, this._lang);
+      });
+    }
+
+    /* ---- Render mode: screenshots and the layout report ----------------- */
+
+    _startRender() {
+      // The slide as it finally looks: every fragment shown, nothing moving.
+      this._step = this._fragmentEls.length;
+      this._applyFragments();
+      if (this._render === "sheet") {
+        this._toggleOverview(true);
+        this._scaleOverview();
+      }
+      const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+      fonts.then(() => new Promise((r) => setTimeout(r, 150))).then(() => {
+        const issues = this._layoutIssues();
+        if (this._render === "sheet") {
+          issues.forEach((it) => this._ovCells[it.slide - 1].classList.add("is-flagged"));
+        }
+        const report = {
+          slides: this.count,
+          files: this.slides.map((sl) => sl.getAttribute("data-pf-src") || ""),
+          issues,
+          sheetHeight: this._overview ? Math.ceil(this._overview.scrollHeight) : 0,
+        };
+        const tag = document.createElement("script");
+        tag.type = "application/json";
+        tag.id = "pf-report";
+        tag.textContent = JSON.stringify(report).replace(/</g, "\\u003c");
+        document.body.appendChild(tag);
+      });
+    }
+
+    /* What a careful reviewer would flag on each slide: content poking out of
+       the 1920x1080 canvas, content cut off inside its own box (a long code
+       line, a fixed-height card), and images that failed to load. Decoration
+       (aria-hidden, .fx, empty boxes) and speaker notes are ignored. */
+    _layoutIssues() {
+      const TOL = 2;
+      const issues = [];
+      const label = (n) => {
+        const cls = Array.from(n.classList).filter((c) => !/^(pf-|is-visible)/.test(c));
+        const text = (n.textContent || "").replace(/\s+/g, " ").trim().slice(0, 70);
+        return { element: n.tagName.toLowerCase() + (cls.length ? "." + cls.join(".") : ""), text };
+      };
+      this.slides.forEach((slide, i) => {
+        const box = slide.getBoundingClientRect();
+        if (!box.width) return;
+        const k = box.width / this.designW;           // rendered px per design px
+        const base = { slide: i + 1, file: slide.getAttribute("data-pf-src") || "" };
+        const out = [];
+        // Only what a viewer would miss: text, images, media. An empty box
+        // that is hidden or bleeds off on purpose is decoration.
+        const shows = (n) => (n.textContent || "").trim() !== "" ||
+          n.matches("img, svg, video, canvas, iframe") || !!n.querySelector("img, svg, video, canvas, iframe");
+        const clips = new Map();     // element -> does it cut off its overflow?
+        const clipsOverflow = (n) => {
+          if (!clips.has(n)) {
+            const cs = getComputedStyle(n);
+            clips.set(n, cs.overflowX !== "visible" || cs.overflowY !== "visible");
+          }
+          return clips.get(n);
+        };
+        // Inside a box that cuts it off, an element can't show past the slide;
+        // that box reports the cut instead.
+        const insideClip = (n) => {
+          for (let a = n.parentElement; a && a !== slide; a = a.parentElement) {
+            if (clipsOverflow(a)) return true;
+          }
+          return false;
+        };
+        slide.querySelectorAll("*").forEach((n) => {
+          if (n.closest('aside.notes, [aria-hidden="true"], .fx, script, style') || !shows(n)) return;
+          const r = n.getBoundingClientRect();
+          if (!r.width && !r.height) return;
+          const edges = {
+            top: (box.top - r.top) / k,
+            bottom: (r.bottom - box.bottom) / k,
+            left: (box.left - r.left) / k,
+            right: (r.right - box.right) / k,
+          };
+          const edge = Object.keys(edges).reduce((a, b) => (edges[b] > edges[a] ? b : a));
+          if (edges[edge] > TOL && !insideClip(n)) out.push({ n, edge, px: Math.round(edges[edge]) });
+          if (clipsOverflow(n) &&
+              (n.scrollWidth > n.clientWidth + TOL || n.scrollHeight > n.clientHeight + TOL)) {
+            const px = Math.max(n.scrollWidth - n.clientWidth, n.scrollHeight - n.clientHeight);
+            issues.push(Object.assign({ kind: "clipped", px: Math.round(px / k) }, base, label(n)));
+          }
+          if (n.tagName === "IMG" && n.complete && !n.naturalWidth) {
+            issues.push(Object.assign({ kind: "image" }, base, { element: "img", text: (n.getAttribute("src") || "").slice(0, 70) }));
+          }
+        });
+        // Report only the outermost element that pokes out: its children
+        // follow it and would only repeat the same problem.
+        out.filter((o) => !out.some((p) => p !== o && p.n.contains(o.n))).forEach((o) => {
+          issues.push(Object.assign({ kind: "overflow", edge: o.edge, px: o.px }, base, label(o.n)));
+        });
+      });
+      return issues;
+    }
+
     /* ---- Progress bar ------------------------------------------------- */
 
     _updateProgressBar() {
@@ -1341,8 +1589,7 @@
         canvas.style.width  = this.designW + "px";
         canvas.style.height = this.designH + "px";
 
-        const clone = slide.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(slide);
         clone.querySelectorAll("aside.notes").forEach((n) => n.remove());
         clone.querySelectorAll(".fragment").forEach((f) => f.classList.add("is-visible"));
         canvas.appendChild(clone);
@@ -1350,6 +1597,10 @@
 
         const num = el("span", "pf-ov-num");
         num.textContent = String(i + 1);
+        // On the contact sheet, name the file too: that is what gets fixed.
+        if (this._render && slide.getAttribute("data-pf-src")) {
+          num.textContent += "  ·  " + slide.getAttribute("data-pf-src");
+        }
 
         cell.append(frame, num);
         cell.addEventListener("click", () => { this.show(i); this._toggleOverview(false); });
@@ -1529,11 +1780,11 @@
       const inlineCSS = this._collectCSS();
 
       const slidesHTML = this.slides.map((s) => {
-        const c = s.cloneNode(true);
-        c.removeAttribute("data-active");
+        const c = this._cloneSlide(s);
         c.querySelectorAll("aside.notes").forEach((n) => n.remove());
         return c.outerHTML;
       }).join("\n");
+      const countsOn = this._countsAllowed();
 
       const W = this.designW, H = this.designH;
       return `<!doctype html>
@@ -1562,7 +1813,7 @@ ${inlineCSS}
 ${linkTags}
 </head>
 <body>
-<div class="pf-canvas" id="c">${slidesHTML}</div>
+<div class="pf-canvas" id="c" data-motion="${escAttr(this._motion)}" data-dir="next">${slidesHTML}</div>
 <svg id="aud-draw" viewBox="0 0 ${W} ${H}"></svg>
 <div id="aud-laser"></div>
 <div id="aud-blank"></div>
@@ -1576,22 +1827,42 @@ ${linkTags}
   var notesBody=document.getElementById('aud-notes-body');
   var blankEl=document.getElementById('aud-blank');
   var W=${W}, H=${H};
-  var drawPath=null, drawD='', notesVisible=false, cur=0;
+  var drawPath=null, drawD='', notesVisible=false, cur=-1;
+  var LANG=${JSON.stringify(this._lang || "")} || undefined, COUNTS=${countsOn};
+  ${countUp.toString()}
+  function runCounts(root){
+    if(!COUNTS) return;
+    if(root.matches('[data-count]')) countUp(root, LANG);
+    var els=root.querySelectorAll('[data-count]');
+    for(var k=0;k<els.length;k++) if(!els[k].closest('.fragment:not(.is-visible)')) countUp(els[k], LANG);
+  }
 
   function scale(){
     var s=Math.min(innerWidth/W,innerHeight/H);
     var t='translate(-50%,-50%) scale('+s+')';
     C.style.transform=t; drawSvg.style.transform=t;
   }
-  function applyFragments(i, step){
+  // instant: arriving back on a slide shows its fragments at once.
+  function applyFragments(i, step, instant){
     var act=slides[i]; if(!act) return;
     var frags=act.querySelectorAll('.fragment');
-    for(var k=0;k<frags.length;k++) frags[k].classList.toggle('is-visible', k < step);
+    for(var k=0;k<frags.length;k++){
+      var f=frags[k], vis=k<step, was=f.classList.contains('is-visible');
+      if(instant!==undefined) f.classList.toggle('pf-instant', instant && vis);
+      else if(vis && !was) f.classList.remove('pf-instant');
+      f.classList.toggle('is-visible', vis);
+      if(vis && !was && instant===undefined) runCounts(f);
+    }
   }
-  function show(i, step){
+  function show(i, step, d){
+    if(d.pfTransition) C.setAttribute('data-transition', d.pfTransition);
+    if(d.pfDir) C.setAttribute('data-dir', d.pfDir);
+    if(i===cur){ applyFragments(i, step); return; }
     cur=i;
     slides.forEach(function(s,n){ n===i?s.setAttribute('data-active',''):s.removeAttribute('data-active') });
-    applyFragments(i, step||0);
+    var back=d.pfDir==='prev';
+    applyFragments(i, step, back);
+    if(!back) runCounts(slides[i]);
   }
   function handleBlank(b){ blankEl.className = b ? ('is-'+b) : ''; }
 
@@ -1624,10 +1895,10 @@ ${linkTags}
   }
 
   window.addEventListener('resize', scale);
-  scale(); show(0, 0);
+  scale(); show(0, 0, {});
   window.addEventListener('message', function(e){
     if(!e.data) return;
-    if(typeof e.data.pfSlide==='number') show(e.data.pfSlide, e.data.pfStep||0);
+    if(typeof e.data.pfSlide==='number') show(e.data.pfSlide, e.data.pfStep||0, e.data);
     else if(typeof e.data.pfStep==='number') applyFragments(cur, e.data.pfStep);
     if(typeof e.data.pfNotes!=='undefined') notesBody.innerHTML=e.data.pfNotes||'';
     if('pfBlank' in e.data) handleBlank(e.data.pfBlank);

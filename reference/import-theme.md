@@ -75,14 +75,18 @@ Translate brand words into tokens: mood -> light/dark `--bg`/`--ink`; brand colo
 
 ## Step 2 - Create the theme folder
 
-Scaffold a deck from `template/` if needed, then copy the base theme:
+Create a deck with `scripts/new_deck.py` if there isn't one yet, then copy the
+base theme:
 
 ```sh
 cp -R "<deck>/themes/ink-blue" "<deck>/themes/<name>"
 ```
 
 This keeps the class/token contract; you override the look. Name `<name>` after
-the brand (kebab-case).
+the brand (kebab-case). The engine's components (stats, bars, steps, timeline,
+compare, grid, icons) already follow the tokens; restyle them in `slides.css`
+only if the brand calls for it (`themes/obsidian/slides.css` ends with an
+example).
 
 ## Step 3 - Map the palette into `themes/<name>/tokens.css`
 
@@ -173,6 +177,13 @@ positioned box, so just give the child `position: absolute` and it anchors to th
 slide. Style padding, colours, fonts, backgrounds and the slide's inner blocks,
 not the slide's own placement in the canvas.
 
+**Motion belongs to the deck's level.** If the brand's look includes movement (a
+drifting background, a rule that draws in), scope it so the level controls it:
+ambient loops get `animation-play-state: var(--pf-loops, paused)` (they run from
+`lively` up), and entrance effects key on `.pf-canvas:not([data-dir="prev"]) >
+.slide[data-active]` (forward arrivals only). `themes/obsidian/slides.css` does
+both; the `none` level stops everything by itself.
+
 Trade-off to state to the user: a strong visual signature makes this theme
 specific to the brand (less of a neutral drop-in). That is the right call for a
 faithful charter; note it so they know why it looks less generic than `ink-blue`.
@@ -181,10 +192,9 @@ faithful charter; note it so they know why it looks less generic than `ink-blue`
 
 1. Set `"theme": "<name>"` in `deck.config.json` and `python3 build.py`.
 2. Render and **compare side by side with the reference**: a title slide, a
-   content slide, and a `slide--section`. A quick way to get an image of a slide:
+   content slide, and a `slide--section`. Get images of them with:
    ```sh
-   "/path/to/Chrome" --headless=new --screenshot=/tmp/slide.png \
-       --window-size=1920,1080 "file://<deck>/index.html"
+   python3 "<skill-dir>/scripts/check_deck.py" "<deck>" --slides 1,2,3 --scale 1
    ```
    Look at the title position/size, colours, fonts (are the real faces loading?),
    logo placement, and overall feel. Tune `tokens.css` and `slides.css` and rebuild

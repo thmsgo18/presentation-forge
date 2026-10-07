@@ -34,6 +34,7 @@ canvas to fit any screen, so you always design against the same fixed size.
 python3 build.py            # -> index.html (self-contained)
 python3 build.py --watch    # rebuild on every save
 python3 build.py --open     # build, then open in the browser
+python3 build.py --pull     # only copy text edited in the browser back into slides/
 ```
 
 Open `index.html` (double-click works - it's a single file with the engine,
@@ -62,6 +63,23 @@ These classes are provided by the theme:
 - `pre` / `code` - code
 - `.muted`, `.accent` - text colour helpers
 
+## Charts, figures, icons and motion
+
+The engine also ships ready-made components that follow whatever theme is
+active - key figures (`.stats`), bar charts (`.bars`), gauges (`.ring`),
+processes (`ol.steps`), timelines (`ol.timeline`), comparison tables
+(`table.compare`), columns of cards (`.grid`), line icons
+(`<i data-icon="rocket"></i>`) and decorative shapes (`.fx`) - and an animation
+toolkit: `data-anim="rise"` to bring an element in, `data-stagger="rise"` on a
+list to bring its items in one by one, `data-count` to count a figure up,
+`data-loop` for ambient movement, `data-transition` on a slide. `build.py`
+bundles only the components a deck uses.
+
+How much it all moves is one setting, `"motion"` in `deck.config.json`: `none`,
+`subtle`, `balanced` (default), `lively` or `extra`. The slides don't change;
+the engine turns the dial. The full catalogue lives with the skill, in
+`reference/components.md` and `reference/motion.md`.
+
 ## Progressive reveal (fragments)
 
 Add `class="fragment"` to any element to reveal it step by step on click,
@@ -83,6 +101,10 @@ next slide. ← hides the last fragment (and going back to a slide shows all of
 its fragments). The audience window and the presenter step counter
 (`step 2/3`) stay in sync. A slide with no `.fragment` behaves exactly as
 before.
+
+Add `data-anim` to pick how a fragment comes in (`data-anim="from-left"`), or
+`data-anim="highlight"` to keep it visible and mark it with a highlighter on the
+click instead.
 
 ## Images
 
@@ -131,6 +153,13 @@ copies of a deck (there's no real local file to save over there), so no one
 sees a control that wouldn't work for them. Speaker notes stay viewable in
 those cases, just not editable.
 
+Edits are saved into `index.html`, and the next `python3 build.py` copies them
+back into `slides/*.html` before rebuilding, so nothing typed in the browser is
+lost (`python3 build.py --pull` does only that copy). If a slide file also
+changed since the last build, its browser edit is not forced in: the edited
+deck is kept as `index.unmerged-edits.html` so you can bring the text over by
+hand.
+
 ## Deck configuration
 
 Set these in `deck.config.json`:
@@ -139,17 +168,21 @@ Set these in `deck.config.json`:
 | ------------ | -------------- | ------------------------------------------- |
 | `title`      | `Presentation` | the page title                              |
 | `lang`       | `en`           | document language                           |
-| `theme`      | `ink-blue`     | which `themes/<name>/` folder to use        |
+| `theme`      | `obsidian`     | which `themes/<name>/` folder to use        |
+| `motion`     | `balanced`     | how much moves: `none` · `subtle` · `balanced` · `lively` · `extra` |
+| `transition` | `fade`         | slide transition: `none` · `fade` · `slide` · `zoom` · `rise` · `blur` · `flip` (a slide's own `data-transition` wins) |
 | `width` `height` | `1920` `1080` | the design canvas size                  |
-| `transition` | `fade`         | slide transition: `fade` · `slide` · `zoom` |
 | `exit_hint`  | English        | toast text shown when entering full screen  |
+
+For a one-off tweak that belongs to this deck only, add a `deck.css` next to
+`deck.config.json`: it loads after the theme.
 
 ## Theming
 
 A theme is a self-contained folder under `themes/`, split by concern:
 
 ```
-themes/obsidian/   # this deck's theme; a light "ink-blue" theme also ships
+themes/obsidian/   # the default theme; a light "ink-blue" theme also ships
 ├── tokens.css   # the dials: colours, type scale, spacing, font-family names
 ├── fonts.css    # @font-face declarations
 ├── slides.css   # how the blocks above are styled

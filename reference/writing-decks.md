@@ -16,13 +16,14 @@ Get these straight first, then everything else follows:
   Write it down. Every slide must earn its place against it.
 - **The audience.** Their level, what they already know, what they care about.
   This sets vocabulary, depth, and which arguments land.
-- **The arc.** A talk is a story, not a list. A reliable shape:
-  1. a title slide that frames the topic and promise,
-  2. context or the problem (why this matters now),
-  3. the body, split into 2-4 sections, each building on the last,
-  4. a close that states the takeaway and the next step (call to action).
-- **The takeaway per section.** One sentence each. The sections are the skeleton;
-  use `slide--section` dividers between them.
+- **The arc.** A talk is a story, not a list. Build it from what the user wants
+  to say, in their order of ideas; a common shape is a title that frames the
+  topic and promise, why it matters now, a body that builds point by point, and
+  a close that states the takeaway and the next step. Adapt it - it is not a
+  template to fill.
+- **The takeaway per part.** One sentence each. When the talk has 2-4 real
+  parts, `slide--section` dividers can mark them; a short talk usually needs
+  none.
 
 Plan this arc explicitly before writing slides. A deck written outline-first reads
 as a coherent argument; a deck written slide-by-slide reads as disconnected notes.
@@ -103,12 +104,15 @@ keep talking. In this engine:
 ## 5. Map it onto the engine
 
 - assertion -> `h1`/`.title` (or `.display` on the title slide)
-- evidence -> `.bullets`, `.two-col`, `.card`, `blockquote`, `pre > code`, an
-  `<img>` from `assets/`
-- section breaks -> a `slide--section` divider with the section's one-sentence
-  takeaway
+- evidence -> the shape that fits it, from [`layouts.md`](layouts.md): `.bullets`,
+  a figure (`.stats`), a chart (`.bars`, `.ring`), a process (`.steps`), a
+  `.timeline`, a `table.compare`, a `.grid` of cards, `.two-col`, `blockquote`,
+  `pre > code`, an `<img>` from `assets/` - see [`components.md`](components.md)
+- section breaks -> a `slide--section` divider with the part's one-sentence
+  takeaway, when the talk has real parts
 - build-up -> `class="fragment"` to reveal points one at a time when the order of
   reveal carries meaning (a list of arguments, a before/after, a punchline)
+- motion -> what the chosen level calls for, from [`motion.md`](motion.md)
 - the spoken track -> `<aside class="notes">`
 
 ## 6. Self-check before you finish
@@ -117,6 +121,6 @@ keep talking. In this engine:
 - Could a stranger get each slide's message from the title plus a 3-second glance?
 - Is there any slide with two ideas? Split it.
 - Is any slide a wall of text? Move the prose to the notes.
-- Do the section takeaways, read in order, tell the whole story on their own?
+- Do the slide titles, read in order, tell the whole story on their own?
 - Does every content slide have notes that say something the slide does not show?
 - Does the close state the single takeaway and a clear next step?

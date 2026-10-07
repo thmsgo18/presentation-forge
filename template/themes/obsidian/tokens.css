@@ -41,6 +41,11 @@
   --accent-soft: #4fd6e6;
   --accent-tint: #8b7bff1f;
 
+  /* Marks in comparison tables (yes / no / partial) */
+  --good: #74e3ad;
+  --bad: #ff8a8a;
+  --warn: #f3c178;
+
   /* Engine chrome (rail, buttons) derives from --accent / --accent-deep, but we
      pin it for a deliberately dark, on-brand UI. */
   --pf-rail-bg: #080b13;

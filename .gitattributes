@@ -11,6 +11,8 @@
 *.gif binary
 
 # Generated files: collapse in diffs and keep them out of GitHub's language
-# stats. Both are rebuilt from source (build.py / tools/pack.py).
-template/index.html linguist-generated=true
+# stats. All are rebuilt from source (tools/build_showcase.py, tools/pack.py,
+# tools/update_icons.py).
+examples/showcase/index.html linguist-generated=true
 dist/presentation-forge-skill.zip linguist-generated=true
+template/engine/icons.json linguist-generated=true

@@ -1,7 +1,7 @@
 name: Deploy demo to Pages
 
-# Publishes the bundled demo deck (template/index.html) as a live, clickable
-# example at https://thmsgo18.github.io/presentation-forge/.
+# Publishes the showcase deck (examples/showcase/index.html) as a live,
+# clickable example at https://thmsgo18.github.io/presentation-forge/.
 # Requires: repo Settings -> Pages -> Source = "GitHub Actions".
 
 on:
@@ -30,7 +30,7 @@ jobs:
       - name: Assemble the demo site
         run: |
           mkdir -p _site
-          cp template/index.html _site/index.html
+          cp examples/showcase/index.html _site/index.html
 
       - uses: actions/configure-pages@v5
 

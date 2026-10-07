@@ -1,0 +1,441 @@
+/*
+ * deck.css - styles for the showcase deck only.
+ *
+ * The looping UI mockups that demo the engine's own controls (toolbar tours,
+ * mode switches, the edit demo) and the context badge above them. They are
+ * specific to this deck, so they live here rather than in a theme: build.py
+ * appends deck.css after the theme, for this deck alone.
+ */
+
+/* ==================================================================== */
+/* Context badge - which UI the demo below belongs to.                  */
+/* ==================================================================== */
+
+.context-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--accent-soft);
+}
+
+.context-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: 0 0 10px var(--accent-soft);
+}
+
+/* ==================================================================== */
+/* Button-click demos - a real, mocked-up control row with a fake       */
+/* cursor that clicks each button in turn, in a slow infinite loop,     */
+/* and a caption that names what just happened. Pure CSS: no JS, no     */
+/* recorded media, so it stays crisp and on-theme forever.              */
+/* ==================================================================== */
+
+.tour {
+  position: relative;
+  height: 220px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0c1220, #080c16);
+  border: 1px solid var(--rule);
+  box-shadow: 0 30px 70px -45px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.tour__caption {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96px;
+}
+
+.tour__caption span {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 19px;
+  color: var(--ink);
+  background: var(--accent-tint);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 8px 20px;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.tour__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 36px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* padding is a % of the bar's own width, so button centres line up with
+   the cursor keyframes below no matter the slide's rendered size */
+.tour--toolbar .tour__bar { padding: 0 14%; }
+.tour--presenter .tour__bar { padding: 0 23%; }
+
+.tour__btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd8ee;
+}
+
+.tour__btn svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tour__cursor {
+  position: absolute;
+  bottom: 30px;
+  width: 16px;
+  height: 20px;
+  background: #f4f7ff;
+  clip-path: polygon(0 0, 0 70%, 22% 56%, 38% 100%, 52% 92%, 36% 54%, 70% 54%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  z-index: 3;
+}
+
+/* ---- 6-stop tour: the windowed toolbar ---- */
+
+.tour--toolbar .tour__cursor { animation: pf-t6-cursor 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(1)     { animation: pf-t6-btn-0 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(2)     { animation: pf-t6-btn-1 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(3)     { animation: pf-t6-btn-2 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(4)     { animation: pf-t6-btn-3 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(5)     { animation: pf-t6-btn-4 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__btn:nth-child(6)     { animation: pf-t6-btn-5 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(1) { animation: pf-t6-cap-0 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(2) { animation: pf-t6-cap-1 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(3) { animation: pf-t6-cap-2 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(4) { animation: pf-t6-cap-3 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(5) { animation: pf-t6-cap-4 9.6s ease-in-out infinite; }
+.tour--toolbar .tour__caption span:nth-child(6) { animation: pf-t6-cap-5 9.6s ease-in-out infinite; }
+
+@keyframes pf-t6-cursor {
+  0%, 4%    { left: 16%; }
+  16%, 20%  { left: 30%; }
+  32%, 36%  { left: 44%; }
+  48%, 52%  { left: 58%; }
+  64%, 68%  { left: 72%; }
+  80%, 84%  { left: 86%; }
+  96%, 100% { left: 16%; }
+}
+
+@keyframes pf-t6-btn-0 { 0%,29%{transform:scale(1);background:rgba(255,255,255,.08)} 2%{transform:scale(.82);background:var(--accent)} 4%,14%{transform:scale(1);background:var(--accent)} 20%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-1 { 0%,15%{transform:scale(1);background:rgba(255,255,255,.08)} 18%{transform:scale(.82);background:var(--accent)} 20%,30%{transform:scale(1);background:var(--accent)} 36%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-2 { 0%,31%{transform:scale(1);background:rgba(255,255,255,.08)} 34%{transform:scale(.82);background:var(--accent)} 36%,46%{transform:scale(1);background:var(--accent)} 52%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-3 { 0%,47%{transform:scale(1);background:rgba(255,255,255,.08)} 50%{transform:scale(.82);background:var(--accent)} 52%,62%{transform:scale(1);background:var(--accent)} 68%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-4 { 0%,63%{transform:scale(1);background:rgba(255,255,255,.08)} 66%{transform:scale(.82);background:var(--accent)} 68%,78%{transform:scale(1);background:var(--accent)} 84%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t6-btn-5 { 0%,79%{transform:scale(1);background:rgba(255,255,255,.08)} 82%{transform:scale(.82);background:var(--accent)} 84%,94%{transform:scale(1);background:var(--accent)} 99%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+
+@keyframes pf-t6-cap-0 { 0%,2%{opacity:0;transform:translateY(6px)} 5%,14%{opacity:1;transform:translateY(0)} 19%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-1 { 0%,18%{opacity:0;transform:translateY(6px)} 21%,30%{opacity:1;transform:translateY(0)} 35%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-2 { 0%,34%{opacity:0;transform:translateY(6px)} 37%,46%{opacity:1;transform:translateY(0)} 51%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-3 { 0%,50%{opacity:0;transform:translateY(6px)} 53%,62%{opacity:1;transform:translateY(0)} 67%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-4 { 0%,66%{opacity:0;transform:translateY(6px)} 69%,78%{opacity:1;transform:translateY(0)} 83%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t6-cap-5 { 0%,82%{opacity:0;transform:translateY(6px)} 85%,94%{opacity:1;transform:translateY(0)} 98%,100%{opacity:0;transform:translateY(6px)} }
+
+/* ---- 4-stop tour: inside the presenter sidebar ---- */
+
+.tour--presenter .tour__cursor { animation: pf-t4-cursor 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(1)     { animation: pf-t4-btn-0 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(2)     { animation: pf-t4-btn-1 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(3)     { animation: pf-t4-btn-2 7.2s ease-in-out infinite; }
+.tour--presenter .tour__btn:nth-child(4)     { animation: pf-t4-btn-3 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(1) { animation: pf-t4-cap-0 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(2) { animation: pf-t4-cap-1 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(3) { animation: pf-t4-cap-2 7.2s ease-in-out infinite; }
+.tour--presenter .tour__caption span:nth-child(4) { animation: pf-t4-cap-3 7.2s ease-in-out infinite; }
+
+@keyframes pf-t4-cursor {
+  0%, 6%    { left: 24%; }
+  25%, 31%  { left: 42%; }
+  50%, 56%  { left: 60%; }
+  75%, 81%  { left: 78%; }
+  100%      { left: 24%; }
+}
+
+@keyframes pf-t4-btn-0 { 0%,21%{transform:scale(1);background:rgba(255,255,255,.08)} 3%{transform:scale(.82);background:var(--accent)} 5%,18%{transform:scale(1);background:var(--accent)} 23%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-1 { 0%,46%{transform:scale(1);background:rgba(255,255,255,.08)} 28%{transform:scale(.82);background:var(--accent)} 30%,43%{transform:scale(1);background:var(--accent)} 48%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-2 { 0%,71%{transform:scale(1);background:rgba(255,255,255,.08)} 53%{transform:scale(.82);background:var(--accent)} 55%,68%{transform:scale(1);background:var(--accent)} 73%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+@keyframes pf-t4-btn-3 { 0%,96%{transform:scale(1);background:rgba(255,255,255,.08)} 78%{transform:scale(.82);background:var(--accent)} 80%,93%{transform:scale(1);background:var(--accent)} 98%,100%{transform:scale(1);background:rgba(255,255,255,.08)} }
+
+@keyframes pf-t4-cap-0 { 0%,4%{opacity:0;transform:translateY(6px)} 7%,18%{opacity:1;transform:translateY(0)} 22%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-1 { 0%,29%{opacity:0;transform:translateY(6px)} 32%,43%{opacity:1;transform:translateY(0)} 47%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-2 { 0%,54%{opacity:0;transform:translateY(6px)} 57%,68%{opacity:1;transform:translateY(0)} 72%,100%{opacity:0;transform:translateY(6px)} }
+@keyframes pf-t4-cap-3 { 0%,79%{opacity:0;transform:translateY(6px)} 82%,93%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0;transform:translateY(6px)} }
+
+/* ==================================================================== */
+/* Mode-switch demos - the two transitions that change the whole layout:*/
+/* entering presenter mode, and entering full screen.                   */
+/* ==================================================================== */
+
+.switch {
+  position: relative;
+  height: 280px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0c1220, #080c16);
+  border: 1px solid var(--rule);
+  box-shadow: 0 30px 70px -45px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  display: flex;
+}
+
+.switch__main {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 18px;
+}
+
+.switch__rail {
+  flex: 0 0 64px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: pf-fs-rail 6s ease-in-out infinite;
+}
+
+.switch__toast {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  animation: pf-fs-toast 6s ease-in-out infinite;
+}
+
+.switch__btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd8ee;
+}
+
+.switch__btn svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.switch__cursor {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  width: 16px;
+  height: 20px;
+  background: #f4f7ff;
+  clip-path: polygon(0 0, 0 70%, 22% 56%, 38% 100%, 52% 92%, 36% 54%, 70% 54%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  z-index: 3;
+}
+
+/* presenter switch: a sidebar slides in from the right */
+.switch--presenter .switch__btn       { animation: pf-pr-btn 6s ease-in-out infinite; }
+.switch--presenter .switch__btn .icon-b { animation: pf-pr-icon-in 6s ease-in-out infinite; }
+.switch--presenter .switch__btn .icon-a { animation: pf-pr-icon-out 6s ease-in-out infinite; }
+.switch--presenter .switch__sidebar {
+  flex: 0 0 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 1px solid var(--rule);
+  animation: pf-pr-sidebar 6s ease-in-out infinite;
+  overflow: hidden;
+}
+.switch--presenter .switch__sidebar-inner {
+  width: 220px;
+  padding: 18px;
+  opacity: 0;
+  animation: pf-pr-sidebar-content 6s ease-in-out infinite;
+}
+.switch--presenter .switch__sidebar-inner .bar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--accent-tint);
+  margin-bottom: 10px;
+}
+.switch--presenter .switch__sidebar-inner .bar:nth-child(2) { width: 70%; }
+.switch--presenter .switch__sidebar-inner .bar:nth-child(3) { width: 85%; }
+
+@keyframes pf-pr-btn      { 0%,28%{transform:scale(1)} 31%{transform:scale(.82)} 33%,100%{transform:scale(1)} }
+@keyframes pf-pr-icon-out { 0%,30%{opacity:1} 36%,100%{opacity:0} }
+@keyframes pf-pr-icon-in  { 0%,30%{opacity:0} 36%,96%{opacity:1} 100%{opacity:0} }
+@keyframes pf-pr-sidebar  { 0%,30%{flex-basis:0} 50%,90%{flex-basis:46%} 100%{flex-basis:0} }
+@keyframes pf-pr-sidebar-content { 0%,38%{opacity:0} 50%,86%{opacity:1} 96%,100%{opacity:0} }
+
+/* fullscreen switch: rail fades, controls dim, an exit-hint toast shows once */
+.switch--fullscreen .switch__btn        { animation: pf-fs-btn 6s ease-in-out infinite; }
+.switch--fullscreen .switch__btn .icon-b { animation: pf-pr-icon-in 6s ease-in-out infinite; }
+.switch--fullscreen .switch__btn .icon-a { animation: pf-pr-icon-out 6s ease-in-out infinite; }
+
+@keyframes pf-fs-btn   { 0%,28%{transform:scale(1)} 31%{transform:scale(.82)} 33%,100%{transform:scale(1)} }
+@keyframes pf-fs-rail  { 0%,30%{opacity:1} 40%,90%{opacity:0} 100%{opacity:1} }
+@keyframes pf-fs-toast { 0%,32%{opacity:0} 38%,70%{opacity:1} 78%,100%{opacity:0} }
+
+/* shared: two stacked icons inside a .switch__btn / .tour__btn cross-fade */
+.icon-a, .icon-b {
+  position: absolute;
+  display: flex;
+}
+.icon-b { opacity: 0; }
+
+/* edit-mode switch: cursor clicks the pencil top-right, the whole line gets
+   selected (matching how a real contenteditable block highlights on focus),
+   then it's genuinely erased character by character and the fix is typed
+   back in, in character-sized steps like the toolkit's "type" effect.
+   .switch--edit is the full-width 1680x280 box (theme content
+   width minus --pad-x); the cursor keyframe is hand-aligned to the pencil
+   button's actual position (right:16px/top:16px on a 64px button -> centre
+   at x=1632, y=48), not a rough percentage guess. */
+.switch--edit {
+  align-items: center;
+  justify-content: center;
+}
+
+.switch--edit .switch__edit-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.switch--edit .switch__edit-btn { animation: pf-ed-btn 7s ease-in-out infinite; }
+
+.switch--edit .switch__edit-slide {
+  position: relative;
+  display: inline-grid;
+  padding: 10px 16px;
+  border-radius: 6px;
+  outline: 1px dashed transparent;
+  outline-offset: 6px;
+  animation: pf-ed-outline 7s ease-in-out infinite;
+}
+.switch--edit .switch__edit-slide::before {
+  content: "";
+  position: absolute;
+  inset: 4px 10px;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: pf-ed-select 7s ease-in-out infinite;
+}
+
+.switch--edit .switch__edit-text {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 34px;
+  font-weight: 600;
+  color: #e7ecf8;
+  white-space: nowrap;
+}
+.switch--edit .switch__edit-text--before { animation: pf-ed-erase 7s ease-in-out infinite; }
+.switch--edit .switch__edit-text--after  { animation: pf-ed-type  7s ease-in-out infinite; }
+
+.switch--edit .switch__edit-caret {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  right: 14px;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0;
+  z-index: 2;
+  animation: pf-ed-caret 7s steps(1) infinite;
+}
+
+.switch--edit .switch__edit-cursor {
+  bottom: auto;
+  right: auto;
+  animation: pf-ed-cursor 7s ease-in-out infinite;
+}
+
+.switch--edit .switch__edit-toast { animation: pf-ed-toast 7s ease-in-out infinite; }
+
+@keyframes pf-ed-cursor {
+  0%, 8%    { left: 820px; top: 190px; }
+  20%, 27%  { left: 1618px; top: 40px; }
+  36%, 90%  { left: 820px; top: 190px; }
+  100%      { left: 820px; top: 190px; }
+}
+@keyframes pf-ed-btn {
+  0%, 17%   { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
+  21%       { transform: scale(0.82); background: var(--accent); }
+  24%, 64%  { transform: scale(1); background: var(--accent); }
+  70%, 100% { transform: scale(1); background: rgba(255, 255, 255, 0.08); }
+}
+@keyframes pf-ed-outline {
+  0%, 25%   { outline-color: transparent; }
+  29%, 66%  { outline-color: rgba(255, 255, 255, 0.45); }
+  70%, 100% { outline-color: transparent; }
+}
+/* select-all sweep: a flat highlight grows across the whole line, like a
+   click-drag selection, then clears once the retyping starts. */
+@keyframes pf-ed-select {
+  0%, 26%   { opacity: 0; transform: scaleX(0); }
+  30%, 36%  { opacity: 0.35; transform: scaleX(1); }
+  40%, 100% { opacity: 0; transform: scaleX(1); }
+}
+/* erase: the wrong line is deleted from the end, like backspacing it out,
+   in discrete character-sized jumps (steps), not a smooth wipe. */
+@keyframes pf-ed-erase {
+  0%        { clip-path: inset(0 0 0 0); }
+  38%       { clip-path: inset(0 0 0 0); animation-timing-function: steps(9); }
+  50%       { clip-path: inset(0 100% 0 0); }
+  100%      { clip-path: inset(0 100% 0 0); }
+}
+/* type: the fix is typed back in left to right, same technique as the
+   toolkit's "type" effect. */
+@keyframes pf-ed-type {
+  0%        { clip-path: inset(0 100% 0 0); }
+  50%       { clip-path: inset(0 100% 0 0); animation-timing-function: steps(9); }
+  64%       { clip-path: inset(0 0 0 0); }
+  100%      { clip-path: inset(0 0 0 0); }
+}
+@keyframes pf-ed-caret {
+  0%, 25%, 33%, 41%, 49%, 57%, 67%, 100% { opacity: 0; }
+  29%, 37%, 45%, 53%, 61%                { opacity: 1; }
+}
+@keyframes pf-ed-toast {
+  0%, 56%   { opacity: 0; }
+  62%, 80%  { opacity: 1; }
+  88%, 100% { opacity: 0; }
+}
+

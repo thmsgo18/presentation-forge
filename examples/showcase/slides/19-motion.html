@@ -1,0 +1,26 @@
+<!-- 19 - Motion levels, shown as a bar chart -->
+<section class="slide">
+  <h2 class="title">From perfectly still to full show, in one word.</h2>
+  <div class="two-col">
+    <ul class="bars">
+      <li style="--value: 4"><span class="bars__label">none</span><span class="bars__value">still</span></li>
+      <li style="--value: 28"><span class="bars__label">subtle</span><span class="bars__value">fades</span></li>
+      <li style="--value: 52"><span class="bars__label">balanced</span><span class="bars__value">default</span></li>
+      <li style="--value: 76" class="is-highlight"><span class="bars__label">lively</span><span class="bars__value">this deck</span></li>
+      <li style="--value: 100"><span class="bars__label">extra</span><span class="bars__value">3D, loops</span></li>
+    </ul>
+    <div class="card" data-anim="from-right" style="--delay: 0.3s">
+      <p class="eyebrow accent">deck.config.json</p>
+      <pre data-filename="deck.config.json"><code><span class="line">{</span><span class="line">  <span class="tok-attr">"motion"</span><span class="tok-punc">:</span> <span class="tok-str">"lively"</span></span><span class="line">}</span></code></pre>
+      <p class="muted">Slides keep the same markup at every level. The engine only turns the dial.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Presentation Forge</span><span>Make it yours</span></div>
+  <aside class="notes">
+    <p>Twelve entrance effects, five loops and seven transitions ship in the engine, so Claude picks from a menu instead of inventing CSS.</p>
+    <ul>
+      <li>Going back to a slide shows it finished: entrances only play forwards.</li>
+      <li>Reduced-motion settings in the OS are always respected.</li>
+    </ul>
+  </aside>
+</section>

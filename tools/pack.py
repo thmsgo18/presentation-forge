@@ -4,7 +4,7 @@
 That archive is what users upload to the Claude apps and the API (see the
 README). It must contain exactly the skill's runtime - ``SKILL.md``, the
 reference docs, the runtime scripts and the deck template - and nothing else: no
-repo metadata (README, LICENSE, CI config), no generated demo build, no caches.
+repo metadata (README, LICENSE, CI config), no example deck, no caches.
 
 The build is deterministic: entries are sorted and timestamps fixed, so the same
 sources always produce the same archive. That lets CI verify the committed zip
@@ -29,15 +29,18 @@ ARCHIVE = REPO / "dist" / "presentation-forge-skill.zip"
 PREFIX = "presentation-forge"
 
 # What the skill needs at runtime. Everything else in the repo (README, LICENSE,
-# .github, tools/, dist/) is repo scaffolding and stays out of the archive.
+# .github, examples/, tools/, dist/) is repo scaffolding and stays out of the
+# archive.
 INCLUDE = ["SKILL.md", "reference", "scripts", "template"]
 
-# Never ship: caches, OS/editor cruft, and the generated demo build (each deck
-# regenerates its own index.html).
-EXCLUDE_NAMES = {".DS_Store"}
+# Never ship: caches, OS/editor cruft, and any stray build of the template
+# (each deck generates its own index.html). The showcase deck lives outside
+# INCLUDE on purpose: a deck must be written from the user's brief, so the
+# skill carries no example slides to imitate.
+EXCLUDE_NAMES = {".DS_Store", "index.html", "index.unmerged-edits.html"}
 EXCLUDE_SUFFIXES = {".pyc", ".pyo", ".swp"}
 EXCLUDE_DIRS = {"__pycache__"}
-EXCLUDE_PATHS = {"template/index.html"}
+EXCLUDE_PATHS: set[str] = set()
 
 # A fixed timestamp keeps the archive byte-stable across machines and clocks.
 ZIP_DATE = (1980, 1, 1, 0, 0, 0)

@@ -85,8 +85,12 @@ Vous ne perdez rien de ce que PowerPoint offre à un présentateur, et vous gagn
 
 - 🧠 **N'importe quel brief en deck** : un sujet, un plan, des notes en vrac ou un document entier. Talks techniques, cours, pitchs, conférences, tout sujet.
 - ✍️ **Des slides qui font mouche** : titres en assertion, une idée par slide, puces serrées. Les pavés de texte vont dans les notes, pas à l'écran.
+- 🧭 **Votre deck, à votre rythme** : Claude pose deux questions au départ, puis construit le plan d'abord, tout d'un coup, ou slide par slide avec votre relecture après chacune. Chaque deck part de votre brief, jamais d'un modèle à remplir.
+- 🎬 **L'animation sur un curseur** : cinq niveaux, de parfaitement immobile au grand spectacle (3D, apparitions à ressort, icônes qui se dessinent). Changez d'avis plus tard en un mot, les slides ne bougent pas.
+- 📊 **Graphiques, chiffres et icônes intégrés** : chiffres clés qui défilent, histogrammes, jauges, frises, processus, tableaux comparatifs et 84 icônes, tous aux couleurs de votre thème. Seul ce qu'un deck utilise est embarqué.
+- 👀 **Claude relit ses propres slides** : chaque slide est rendue dans un navigateur invisible avant que vous la voyiez, donc un texte qui déborde ou une image cassée est corrigé d'abord.
 - 🎤 **Présenter comme un pro** : mode présentateur intégré avec notes, minuteur et aperçu de la slide suivante. Navigation clavier complète, touche `?` pour les raccourcis.
-- ✏️ **Modifier sans toucher au code** : corriger une coquille ou reformuler une ligne directement dans le navigateur, sauvegardé tout de suite dans le fichier.
+- ✏️ **Modifier sans toucher au code** : corriger une coquille ou reformuler une ligne directement dans le navigateur, sauvegardé tout de suite dans le fichier, et conservé quand Claude reconstruit le deck.
 - ✨ **Révélation progressive** : dérouler un point pas à pas avec `fragment`, la vue présentateur suit chaque étape.
 - 🎨 **Thèmes interchangeables** : changer tout le look sans toucher une seule slide.
 - 🏢 **Importer une charte** : recréer une identité depuis un `.pptx`, une image ou une description texte, et intégrer un logo d'entreprise.
@@ -108,12 +112,21 @@ Vous : /presentation-forge fais-moi un deck sur nos résultats du T3 pour
        +18%, churn redescendu à 4%, deux nouveaux grands comptes. Utilise
        notre charte, voici le deck du trimestre dernier (.pptx joint).
 
-Claude : [importe la charte du .pptx en thème réutilisable, structure le
-         deck, rédige une slide de titre, un sommaire, trois slides de
-         contenu menées par une assertion avec leurs notes, et une slide
-         de conclusion avec le message clé, puis compile en un index.html]
+Claude : Deux choix rapides d'abord. Le plan d'abord, tout d'un coup, ou
+         slide par slide ? Et combien d'animation : aucune, sobre,
+         équilibrée, dynamique ou extra ?
 
-         C'est fait. Votre deck est dans t3-reunion/index.html (7 slides).
+Vous : Le plan d'abord, dynamique.
+
+Claude : [propose un plan de 6 slides : les chiffres clés, les deux
+         nouveaux comptes, la suite. Vous en inversez deux.]
+
+         [importe la charte du .pptx en thème réutilisable, rédige des
+         slides menées par une assertion avec chiffres animés et notes,
+         compile un index.html, puis vérifie chaque slide dans un
+         navigateur invisible]
+
+         C'est fait. Votre deck est dans t3-reunion/index.html (6 slides).
          Ouvrez-le et pressez p pour le mode présentateur, les flèches pour
          naviguer, ? pour tous les raccourcis. J'ai aussi enregistré le
          thème dans acme.pfstyle.json pour réutiliser ce look au T4.
@@ -127,7 +140,7 @@ Trois couches, toujours séparées, pour qu'un deck ne casse jamais quand on le 
 - **thème** (`template/themes/<nom>/`) : le look (couleurs, typo, espacements, polices, logos, fonds).
 - **contenu** (`slides/`) : les slides, un fichier HTML chacune, ordonnées par nom.
 
-Le build est volontairement banal, et c'est ce qui le rend portable : on écrit les slides dans `slides/`, on lance `python3 build.py` (`python build.py` sous Windows si `python3` n'est pas dans le `PATH`), et il embarque le moteur, le thème, les polices et chaque image dans un unique `index.html`. Les slides sont composées sur un canevas fixe **1920x1080** que le moteur met à l'échelle de n'importe quel écran : un deck rend pareil sur un portable, un vidéoprojecteur ou un téléphone. Contrat de rédaction complet dans [`SKILL.md`](SKILL.md) et [`reference/`](reference/).
+Un nouveau deck démarre vide et s'écrit à partir de votre brief ; la [démo live](https://thmsgo18.github.io/presentation-forge/) est un deck d'exemple rangé à part, dans [`examples/showcase/`](examples/showcase/). Le build est volontairement banal, et c'est ce qui le rend portable : on écrit les slides dans `slides/`, on lance `python3 build.py` (`python build.py` sous Windows si `python3` n'est pas dans le `PATH`), et il embarque le moteur, le thème, les polices et chaque image dans un unique `index.html`. Les slides sont composées sur un canevas fixe **1920x1080** que le moteur met à l'échelle de n'importe quel écran : un deck rend pareil sur un portable, un vidéoprojecteur ou un téléphone. Contrat de rédaction complet dans [`SKILL.md`](SKILL.md) et [`reference/`](reference/).
 
 ## Thèmes
 
@@ -146,7 +159,7 @@ Quelle que soit la source, le thème s'exporte en un seul fichier portable **`.p
 
 - Un client Claude qui supporte les skills ([Claude Code](https://docs.claude.com/en/docs/claude-code), les apps Claude ou l'API).
 - **Python 3.10+**, bibliothèque standard uniquement, pour construire les decks et lire les `.pptx`. Rien d'autre.
-- Un navigateur pour voir le résultat.
+- Un navigateur pour voir le résultat. Avec Chrome, Chromium, Edge ou Brave installé, Claude vérifie aussi visuellement chaque slide avant de vous rendre le deck.
 
 ## Contribuer
 

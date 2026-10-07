@@ -15,9 +15,12 @@ framework, aucune dépendance.
 presentation-forge/
 ├── engine/              # la logique de présentation - ne pas toucher
 │   ├── deck-stage.js    #   le moteur : un custom element <deck-stage>
-│   └── base.css         #   sa mécanique : mise à l'échelle, contrôles, mode présentateur
+│   ├── base.css         #   sa mécanique : mise à l'échelle, contrôles, mode présentateur
+│   ├── motion.css       #   la boîte à outils d'animation (entrées, boucles, transitions)
+│   ├── components/      #   graphiques, chiffres, frises… (inclus seulement si utilisés)
+│   └── icons.json       #   icônes pour <i data-icon="…"> (Lucide, ISC)
 ├── themes/              # les apparences - un dossier par thème, interchangeables
-│   ├── obsidian/        #   sombre, éditorial (le thème par défaut de ce deck)
+│   ├── obsidian/        #   sombre, éditorial (le thème par défaut)
 │   │   ├── tokens.css   #     les réglages : couleurs, échelle typo, espacements, polices
 │   │   ├── fonts.css    #     déclarations @font-face
 │   │   ├── slides.css   #     style des blocs (.title, .bullets, variantes…)
@@ -26,11 +29,11 @@ presentation-forge/
 │   │   └── logos/       #     logos                ┘
 │   └── ink-blue/        #   alternative claire et sobre
 ├── slides/              # votre contenu - un fichier par slide, ordonné par nom
-│   ├── 01-title.html
-│   ├── 02-agenda.html
+│   ├── 01-title.html    #   (une nouvelle présentation démarre vide : à vous de les écrire)
 │   └── …
 ├── assets/              # images de contenu de CETTE présentation (séparées des thèmes)
-├── deck.config.json     # titre, dimensions, transition, thème
+├── deck.config.json     # titre, langue, thème, transition, niveau d'animation
+├── deck.css             # facultatif : styles propres à cette présentation
 ├── build.py             # regroupe tout dans un seul index.html autonome
 ├── index.html           # le résultat du build - ouvrez & partagez CE fichier
 └── README.fr.md
@@ -60,6 +63,11 @@ python3 build.py --watch
 python3 build.py --open     # construit, puis ouvre dans le navigateur
 ```
 
+Le texte corrigé directement dans le navigateur (le bouton Modifier, dans Chrome
+ou Edge, sur le fichier local) est enregistré dans `index.html` ; le build
+suivant le recopie d'abord dans `slides/`, donc reconstruire ne le perd jamais.
+`python3 build.py --pull` fait seulement cette copie.
+
 Parcourez les slides avec les flèches ou Espace.
 
 ## Écrire une slide
@@ -79,6 +87,11 @@ Chaque fichier de `slides/` est un `<section class="slide">` :
 Variantes de slide : `slide--title`, `slide--section`, `slide--conclude`.
 Blocs de contenu fournis par le thème : `eyebrow`, `display`, `title`, `lead`,
 `muted`, `accent`, `bullets`, `two-col`, `card`, `blockquote`, `pre > code`.
+Composants fournis par le moteur : `stats`, `bars`, `ring`, `steps`, `timeline`,
+`compare`, `grid`, icônes (`<i data-icon="rocket"></i>`) et décor `fx`.
+Animation : `data-anim`, `data-stagger`, `data-count`, `data-loop`,
+`data-transition`, dosés par `"motion"` dans `deck.config.json` (de `none` à
+`extra`).
 
 Les slides s'affichent dans l'**ordre des noms de fichiers** (`01-`, `02-`…) ;
 pour en ajouter une, déposez un nouveau fichier dans `slides/`. Voir

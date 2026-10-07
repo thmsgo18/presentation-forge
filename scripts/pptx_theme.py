@@ -9,7 +9,7 @@ embedded media (logos, backgrounds). It prints a JSON report and, with
 
 It does NOT write the theme itself: mapping the palette onto theme tokens and
 choosing which image is the logo is a judgement call left to the caller (the
-/import-pptx-theme command). The point of this script is the deterministic,
+skill's theme-import workflow). The point of this script is the deterministic,
 boring extraction.
 
     python3 pptx_theme.py <file.pptx>                     # print JSON report

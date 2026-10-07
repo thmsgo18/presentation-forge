@@ -14,9 +14,12 @@ can double-click, email, or host anywhere. No framework, no dependencies.
 presentation-forge/
 ├── engine/              # the presentation logic - don't edit
 │   ├── deck-stage.js    #   the engine: a <deck-stage> custom element
-│   └── base.css         #   its mechanics: scaling, controls, presenter UI
+│   ├── base.css         #   its mechanics: scaling, controls, presenter UI
+│   ├── motion.css       #   the animation toolkit (entrances, loops, transitions)
+│   ├── components/      #   charts, figures, timelines… (bundled only if used)
+│   └── icons.json       #   line icons for <i data-icon="…"> (Lucide, ISC)
 ├── themes/              # the looks - one folder per theme, swap freely
-│   ├── obsidian/        #   dark, editorial (this deck's default)
+│   ├── obsidian/        #   dark, editorial (the default)
 │   │   ├── tokens.css   #     the dials: colours, type scale, spacing, fonts
 │   │   ├── fonts.css    #     @font-face declarations
 │   │   ├── slides.css   #     how blocks are styled (.title, .bullets, variants…)
@@ -25,11 +28,11 @@ presentation-forge/
 │   │   └── logos/       #     logos                 ┘
 │   └── ink-blue/        #   clean, light alternative
 ├── slides/              # your content - one file per slide, ordered by name
-│   ├── 01-title.html
-│   ├── 02-agenda.html
+│   ├── 01-title.html    #   (a new deck starts empty: these are yours to write)
 │   └── …
 ├── assets/              # content images for THIS deck (kept apart from themes)
-├── deck.config.json     # title, size, transition, theme
+├── deck.config.json     # title, language, theme, transition, motion level
+├── deck.css             # optional: styles for this deck only
 ├── build.py             # bundles everything into one self-contained index.html
 ├── index.html           # the build output - open & share THIS file
 └── README.md
@@ -59,6 +62,11 @@ python3 build.py --watch
 python3 build.py --open     # build, then open it in the browser
 ```
 
+Text fixed straight in the browser (the Edit button, in Chrome or Edge on the
+local file) is saved into `index.html`; the next build copies it back into
+`slides/` first, so a rebuild never loses it. `python3 build.py --pull` does
+only that copy.
+
 Move through the slides with the arrow keys or Space.
 
 ## Writing a slide
@@ -78,6 +86,11 @@ Each file in `slides/` is one `<section class="slide">`:
 Slide variants: `slide--title`, `slide--section`, `slide--conclude`.
 Content blocks from the theme: `eyebrow`, `display`, `title`, `lead`, `muted`,
 `accent`, `bullets`, `two-col`, `card`, `blockquote`, `pre > code`.
+Components from the engine: `stats`, `bars`, `ring`, `steps`, `timeline`,
+`compare`, `grid`, icons (`<i data-icon="rocket"></i>`) and `fx` decoration.
+Motion: `data-anim`, `data-stagger`, `data-count`, `data-loop`,
+`data-transition`, scaled by `"motion"` in `deck.config.json` (`none` to
+`extra`).
 
 Slides display in **filename order** (`01-`, `02-`…); to add one, drop a new
 file in `slides/`. See [docs/writing-slides.md](docs/writing-slides.md) for the

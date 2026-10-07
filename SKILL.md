@@ -4,7 +4,8 @@ description: >-
   Build beautiful, self-contained HTML presentations (slide decks) with the
   bundled Presentation Forge engine: one HTML file per slide, bundled into a
   single portable index.html with presenter mode, progressive reveal, and
-  swappable themes. Use this whenever the user wants to create, design, write, or
+  swappable themes, plus built-in animations (five motion levels), charts,
+  figures and icons. Use this whenever the user wants to create, design, write, or
   build a presentation, slide deck, talk, or "slides" as HTML or for the browser;
   wants a web-based or single-file shareable deck; wants to turn a topic, brief,
   outline, notes, or a document into slides (technical talks AND any other
@@ -43,66 +44,124 @@ This skill supports two workflows, chosen from what the user asks:
 ## Where the engine lives
 
 This skill bundles the deck scaffold in **`template/`**, a sibling of this
-`SKILL.md`. It contains `engine/`, `themes/` (the dark `obsidian` and the light
-`ink-blue`), example `slides/`, `assets/`, `build.py` and `deck.config.json`.
+`SKILL.md`: `engine/` (with the animation toolkit, the components and the icons),
+`themes/` (the dark `obsidian` and the light `ink-blue`), an empty `slides/`,
+`assets/`, `build.py` and `deck.config.json`. The scripts are in `scripts/`.
 
 Resolve the skill's own directory first (it's wherever this `SKILL.md` was read
-from), then treat `template/` as relative to it. A robust way to locate it:
+from), then treat `template/` and `scripts/` as relative to it:
 
 ```sh
 SKILL_DIR="$(dirname "$(find . -name SKILL.md -path '*presentation-forge*' 2>/dev/null | head -1)")"
 # or just use the directory you read this SKILL.md from
-TEMPLATE="$SKILL_DIR/template"
 ```
 
 In Claude Code the skill folder is known directly; in the Claude apps / API the
 skill is unzipped into the working filesystem - in both cases `template/` sits
-next to `SKILL.md`.
+next to `SKILL.md`. Use `python` instead of `python3` wherever that is what
+resolves on this machine (common on Windows).
 
 ## Workflow 1 - Create a presentation
 
-1. **Pick a target directory** for the deck (ask the user, or default to a new
-   kebab-case folder named after the topic, in the current working directory).
-   Each deck is its own folder - never build inside the skill's `template/`.
+**The user decides what the deck says.** They describe their talk - topic, points,
+notes, a document - when they start the conversation. Build from that; don't
+quiz them about content. If the brief is thin, write a plausible first draft and
+flag what you invented so they can correct it.
 
-2. **Copy the template** into the target, contents and dotfiles included:
+### Step 1 - Ask two questions, then nothing else
 
-   ```sh
-   mkdir -p "<target>"
-   cp -R "$TEMPLATE/." "<target>/"
-   rm -f "<target>/index.html"        # stale demo build; you'll regenerate it
-   ```
+Before writing anything, ask these two together, in the user's language, in one
+message (with the `AskUserQuestion` tool when it is available, otherwise a short
+message listing the options). Skip a question the user already answered, and
+skip both if they said to go straight ahead - then use the defaults.
 
-3. **Configure** `<target>/deck.config.json`: `title`, `lang`, `theme` (see
-   *Configuration*).
+1. **How should we build it?**
+   - **Plan first** (default, recommended) - you propose the outline, they adjust
+     it, then you write the whole deck.
+   - **All at once** - you write the whole deck in one go.
+   - **Slide by slide** - you write one slide, they review it, then the next.
+2. **How much animation?**
+   - **None** - perfectly still.
+   - **Subtle** - soft fades, nothing distracting.
+   - **Balanced** (default) - polished entrances, counting figures, reveals.
+   - **Lively** - more movement, ambient loops, decorative shapes.
+   - **Extra** - the full show: 3D, springy pops, drawn icons, strong loops.
 
-4. **Outline, then write the slides** in `<target>/slides/` - replace the example
-   files with real content, one `<section class="slide">` per file, numbered
-   `01-`, `02-`, … so they order correctly. Plan a tight arc:
-   - `01-title.html` → `slide slide--title` with `.eyebrow`, `.display`, `.lead`.
-   - an agenda slide for longer decks; `slide--section` dividers between parts.
-   - content slides: **one idea per slide** - a strong `.title` plus a few
-     `.bullets`, a `.two-col`, a `.card`, a `blockquote`, or a `pre>code` block.
-     Vary the blocks so the deck breathes; avoid walls of text.
-   - a `slide--conclude` closing slide.
-   - `aside.notes` for speaker notes; `class="fragment"` to reveal points step by
-     step when build-up helps. Follow the authoring contract below.
+### Step 2 - Create the deck
 
-5. **Build**: `python3 build.py` run inside `<target>` (or `python3
-   "<target>/build.py"`); use `python` instead of `python3` if that's what
-   resolves on this machine (common on Windows). Add `--open` to open it,
-   `--watch` to rebuild on save.
+Pick a target folder (a new kebab-case folder named after the topic in the
+current working directory, unless the user named one) and create it empty:
 
-6. **Verify** the build printed `Built index.html - N slides` with the count you
-   expect, and resolve any `! missing image` / `no <section class="slide">`
-   warnings. Report the deck folder and how to present (arrow keys / Space, `p`
-   presenter mode, `?` shortcuts).
+```sh
+python3 "$SKILL_DIR/scripts/new_deck.py" "<target>" --title "<title>" \
+    --lang <en|fr|…> --theme <obsidian|ink-blue|…> --motion <level>
+```
+
+The deck starts with **no slides**: everything in it comes from this user's brief.
+Never build inside the skill's `template/`.
+
+### Step 3 - Plan the deck from the brief
+
+Fix the **one core message**, the **audience** and an **arc** that follows what
+the user wants to say (see [`reference/writing-decks.md`](reference/writing-decks.md)).
+For each slide choose its shape from [`reference/layouts.md`](reference/layouts.md):
+a figure, a chart, a process, a comparison, bullets… The only fixed slides are
+the title and the close; an agenda, section dividers, a quote or a footer appear
+only when this content calls for them - not because a deck "usually" has them.
+
+### Step 4 - Write, following the chosen mode
+
+Slides go in `<target>/slides/`, one `<section class="slide">` per file, numbered
+`01-`, `02-`, … (see *The slide authoring contract*). Use the components in
+[`reference/components.md`](reference/components.md) and the motion in
+[`reference/motion.md`](reference/motion.md) - matching the chosen level - rather
+than inventing CSS.
+
+- **Plan first** - show the outline: for each slide, its title (a full
+  assertion), its shape, and one line on what it shows. Wait for the user's
+  answer, apply their changes, then write every slide, build and check (Step 5).
+- **All at once** - write every slide, build and check.
+- **Slide by slide** - show a short outline once, then for each slide: write it,
+  build, check it (`--slides N`), show the user that slide's image and wait for
+  their feedback before the next one. Apply what they say to the current slide,
+  and carry their preferences forward.
+
+### Step 5 - Build, then look at the result
+
+```sh
+python3 build.py                                     # inside <target>
+python3 "$SKILL_DIR/scripts/check_deck.py" "<target>"   # add --slides N or all
+```
+
+The build must print `Built index.html - N slides` with the count you expect,
+with no `!` warnings. `check_deck.py` renders the deck in headless Chrome, lists
+layout problems (text past the slide's edge, content cut off, broken images) and
+saves a contact sheet of every slide plus an image of each problem slide. **Fix
+every reported problem and look at the contact sheet before handing the deck
+over.** In slide-by-slide mode, share the slide image with the user when your
+environment can show files; otherwise tell them to open `index.html#N`. If no
+Chrome / Chromium / Edge is installed, say the visual check was skipped - never
+install a browser.
+
+### Step 6 - Hand it over
+
+Report the deck folder, the theme and motion level, anything you invented for a
+thin brief, and how to present: arrow keys / Space, `p` presenter mode, `?`
+shortcuts. Mention they can fix wording right in the browser (Chrome or Edge, on
+the local file) - those edits are kept.
+
+### Changing an existing deck
+
+The user may have edited text in the browser since the last build; those edits
+live in `index.html`. **Before touching `slides/`, run `python3 build.py --pull`**:
+it copies them back into the slide files, so you work on the latest text (every
+build does this too, so a rebuild never loses them). If it reports edits it
+could not merge, the edited deck was kept as `index.unmerged-edits.html` - bring
+those lines over by hand, then delete that file.
 
 ### Write it well, from the start
 
-Treat the writing as the product, not an afterthought. Before writing slides, fix
-the **one core message**, the **audience**, and a clear **arc** (title, context,
-2-4 sections, a close with the takeaway and next step). Then, per slide:
+Treat the writing as the product, not an afterthought. Per slide:
 
 - make the **title a full assertion** that states the point ("Caching cut p99 by
   40%", not "Performance"); the body is only the evidence for it;
@@ -181,11 +240,28 @@ screen, so always design against that fixed size.
 (callout) · `blockquote` · `pre > code` (escape `< > &`) · `.footer` · `.muted` /
 `.accent` (colour helpers) · `aside.notes` (presenter-only notes).
 
+### Components (from the engine)
+
+Figures (`.stats`), bar charts (`.bars`), gauges (`.ring`), processes
+(`ol.steps`), timelines (`ol.timeline`), comparison tables (`table.compare`),
+columns of cards (`.grid`), 84 line icons (`<i data-icon="rocket">`) and
+decorative shapes (`.fx`). They follow the active theme and only the ones a deck
+uses are bundled. Markup and limits:
+[`reference/components.md`](reference/components.md).
+
+### Motion
+
+Entrances (`data-anim="rise"`), one-after-the-other lists (`data-stagger`),
+counting figures (`data-count`), ambient loops (`data-loop`), per-slide
+transitions (`data-transition`) - all scaled by the deck's level. What to use at
+each level: [`reference/motion.md`](reference/motion.md).
+
 ### Progressive reveal
 
-Add `class="fragment"` to any element to reveal it step by step on click. Each
-`→` reveals the next fragment, then advances to the next slide; the presenter view
-shows `step 2/3`.
+Add `class="fragment"` to any element to reveal it step by step on click (add
+`data-anim` to choose the effect, or `data-anim="highlight"` to mark words
+instead). Each `→` reveals the next fragment, then advances to the next slide;
+the presenter view shows `step 2/3`.
 
 ### Images
 
@@ -195,14 +271,20 @@ theme assets (fonts, backgrounds, logos) inside the theme folder.
 
 ## Configuration (`deck.config.json`)
 
-| Key              | Default        | Purpose                              |
-| ---------------- | -------------- | ------------------------------------ |
-| `title`          | `Presentation` | page title                           |
-| `lang`           | `en`           | document language (`fr`, `en`, …)    |
-| `theme`          | `ink-blue`     | which `themes/<name>/` folder to use |
-| `width` `height` | `1920` `1080`  | design canvas size                   |
-| `transition`     | `fade`         | `fade` · `slide` · `zoom`            |
-| `exit_hint`      | English string | toast shown on entering full screen  |
+`scripts/new_deck.py` writes it; change it any time and rebuild.
+
+| Key              | Default        | Purpose                                                     |
+| ---------------- | -------------- | ----------------------------------------------------------- |
+| `title`          | `Presentation` | page title                                                  |
+| `lang`           | `en`           | document language (`fr`, `en`, …)                           |
+| `theme`          | `obsidian`     | which `themes/<name>/` folder to use                        |
+| `motion`         | `balanced`     | `none` · `subtle` · `balanced` · `lively` · `extra`         |
+| `transition`     | `fade`         | `none` · `fade` · `slide` · `zoom` · `rise` · `blur` · `flip` |
+| `width` `height` | `1920` `1080`  | design canvas size                                          |
+| `exit_hint`      | English string | toast shown on entering full screen                         |
+
+An optional `deck.css` at the deck's root holds styles for that deck only (a
+one-off layout); it loads after the theme. Prefer theme classes and components.
 
 ## Theming basics
 
@@ -218,6 +300,12 @@ never breaks a deck.
 - [`reference/writing-decks.md`](reference/writing-decks.md) - how to write the
   presentation and its text well, and what to put in speaker notes. Load it for
   Workflow 1.
+- [`reference/layouts.md`](reference/layouts.md) - the shapes a slide can take and
+  when each fits. Load it to plan a deck.
+- [`reference/components.md`](reference/components.md) - figures, charts,
+  processes, timelines, tables, icons, decoration: markup and limits.
+- [`reference/motion.md`](reference/motion.md) - the animation toolkit and what to
+  use at each motion level.
 - [`reference/import-theme.md`](reference/import-theme.md) - full theme-import
   procedure (pptx / image / description / logo). Load it for Workflow 2.
 - `template/docs/writing-slides.md` - the deep authoring guide (navigation,
@@ -228,8 +316,11 @@ never breaks a deck.
 
 - One `<section class="slide">` per file in `slides/`; the build warns otherwise.
 - Don't edit `engine/` to change content or styling - that's the theme's job.
-- Don't build inside `template/`; always copy it into a per-deck folder first.
-- Prefer the theme's classes over inline styles, so themes stay swappable.
+- Don't build inside `template/`; always start a deck with `scripts/new_deck.py`.
+- Prefer the theme's classes, the components and the motion toolkit over inline
+  styles or custom CSS, so themes stay swappable and the level stays a dial.
+- Never hand over a deck without building it and running `check_deck.py` (when a
+  browser is available).
 - Never `pip install` a package into the system/global Python - it can clobber
   a version another project on the machine relies on. Every script here is
   stdlib-only except `scripts/image_colors.py` (needs Pillow), which already

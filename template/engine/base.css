@@ -902,46 +902,6 @@ deck-stage.is-presenter .pf-progress-bar { display: none; }
   font-family: inherit !important;
 }
 
-/* ---- slide transitions ---- */
-
-deck-stage[transition="zoom"] .pf-canvas > [data-active] {
-  -webkit-animation: pf-zoom-in 0.32s ease both;
-  animation: pf-zoom-in 0.32s ease both;
-}
-@-webkit-keyframes pf-zoom-in {
-  from { opacity: 0; -webkit-transform: scale(0.88); transform: scale(0.88); }
-  to   { opacity: 1; -webkit-transform: none; transform: none; }
-}
-@keyframes pf-zoom-in {
-  from { opacity: 0; transform: scale(0.88); }
-  to   { opacity: 1; transform: none; }
-}
-
-deck-stage[transition="slide"].pf-going-next .pf-canvas > [data-active] {
-  -webkit-animation: pf-slide-in-next 0.28s ease both;
-  animation: pf-slide-in-next 0.28s ease both;
-}
-deck-stage[transition="slide"].pf-going-prev .pf-canvas > [data-active] {
-  -webkit-animation: pf-slide-in-prev 0.28s ease both;
-  animation: pf-slide-in-prev 0.28s ease both;
-}
-@-webkit-keyframes pf-slide-in-next {
-  from { opacity: 0; -webkit-transform: translateX(60px); transform: translateX(60px); }
-  to   { opacity: 1; -webkit-transform: none; transform: none; }
-}
-@keyframes pf-slide-in-next {
-  from { opacity: 0; transform: translateX(60px); }
-  to   { opacity: 1; transform: none; }
-}
-@-webkit-keyframes pf-slide-in-prev {
-  from { opacity: 0; -webkit-transform: translateX(-60px); transform: translateX(-60px); }
-  to   { opacity: 1; -webkit-transform: none; transform: none; }
-}
-@keyframes pf-slide-in-prev {
-  from { opacity: 0; transform: translateX(-60px); }
-  to   { opacity: 1; transform: none; }
-}
-
 /* ---- fragments: progressive reveal ---- */
 /* Baseline contract: a fragment in the live slide is hidden until revealed.
    Themes may override the reveal (e.g. add transform); this guarantees it works
@@ -954,6 +914,46 @@ deck-stage[transition="slide"].pf-going-prev .pf-canvas > [data-active] {
   transition: opacity 0.3s ease;
 }
 .pf-canvas .fragment.is-visible { opacity: 1; }
+
+/* Fragments already seen (arriving back on a slide) show at once. */
+.pf-canvas .fragment.pf-instant {
+  -webkit-transition: none;
+  transition: none;
+}
+
+/* A highlight fragment is always visible; the click marks it instead. */
+.pf-canvas .fragment[data-anim="highlight"] {
+  opacity: 1;
+  background: linear-gradient(var(--pf-highlight, rgba(255, 214, 10, 0.45)), var(--pf-highlight, rgba(255, 214, 10, 0.45)))
+    no-repeat 0 88% / 0% 42%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  -webkit-transition: background-size 0.5s ease;
+  transition: background-size 0.5s ease;
+}
+.pf-canvas .fragment[data-anim="highlight"].is-visible { background-size: 100% 42%; }
+
+/* ---- motion level "none": nothing moves ---- */
+/* The level comes from deck.config.json ("motion"); with "none", build.py
+   leaves motion.css out and this stops every other animation too (the theme's
+   and the deck's), so the deck is perfectly still. */
+
+.pf-canvas[data-motion="none"] *,
+.pf-canvas[data-motion="none"] *::before,
+.pf-canvas[data-motion="none"] *::after {
+  -webkit-animation: none !important;
+  animation: none !important;
+  -webkit-transition: none !important;
+  transition: none !important;
+}
+.pf-canvas[data-motion="none"] > * {
+  -webkit-transition: none;
+  transition: none;
+}
+.pf-canvas[data-transition="none"] > * {
+  -webkit-transition: none;
+  transition: none;
+}
 
 /* ---- blank screen (B / W) ---- */
 
@@ -1053,6 +1053,59 @@ deck-stage[transition="slide"].pf-going-prev .pf-canvas > [data-active] {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ---- slide copies inside buttons ---- */
+/* The rail thumbnails and the overview cells are <button>s, which centre and
+   restyle their text; a slide copy inside one must look like the slide. */
+
+.pf-thumb-canvas,
+.pf-ov-canvas {
+  text-align: start;
+  white-space: normal;
+  font-weight: normal;
+  font-style: normal;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0;
+}
+
+/* ---- render mode (?pf=shot / ?pf=sheet) ---- */
+/* Used by scripts/check_deck.py to screenshot a deck with headless Chrome:
+   the slide alone at full size, finished (every fragment shown, no motion),
+   or every slide on one contact sheet. */
+
+deck-stage.pf-render .pf-rail,
+deck-stage.pf-render .pf-rail-resizer,
+deck-stage.pf-render .pf-controls,
+deck-stage.pf-render .pf-edit-controls,
+deck-stage.pf-render .pf-notes-btn,
+deck-stage.pf-render .pf-overlay,
+deck-stage.pf-render .pf-progress-bar,
+deck-stage.pf-render .pf-toast,
+deck-stage.pf-render .pf-laser-dot {
+  display: none !important;
+}
+
+/* The sheet fills the window; check_deck.py sizes the window to fit it. */
+deck-stage.pf-sheet .pf-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding: 18px;
+  background: #0b0f1a;
+}
+deck-stage.pf-sheet .pf-canvas > * { visibility: hidden !important; }
+deck-stage.pf-sheet .pf-ov-num {
+  font: 600 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  opacity: 0.9;
+}
+deck-stage.pf-sheet .pf-ov-cell.is-flagged .pf-ov-frame {
+  border-color: #ff3b30;
+  outline: 3px solid #ff3b30;
+}
+deck-stage.pf-sheet .pf-ov-cell.is-flagged .pf-ov-num { color: #ff6b61; }
 
 /* ---- opt-out / narrow viewports ---- */
 

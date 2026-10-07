@@ -85,8 +85,12 @@ You lose nothing PowerPoint gives a presenter, and you gain portability, longevi
 
 - 🧠 **Any brief into a deck** : a topic, an outline, rough notes, or a whole document. Technical talks, courses, pitches, lectures, any subject.
 - ✍️ **Slides that land** : assertion-style titles, one idea per slide, tight bullets. Walls of text go into the notes, not on screen.
+- 🧭 **Your deck, your pace** : Claude asks two things up front, then builds it plan first, all at once, or slide by slide with your review after each one. Every deck starts from your brief, never from a template to fill.
+- 🎬 **Animation on a dial** : five levels, from perfectly still to the full show (3D, springy pops, icons that draw themselves). Change your mind later in one word, the slides don't move.
+- 📊 **Charts, figures and icons built in** : key figures that count up, bar charts, gauges, timelines, processes, comparison tables and 84 line icons, all following your theme. Only what a deck uses gets bundled.
+- 👀 **Claude checks its own slides** : every slide is rendered in a headless browser before you see it, so text running off a slide or a broken image gets fixed first.
 - 🎤 **Present like a pro** : built-in presenter mode with speaker notes, a timer, and next-slide preview. Full keyboard navigation, press `?` for shortcuts.
-- ✏️ **Edit without touching code** : fix a typo or reword a line right in the browser, saved straight back to the file.
+- ✏️ **Edit without touching code** : fix a typo or reword a line right in the browser, saved straight back to the file, and kept when Claude rebuilds the deck.
 - ✨ **Progressive reveal** : build a point step by step with `fragment`, the presenter view tracks each step.
 - 🎨 **Swappable themes** : change the entire look without touching a single slide.
 - 🏢 **Import a brand** : recreate an identity from a `.pptx`, an image, or a text description, and drop in a company logo.
@@ -108,12 +112,21 @@ You: /presentation-forge make me a deck about our Q3 results for the
      4%, two new enterprise logos. Use our brand, here is last quarter's
      deck (attached .pptx).
 
-Claude: [imports the brand from the .pptx into a reusable theme, scaffolds
-        the deck, writes a title slide, an agenda, three assertion-led
-        content slides with speaker notes, and a closing slide with the
-        takeaway, then builds it to a single index.html]
+Claude: Two quick choices first. Plan first, all at once, or slide by
+        slide? And how much animation: none, subtle, balanced, lively
+        or extra?
 
-        Done. Your deck is in q3-all-hands/index.html (7 slides).
+You: Plan first, lively.
+
+Claude: [proposes a 6-slide outline: the headline figures, the two new
+        logos, what's next. You swap two slides.]
+
+        [imports the brand from the .pptx into a reusable theme, writes
+        assertion-led slides with counting figures and speaker notes,
+        builds a single index.html, then checks every slide in a
+        headless browser]
+
+        Done. Your deck is in q3-all-hands/index.html (6 slides).
         Open it and press p for presenter mode, arrow keys to navigate,
         ? for all shortcuts. I also saved the theme as acme.pfstyle.json
         so you can reuse this exact look next quarter.
@@ -127,7 +140,7 @@ Three layers, always kept separate so a deck never breaks when you reskin it:
 - **theme** (`template/themes/<name>/`) : the look: colours, type, spacing, fonts, logos, backgrounds.
 - **content** (`slides/`) : the slides, one HTML file each, ordered by name.
 
-The build is deliberately boring, which is what makes it portable: write slides in `slides/`, run `python3 build.py` (`python build.py` on Windows if `python3` isn't on `PATH`), and it inlines the engine, the theme, the fonts and every image into a single `index.html`. Slides are authored on a fixed **1920x1080** canvas that the engine scales to any screen, so a deck looks the same on a laptop, a projector or a phone. Full authoring contract in [`SKILL.md`](SKILL.md) and [`reference/`](reference/).
+A new deck starts empty and is written from your brief; the [live demo](https://thmsgo18.github.io/presentation-forge/) is an example deck kept apart, in [`examples/showcase/`](examples/showcase/). The build is deliberately boring, which is what makes it portable: write slides in `slides/`, run `python3 build.py` (`python build.py` on Windows if `python3` isn't on `PATH`), and it inlines the engine, the theme, the fonts and every image into a single `index.html`. Slides are authored on a fixed **1920x1080** canvas that the engine scales to any screen, so a deck looks the same on a laptop, a projector or a phone. Full authoring contract in [`SKILL.md`](SKILL.md) and [`reference/`](reference/).
 
 ## Themes
 
@@ -146,7 +159,7 @@ Whatever the source, the theme exports to one portable **`.pfstyle.json`**. Keep
 
 - A Claude client that supports skills ([Claude Code](https://docs.claude.com/en/docs/claude-code), the Claude apps, or the API).
 - **Python 3.10+**, standard library only, to build decks and read `.pptx` files. Nothing else.
-- A browser to view the result.
+- A browser to view the result. With Chrome, Chromium, Edge or Brave installed, Claude also checks every slide visually before handing the deck over.
 
 ## Contributing
 

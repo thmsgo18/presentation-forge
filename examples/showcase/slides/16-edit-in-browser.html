@@ -2,7 +2,7 @@
 <section class="slide">
   <p class="context-badge">Edit mode</p>
   <h2 class="title">Fix a typo without opening an editor.</h2>
-  <div class="switch switch--edit">
+  <div data-noedit class="switch switch--edit">
     <div class="switch__edit-slide">
       <p class="switch__edit-text switch__edit-text--before">Slides you atcually own.</p>
       <p class="switch__edit-text switch__edit-text--after">Slides you actually own.</p>
@@ -21,6 +21,7 @@
     <ul>
       <li>The pencil only shows up where saving could actually work, so nobody on Safari or Firefox sees a control that would just disappoint them.</li>
       <li>This rewords existing text only, it doesn't add or remove bullets, slides or images.</li>
+      <li>The next build copies every edit back into the slide files, so a rebuild never loses them.</li>
       <li>Speaker notes follow the same rule: always readable, only editable once the pencil is available.</li>
     </ul>
   </aside>

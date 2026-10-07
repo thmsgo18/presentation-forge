@@ -27,8 +27,13 @@ jobs:
       - name: Compile all Python (syntax check)
         run: python -m compileall -q scripts tools tests template/build.py
 
+      # The browser tests (visual check, in-browser edits) use the runner's
+      # preinstalled Chrome; they skip themselves where there is none.
       - name: Run tests
         run: python -m unittest discover -s tests -v
+
+      - name: Verify the showcase build is in sync with the sources
+        run: python tools/build_showcase.py --check
 
       - name: Verify the skill archive is in sync with the sources
         run: python tools/pack.py --check

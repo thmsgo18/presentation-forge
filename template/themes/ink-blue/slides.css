@@ -149,6 +149,12 @@ pre {
   line-height: 1.5;
 }
 
+/* one .line span per code line (lets data-stagger="type" type them in) */
+pre code .line {
+  display: block;
+  white-space: pre;
+}
+
 .footer {
   position: absolute;
   left: var(--pad-x);

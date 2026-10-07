@@ -881,46 +881,6 @@ deck-stage.is-presenter .pf-progress-bar { display: none; }
 
 
 
-deck-stage[transition="zoom"] .pf-canvas > [data-active] {
-  -webkit-animation: pf-zoom-in 0.32s ease both;
-  animation: pf-zoom-in 0.32s ease both;
-}
-@-webkit-keyframes pf-zoom-in {
-  from { opacity: 0; -webkit-transform: scale(0.88); transform: scale(0.88); }
-  to   { opacity: 1; -webkit-transform: none; transform: none; }
-}
-@keyframes pf-zoom-in {
-  from { opacity: 0; transform: scale(0.88); }
-  to   { opacity: 1; transform: none; }
-}
-
-deck-stage[transition="slide"].pf-going-next .pf-canvas > [data-active] {
-  -webkit-animation: pf-slide-in-next 0.28s ease both;
-  animation: pf-slide-in-next 0.28s ease both;
-}
-deck-stage[transition="slide"].pf-going-prev .pf-canvas > [data-active] {
-  -webkit-animation: pf-slide-in-prev 0.28s ease both;
-  animation: pf-slide-in-prev 0.28s ease both;
-}
-@-webkit-keyframes pf-slide-in-next {
-  from { opacity: 0; -webkit-transform: translateX(60px); transform: translateX(60px); }
-  to   { opacity: 1; -webkit-transform: none; transform: none; }
-}
-@keyframes pf-slide-in-next {
-  from { opacity: 0; transform: translateX(60px); }
-  to   { opacity: 1; transform: none; }
-}
-@-webkit-keyframes pf-slide-in-prev {
-  from { opacity: 0; -webkit-transform: translateX(-60px); transform: translateX(-60px); }
-  to   { opacity: 1; -webkit-transform: none; transform: none; }
-}
-@keyframes pf-slide-in-prev {
-  from { opacity: 0; transform: translateX(-60px); }
-  to   { opacity: 1; transform: none; }
-}
-
-
-
 
 .pf-canvas .fragment {
   opacity: 0;
@@ -928,6 +888,44 @@ deck-stage[transition="slide"].pf-going-prev .pf-canvas > [data-active] {
   transition: opacity 0.3s ease;
 }
 .pf-canvas .fragment.is-visible { opacity: 1; }
+
+
+.pf-canvas .fragment.pf-instant {
+  -webkit-transition: none;
+  transition: none;
+}
+
+
+.pf-canvas .fragment[data-anim="highlight"] {
+  opacity: 1;
+  background: linear-gradient(var(--pf-highlight, rgba(255, 214, 10, 0.45)), var(--pf-highlight, rgba(255, 214, 10, 0.45)))
+    no-repeat 0 88% / 0% 42%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  -webkit-transition: background-size 0.5s ease;
+  transition: background-size 0.5s ease;
+}
+.pf-canvas .fragment[data-anim="highlight"].is-visible { background-size: 100% 42%; }
+
+
+
+
+.pf-canvas[data-motion="none"] *,
+.pf-canvas[data-motion="none"] *::before,
+.pf-canvas[data-motion="none"] *::after {
+  -webkit-animation: none !important;
+  animation: none !important;
+  -webkit-transition: none !important;
+  transition: none !important;
+}
+.pf-canvas[data-motion="none"] > * {
+  -webkit-transition: none;
+  transition: none;
+}
+.pf-canvas[data-transition="none"] > * {
+  -webkit-transition: none;
+  transition: none;
+}
 
 
 
@@ -1030,10 +1028,732 @@ deck-stage[transition="slide"].pf-going-prev .pf-canvas > [data-active] {
 
 
 
+
+.pf-thumb-canvas,
+.pf-ov-canvas {
+  text-align: start;
+  white-space: normal;
+  font-weight: normal;
+  font-style: normal;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0;
+}
+
+
+
+
+deck-stage.pf-render .pf-rail,
+deck-stage.pf-render .pf-rail-resizer,
+deck-stage.pf-render .pf-controls,
+deck-stage.pf-render .pf-edit-controls,
+deck-stage.pf-render .pf-notes-btn,
+deck-stage.pf-render .pf-overlay,
+deck-stage.pf-render .pf-progress-bar,
+deck-stage.pf-render .pf-toast,
+deck-stage.pf-render .pf-laser-dot {
+  display: none !important;
+}
+
+
+deck-stage.pf-sheet .pf-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding: 18px;
+  background: #0b0f1a;
+}
+deck-stage.pf-sheet .pf-canvas > * { visibility: hidden !important; }
+deck-stage.pf-sheet .pf-ov-num {
+  font: 600 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  opacity: 0.9;
+}
+deck-stage.pf-sheet .pf-ov-cell.is-flagged .pf-ov-frame {
+  border-color: #ff3b30;
+  outline: 3px solid #ff3b30;
+}
+deck-stage.pf-sheet .pf-ov-cell.is-flagged .pf-ov-num { color: #ff6b61; }
+
+
+
 deck-stage[no-rail] .pf-rail { display: none; }
 
 @media (max-width: 820px) {
   .pf-rail { display: none; }
+}
+
+</style>
+<style>
+
+
+
+
+.pf-canvas {
+  --pf-dur: 0.6s;           
+  --pf-step: 90ms;          
+  --pf-dist: 36px;          
+  --pf-scale: 0.88;         
+  --pf-blur: 10px;          
+  --pf-tilt: 28deg;         
+  --pf-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --pf-ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pf-loops: paused;       
+  --pf-float: 12px;         
+  --pf-pulse: 1.04;
+  --pf-t-dur: 0.45s;        
+  --pf-t-dist: 90px;
+  --pf-t-scale: 0.92;
+  --pf-t-angle: 30deg;
+}
+
+.pf-canvas[data-motion="subtle"] {
+  --pf-dur: 0.45s;
+  --pf-step: 60ms;
+  --pf-dist: 12px;
+  --pf-scale: 0.97;
+  --pf-blur: 4px;
+  --pf-tilt: 8deg;
+  --pf-ease-pop: var(--pf-ease);
+}
+
+.pf-canvas[data-motion="lively"] {
+  --pf-dur: 0.75s;
+  --pf-step: 110ms;
+  --pf-dist: 64px;
+  --pf-scale: 0.8;
+  --pf-blur: 16px;
+  --pf-tilt: 45deg;
+  --pf-loops: running;
+  --pf-float: 16px;
+  --pf-pulse: 1.06;
+  --pf-t-dur: 0.55s;
+  --pf-t-dist: 160px;
+  --pf-t-scale: 0.84;
+  --pf-t-angle: 50deg;
+}
+
+.pf-canvas[data-motion="extra"] {
+  --pf-dur: 0.95s;
+  --pf-step: 140ms;
+  --pf-dist: 120px;
+  --pf-scale: 0.55;
+  --pf-blur: 28px;
+  --pf-tilt: 80deg;
+  --pf-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --pf-ease-pop: cubic-bezier(0.34, 1.9, 0.5, 1);
+  --pf-loops: running;
+  --pf-float: 28px;
+  --pf-pulse: 1.1;
+  --pf-t-dur: 0.8s;
+  --pf-t-dist: 320px;
+  --pf-t-scale: 0.6;
+  --pf-t-angle: 88deg;
+}
+
+
+
+[data-anim="fade"],      [data-stagger="fade"] > *      { --pf-a: pf-fade; }
+[data-anim="rise"],      [data-stagger="rise"] > *      { --pf-a: pf-rise; }
+[data-anim="drop"],      [data-stagger="drop"] > *      { --pf-a: pf-drop; }
+[data-anim="from-left"], [data-stagger="from-left"] > * { --pf-a: pf-from-left; }
+[data-anim="from-right"],[data-stagger="from-right"] > *{ --pf-a: pf-from-right; }
+[data-anim="zoom"],      [data-stagger="zoom"] > *      { --pf-a: pf-zoom; }
+[data-anim="blur"],      [data-stagger="blur"] > *      { --pf-a: pf-blur; }
+[data-anim="wipe"],      [data-stagger="wipe"] > *      { --pf-a: pf-wipe; }
+[data-anim="flip"],      [data-stagger="flip"] > *      { --pf-a: pf-flip; }
+[data-anim="pop"],       [data-stagger="pop"] > *       { --pf-a: pf-pop;  --pf-ease: var(--pf-ease-pop); }
+
+[data-anim="type"],      [data-stagger="type"] > *      { --pf-a: pf-wipe; --pf-ease: steps(26, end); }
+
+
+[data-stagger] > :nth-child(2)  { --pf-i: 1; }
+[data-stagger] > :nth-child(3)  { --pf-i: 2; }
+[data-stagger] > :nth-child(4)  { --pf-i: 3; }
+[data-stagger] > :nth-child(5)  { --pf-i: 4; }
+[data-stagger] > :nth-child(6)  { --pf-i: 5; }
+[data-stagger] > :nth-child(7)  { --pf-i: 6; }
+[data-stagger] > :nth-child(8)  { --pf-i: 7; }
+[data-stagger] > :nth-child(9)  { --pf-i: 8; }
+[data-stagger] > :nth-child(10) { --pf-i: 9; }
+[data-stagger] > :nth-child(11) { --pf-i: 10; }
+[data-stagger] > :nth-child(n+12) { --pf-i: 11; }
+
+
+.pf-canvas > [data-active] :is([data-anim], [data-stagger] > *):not(.fragment):not([data-anim="draw"]) {
+  animation: var(--pf-a, pf-fade) var(--pf-dur) var(--pf-ease) backwards;
+  animation-delay: calc(var(--delay, 0s) + var(--pf-i, 0) * var(--pf-step));
+}
+
+
+.pf-canvas > [data-active] :is(.fragment[data-anim], [data-stagger] > .fragment).is-visible:not(.pf-instant):not([data-anim="draw"]):not([data-anim="highlight"]) {
+  animation: var(--pf-a, pf-fade) var(--pf-dur) var(--pf-ease) backwards;
+  animation-delay: var(--delay, 0s);
+}
+
+
+.pf-canvas > [data-active] [data-anim="draw"]:not(.fragment) :is(path, line, polyline, polygon, circle, rect, ellipse),
+.pf-canvas > [data-active] .fragment[data-anim="draw"].is-visible:not(.pf-instant) :is(path, line, polyline, polygon, circle, rect, ellipse) {
+  stroke-dasharray: 1;
+  animation: pf-draw calc(var(--pf-dur) * 2) var(--pf-ease) backwards;
+  animation-delay: calc(var(--delay, 0s) + var(--pf-i, 0) * var(--pf-step));
+}
+
+
+.pf-canvas[data-dir="prev"] > [data-active] :is([data-anim], [data-stagger] > *):not(.fragment),
+.pf-canvas[data-dir="prev"] > [data-active] [data-anim="draw"] :is(path, line, polyline, polygon, circle, rect, ellipse) {
+  animation: none;
+}
+
+@keyframes pf-fade       { from { opacity: 0; } }
+@keyframes pf-rise       { from { opacity: 0; transform: translateY(var(--pf-dist)); } }
+@keyframes pf-drop       { from { opacity: 0; transform: translateY(calc(-1 * var(--pf-dist))); } }
+@keyframes pf-from-left  { from { opacity: 0; transform: translateX(calc(-1 * var(--pf-dist))); } }
+@keyframes pf-from-right { from { opacity: 0; transform: translateX(var(--pf-dist)); } }
+@keyframes pf-zoom       { from { opacity: 0; transform: scale(var(--pf-scale)); } }
+@keyframes pf-pop        { from { opacity: 0; transform: scale(var(--pf-scale)); } }
+@keyframes pf-blur       { from { opacity: 0; filter: blur(var(--pf-blur)); } }
+@keyframes pf-wipe       { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes pf-flip       { from { opacity: 0; transform: perspective(1200px) rotateX(var(--pf-tilt)); } }
+@keyframes pf-draw       { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+
+
+
+.pf-canvas > [data-active] [data-loop] {
+  animation-duration: 6s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-play-state: var(--pf-loops);
+}
+.pf-canvas > [data-active] [data-loop="float"] { animation-name: pf-loop-float; }
+.pf-canvas > [data-active] [data-loop="drift"] { animation-name: pf-loop-drift; animation-duration: 14s; }
+.pf-canvas > [data-active] [data-loop="pulse"] { animation-name: pf-loop-pulse; animation-duration: 2.4s; }
+.pf-canvas > [data-active] [data-loop="glow"]  { animation-name: pf-loop-glow;  animation-duration: 2.8s; }
+.pf-canvas > [data-active] [data-loop="spin"]  {
+  animation-name: pf-loop-spin;
+  animation-duration: 24s;
+  animation-timing-function: linear;
+  animation-direction: normal;
+}
+
+@keyframes pf-loop-float { to { transform: translateY(calc(-1 * var(--pf-float))); } }
+@keyframes pf-loop-drift { to { transform: translate(calc(2 * var(--pf-float)), var(--pf-float)) rotate(4deg); } }
+@keyframes pf-loop-pulse { to { transform: scale(var(--pf-pulse)); } }
+@keyframes pf-loop-glow  { to { filter: drop-shadow(0 0 calc(var(--pf-float) * 1.5) var(--accent, #5b8bd0)); } }
+@keyframes pf-loop-spin  { to { transform: rotate(1turn); } }
+
+
+
+
+.pf-canvas:not([data-motion="subtle"])[data-transition="zoom"] > [data-active] {
+  animation: pf-t-zoom var(--pf-t-dur) var(--pf-ease) backwards;
+}
+.pf-canvas:not([data-motion="subtle"])[data-transition="rise"] > [data-active] {
+  animation: pf-t-rise var(--pf-t-dur) var(--pf-ease) backwards;
+}
+.pf-canvas:not([data-motion="subtle"])[data-transition="blur"] > [data-active] {
+  animation: pf-t-blur var(--pf-t-dur) var(--pf-ease) backwards;
+}
+.pf-canvas:not([data-motion="subtle"])[data-transition="slide"][data-dir="next"] > [data-active] {
+  animation: pf-t-from-right var(--pf-t-dur) var(--pf-ease) backwards;
+}
+.pf-canvas:not([data-motion="subtle"])[data-transition="slide"][data-dir="prev"] > [data-active] {
+  animation: pf-t-from-left var(--pf-t-dur) var(--pf-ease) backwards;
+}
+.pf-canvas:not([data-motion="subtle"])[data-transition="flip"][data-dir="next"] > [data-active] {
+  animation: pf-t-flip-next var(--pf-t-dur) var(--pf-ease) backwards;
+}
+.pf-canvas:not([data-motion="subtle"])[data-transition="flip"][data-dir="prev"] > [data-active] {
+  animation: pf-t-flip-prev var(--pf-t-dur) var(--pf-ease) backwards;
+}
+
+@keyframes pf-t-zoom       { from { opacity: 0; transform: scale(var(--pf-t-scale)); } }
+@keyframes pf-t-rise       { from { opacity: 0; transform: translateY(var(--pf-t-dist)); } }
+@keyframes pf-t-blur       { from { opacity: 0; filter: blur(calc(var(--pf-t-dist) / 8)); } }
+@keyframes pf-t-from-right { from { opacity: 0; transform: translateX(var(--pf-t-dist)); } }
+@keyframes pf-t-from-left  { from { opacity: 0; transform: translateX(calc(-1 * var(--pf-t-dist))); } }
+@keyframes pf-t-flip-next  { from { opacity: 0; transform: perspective(2400px) rotateY(calc(-1 * var(--pf-t-angle))); } }
+@keyframes pf-t-flip-prev  { from { opacity: 0; transform: perspective(2400px) rotateY(var(--pf-t-angle)); } }
+
+</style>
+<style>
+
+
+.bars {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.bars > li {
+  display: grid;
+  grid-template-columns: minmax(180px, 26%) 1fr minmax(110px, auto);
+  align-items: center;
+  column-gap: 28px;
+  font-size: var(--type-small, 26px);
+}
+
+.slide .bars > li {
+  margin: 0;
+  padding: 0;
+}
+
+
+.bars > li::before,
+.bars > li::after {
+  content: "";
+  grid-column: 2;
+  grid-row: 1;
+  height: 30px;
+  border-radius: 999px;
+}
+
+.bars > li::after {
+  width: 100%;
+  background: var(--rule, rgba(127, 127, 127, 0.2));
+}
+
+.bars > li::before {
+  position: relative;
+  z-index: 1;
+  width: calc(var(--value, 0) * 1%);
+  background: var(--accent, #5b8bd0);
+  transform-origin: left center;
+}
+
+.bars > li.is-highlight::before {
+  background: linear-gradient(90deg, var(--accent, #5b8bd0), var(--accent-soft, #7da8d8));
+}
+
+.bars__label {
+  grid-column: 1;
+  color: var(--ink, inherit);
+}
+
+.bars__value {
+  grid-column: 3;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, inherit);
+}
+
+.bars > li:not(.is-highlight) .bars__value {
+  color: var(--muted, inherit);
+}
+
+
+
+.bars--vertical {
+  flex-direction: row;
+  align-items: stretch;
+  height: 520px;
+  gap: 36px;
+}
+
+.bars--vertical > li {
+  flex: 1 1 0;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  align-items: end;
+  justify-items: center;
+  row-gap: 16px;
+}
+
+.bars--vertical > li::before,
+.bars--vertical > li::after {
+  grid-column: 1;
+  grid-row: 2;
+  width: 100%;
+  max-width: 120px;
+  height: 100%;
+  border-radius: 14px 14px 4px 4px;
+}
+
+.bars--vertical > li::before {
+  height: calc(var(--value, 0) * 1%);
+  transform-origin: center bottom;
+}
+
+.bars--vertical .bars__value { grid-column: 1; grid-row: 1; }
+.bars--vertical .bars__label { grid-column: 1; grid-row: 3; text-align: center; }
+
+
+
+.bars > :nth-child(2) { --pf-i: 1; }
+.bars > :nth-child(3) { --pf-i: 2; }
+.bars > :nth-child(4) { --pf-i: 3; }
+.bars > :nth-child(5) { --pf-i: 4; }
+.bars > :nth-child(6) { --pf-i: 5; }
+.bars > :nth-child(7) { --pf-i: 6; }
+.bars > :nth-child(n+8) { --pf-i: 7; }
+
+.pf-canvas:not([data-dir="prev"]) > [data-active] .bars > li::before {
+  animation: pf-bar-grow calc(var(--pf-dur, 0.6s) * 1.6) var(--pf-ease, ease) backwards;
+  animation-delay: calc(var(--delay, 0s) + 0.15s + var(--pf-i, 0) * var(--pf-step, 90ms));
+}
+.pf-canvas:not([data-dir="prev"]) > [data-active] .bars--vertical > li::before {
+  animation-name: pf-bar-rise;
+}
+
+@keyframes pf-bar-grow { from { transform: scaleX(0); } }
+@keyframes pf-bar-rise { from { transform: scaleY(0); } }
+
+</style>
+<style>
+
+
+.compare {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--type-small, 26px);
+  border: 1px solid var(--rule, rgba(127, 127, 127, 0.25));
+  border-radius: 20px;
+  background: var(--bg-soft, rgba(127, 127, 127, 0.05));
+  overflow: hidden;
+}
+
+.compare th,
+.compare td {
+  padding: 15px 28px;
+  text-align: center;
+  border-bottom: 1px solid var(--rule, rgba(127, 127, 127, 0.2));
+}
+
+.compare tr:last-child td {
+  border-bottom: none;
+}
+
+.compare th {
+  font-size: calc(var(--type-small, 26px) * 0.72);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted, inherit);
+  border-bottom: 2px solid var(--accent, #5b8bd0);
+}
+
+.compare th:first-child,
+.compare td:first-child {
+  text-align: left;
+  color: var(--ink, inherit);
+}
+
+
+.compare :is(th, td):not(:first-child) {
+  width: 1%;
+  white-space: nowrap;
+  padding-inline: 44px;
+}
+
+.compare--last :is(th, td):last-child {
+  background: var(--accent-tint, rgba(91, 139, 208, 0.1));
+}
+
+.compare--last th:last-child {
+  color: var(--accent, inherit);
+}
+
+
+.compare td:is(.yes, .no, .partial) {
+  font-weight: 700;
+}
+.compare td.yes     { color: var(--good, #22a565); }
+.compare td.no      { color: var(--bad, #e5484d); }
+.compare td.partial { color: var(--warn, #d9921a); }
+
+.compare td:is(.yes, .no, .partial):empty::before {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 22px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+.compare td.yes:empty::before     { content: "\2713"; }
+.compare td.no:empty::before      { content: "\2715"; }
+.compare td.partial:empty::before { content: "~"; }
+
+
+
+.compare tbody > :nth-child(2) { --pf-i: 1; }
+.compare tbody > :nth-child(3) { --pf-i: 2; }
+.compare tbody > :nth-child(4) { --pf-i: 3; }
+.compare tbody > :nth-child(5) { --pf-i: 4; }
+.compare tbody > :nth-child(6) { --pf-i: 5; }
+.compare tbody > :nth-child(7) { --pf-i: 6; }
+.compare tbody > :nth-child(n+8) { --pf-i: 7; }
+
+.pf-canvas:not([data-dir="prev"]) > [data-active] .compare tbody > tr:not(.fragment) {
+  animation: pf-fade var(--pf-dur, 0.6s) var(--pf-ease, ease) backwards;
+  animation-delay: calc(var(--delay, 0s) + 0.1s + var(--pf-i, 0) * var(--pf-step, 90ms));
+}
+
+</style>
+<style>
+
+
+.slide .fx {
+  position: absolute;
+  z-index: 0;
+  margin: 0;
+  pointer-events: none;
+  --fx-size: 620px;
+  width: var(--fx-size);
+  height: var(--fx-size);
+}
+
+.slide .fx--sm { --fx-size: 340px; }
+.slide .fx--lg { --fx-size: 980px; }
+
+.slide .fx--tl     { top: calc(var(--fx-size) / -3); left: calc(var(--fx-size) / -3); }
+.slide .fx--tr     { top: calc(var(--fx-size) / -3); right: calc(var(--fx-size) / -3); }
+.slide .fx--bl     { bottom: calc(var(--fx-size) / -3); left: calc(var(--fx-size) / -3); }
+.slide .fx--br     { bottom: calc(var(--fx-size) / -3); right: calc(var(--fx-size) / -3); }
+.slide .fx--center { top: 50%; left: 50%; margin: calc(var(--fx-size) / -2) 0 0 calc(var(--fx-size) / -2); }
+
+.slide .fx--glow {
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--accent, #5b8bd0), transparent);
+  opacity: 0.32;
+  filter: blur(40px);
+}
+
+.slide .fx--grid {
+  inset: 0;
+  width: auto;
+  height: auto;
+  background-image: radial-gradient(var(--rule, rgba(127, 127, 127, 0.3)) 2px, transparent 2.5px);
+  background-size: 48px 48px;
+  -webkit-mask: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  mask: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+}
+
+
+.slide .fx--glass {
+  --fx-size: 360px;
+  height: calc(var(--fx-size) * 0.62);
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--ink, #888) 22%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent, #5b8bd0) 22%, transparent),
+    color-mix(in srgb, var(--accent-soft, #7da8d8) 6%, transparent));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transform: perspective(1400px) rotate3d(1, 1, 0, 16deg);
+}
+.slide .fx--glass.fx--sm { --fx-size: 220px; }
+.slide .fx--glass.fx--lg { --fx-size: 520px; }
+.slide .fx--glass.fx--tl { top: 8%;  left: 5%; }
+.slide .fx--glass.fx--tr { top: 10%; right: 5%; }
+.slide .fx--glass.fx--bl { bottom: 10%; left: 5%; }
+.slide .fx--glass.fx--br { bottom: 8%; right: 5%; }
+
+.slide .fx--ring {
+  border-radius: 50%;
+  border: 2px solid var(--accent, #5b8bd0);
+  opacity: 0.35;
+}
+
+.slide .fx--aurora {
+  inset: auto -10% -30% -10%;
+  width: auto;
+  height: 70%;
+  background: linear-gradient(100deg,
+    transparent 10%,
+    color-mix(in srgb, var(--accent, #5b8bd0) 45%, transparent) 35%,
+    color-mix(in srgb, var(--accent-soft, #7da8d8) 40%, transparent) 60%,
+    transparent 90%);
+  filter: blur(70px);
+  opacity: 0.55;
+  border-radius: 50%;
+}
+
+
+.pf-canvas > [data-active] .fx--glass[data-loop="float"] { animation-name: pf-fx-glass-float; }
+
+@keyframes pf-fx-glass-float {
+  to { transform: perspective(1400px) rotate3d(1, 1, 0, 22deg) translate3d(0, calc(-1 * var(--pf-float, 12px)), 40px); }
+}
+
+</style>
+<style>
+
+
+i[data-icon] {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.14em;
+  font-style: normal;
+}
+
+i[data-icon] > svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+i[data-icon].icon-tile {
+  box-sizing: content-box;
+  width: 1.1em;
+  height: 1.1em;
+  padding: 0.45em;
+  font-size: 48px;
+  border-radius: 0.36em;
+  color: var(--accent, currentColor);
+  background: var(--accent-tint, rgba(127, 127, 127, 0.12));
+  border: 1px solid var(--rule, transparent);
+}
+
+</style>
+<style>
+
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 48px;
+  align-items: start;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slide .stat > * {
+  margin: 0;
+}
+
+.stat__value {
+  font-family: var(--font-serif, inherit);
+  font-size: calc(var(--type-display, 132px) * 0.86);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent, currentColor);
+}
+
+.stat__label {
+  font-size: var(--type-small, 26px);
+  line-height: 1.35;
+  color: var(--muted, inherit);
+  max-width: 22ch;
+}
+
+
+.stat--hero .stat__value {
+  font-size: calc(var(--type-display, 132px) * 1.7);
+}
+
+</style>
+<style>
+
+
+.steps {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 72px;
+  counter-reset: pf-step;
+}
+
+.steps > li {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 36px 32px;
+  border-radius: 20px;
+  border: 1px solid var(--rule, rgba(127, 127, 127, 0.25));
+  background: var(--bg-soft, rgba(127, 127, 127, 0.06));
+  counter-increment: pf-step;
+}
+
+.slide .steps > li,
+.slide .steps > li > * {
+  margin: 0;
+}
+
+.steps > li.is-highlight {
+  border-color: var(--accent, #5b8bd0);
+  box-shadow: 0 0 0 1px var(--accent, #5b8bd0), 0 24px 60px -30px var(--accent, #5b8bd0);
+}
+
+
+.steps > li + li::before {
+  content: "";
+  position: absolute;
+  left: -52px;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  margin-top: -15px;
+  background: var(--accent-soft, #7da8d8);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.steps--numbered > li::after {
+  content: counter(pf-step);
+  order: -1;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--bg, #fff);
+  background: var(--accent, #5b8bd0);
+}
+
+.steps h3 {
+  font-size: calc(var(--type-body, 30px) * 1.1);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink, inherit);
+}
+
+.steps p {
+  font-size: var(--type-small, 26px);
+  line-height: 1.4;
+  color: var(--muted, inherit);
+}
+
+.steps > li > i[data-icon]:first-child {
+  font-size: 44px;
+  color: var(--accent, inherit);
+}
+
+
+
+.steps > :nth-child(2) { --pf-i: 1; }
+.steps > :nth-child(3) { --pf-i: 2; }
+.steps > :nth-child(4) { --pf-i: 3; }
+.steps > :nth-child(n+5) { --pf-i: 4; }
+
+.pf-canvas:not([data-dir="prev"]) > [data-active] .steps > li:not(.fragment) {
+  animation: pf-rise var(--pf-dur, 0.6s) var(--pf-ease, ease) backwards;
+  animation-delay: calc(var(--delay, 0s) + var(--pf-i, 0) * var(--pf-step, 90ms) * 2.5);
 }
 
 </style>
@@ -1126,6 +1846,8 @@ deck-stage[no-rail] .pf-rail { display: none; }
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+</style>
+<style>
 
 
 :root {
@@ -1160,6 +1882,11 @@ deck-stage[no-rail] .pf-rail { display: none; }
   --accent-tint: #8b7bff1f;
 
   
+  --good: #74e3ad;
+  --bad: #ff8a8a;
+  --warn: #f3c178;
+
+  
   --pf-rail-bg: #080b13;
   --pf-rail-fg: #aeb9d6;
   --pf-accent: #8b7bff;
@@ -1170,6 +1897,8 @@ deck-stage[no-rail] .pf-rail { display: none; }
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+</style>
+<style>
 
 
 
@@ -1213,8 +1942,20 @@ deck-stage[no-rail] .pf-rail { display: none; }
   pointer-events: none;
   background:
     radial-gradient(640px 460px at 26% 32%, var(--accent-tint) 0%, transparent 62%),
-    radial-gradient(520px 420px at 78% 70%, #4fd6e60f 0%, transparent 60%);
+    radial-gradient(520px 420px at 78% 70%, #4fd6e60f 0%, transparent 60%),
+    radial-gradient(2.5px circle at 12% 18%, rgba(255, 255, 255, 0.55), transparent 70%),
+    radial-gradient(2px circle at 34% 64%, rgba(255, 255, 255, 0.4), transparent 70%),
+    radial-gradient(3px circle at 58% 22%, rgba(255, 255, 255, 0.5), transparent 70%),
+    radial-gradient(2px circle at 71% 48%, rgba(255, 255, 255, 0.35), transparent 70%),
+    radial-gradient(2.5px circle at 85% 78%, rgba(255, 255, 255, 0.45), transparent 70%),
+    radial-gradient(2px circle at 45% 85%, rgba(255, 255, 255, 0.3), transparent 70%),
+    radial-gradient(2px circle at 18% 55%, rgba(255, 255, 255, 0.3), transparent 70%),
+    radial-gradient(2.5px circle at 92% 30%, rgba(255, 255, 255, 0.4), transparent 70%);
+}
+
+.pf-canvas > .slide[data-active]::after {
   animation: pf-ambient-drift 32s ease-in-out infinite alternate;
+  animation-play-state: var(--pf-loops, paused);
 }
 
 @keyframes pf-ambient-drift {
@@ -1542,157 +2283,48 @@ pre code .line::before {
 
 
 
-.diagram {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
+.pf-canvas:not([data-dir="prev"]) > .slide[data-active]::before {
+  animation: pf-line-draw 1.1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.diagram__node {
-  flex: 1 1 0;
+@keyframes pf-line-draw {
+  0%   { clip-path: inset(0 100% 0 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+
+
+
+
+
+.steps > li,
+.grid > .card,
+.compare {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
   border: 1px solid var(--rule);
-  border-radius: 18px;
-  padding: 30px 26px;
-  text-align: center;
+  box-shadow: 0 30px 70px -40px #000, inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.diagram__node h3 {
-  margin: 0 0 10px;
-  font-size: 27px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.diagram__node p {
-  margin: 0;
-  font-size: 19px;
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-.diagram__arrow {
-  flex: 0 0 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-soft);
-}
-
-.diagram__arrow svg {
-  width: 38px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-
-.diagram--pipeline {
-  align-items: center;
-}
-
-.diagram__inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 0 0 auto;
-}
-
-.diagram__chip {
-  background: var(--accent-tint);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 11px 20px;
-  font-family: var(--font-mono);
-  font-size: 18px;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-
-
-
-
-
-.vs {
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
-  border: 1px solid var(--rule);
-  border-radius: 20px;
-  padding: 8px 36px;
-}
-
-.vs__head-row,
-.vs__data-row {
-  display: grid;
-  grid-template-columns: 1fr 124px 124px;
-  column-gap: 20px;
-  align-items: center;
-}
-
-.vs__head-row {
-  padding: 18px 0 16px;
+.compare th {
   border-bottom: 2px solid transparent;
   border-image: linear-gradient(90deg, var(--accent) 0%, transparent 55%, var(--accent-soft) 100%) 1;
 }
 
-.vs__data-row {
-  padding: 13px 0;
-  border-bottom: 1px solid var(--rule);
+.stat__value {
+  background: linear-gradient(118deg, #ffffff 0%, #cbbcff 46%, var(--accent-soft) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.vs__data-row:last-child {
-  border-bottom: none;
+.timeline__date::after {
+  background: var(--bg);
+  box-shadow: 0 0 14px var(--accent-tint);
 }
 
-.vs__head {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
+</style>
+<style>
 
-.vs__head--a,
-.vs__head--b {
-  text-align: center;
-}
-
-.vs__row {
-  font-size: 25px;
-  color: var(--ink);
-}
-
-.vs__mark {
-  width: 46px;
-  height: 46px;
-  margin: 0 auto;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.vs__mark--yes {
-  background: #163829;
-  color: #74e3ad;
-}
-
-.vs__mark--partial {
-  background: #3c2f10;
-  color: #f3c178;
-}
-
-.vs__mark--no {
-  background: #3a1717;
-  color: #ff8a8a;
-}
 
 
 
@@ -2116,221 +2748,19 @@ pre code .line::before {
 }
 
 
-
-
-
-
-.slide--title {
-  perspective: 1800px;
-}
-
-.hero-glass {
-  position: absolute;
-  margin: 0;
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: linear-gradient(135deg, rgba(203, 188, 255, 0.16), rgba(79, 214, 230, 0.05));
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 40px 70px -35px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  pointer-events: none;
-}
-
-.hero-glass::before {
-  content: "";
-  position: absolute;
-  top: -20%;
-  left: -30%;
-  width: 60%;
-  height: 160%;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16), transparent);
-  transform: rotate(8deg);
-}
-
-.hero-glass--1 { width: 380px; height: 230px; top: 14%; right: 6%;  animation: pf-hero-1 16s ease-in-out infinite; }
-.hero-glass--2 { width: 280px; height: 175px; top: 46%; right: 17%; animation: pf-hero-2 19s ease-in-out infinite; }
-.hero-glass--3 { width: 190px; height: 120px; top: 67%; right: 2%;  animation: pf-hero-3 22s ease-in-out infinite; }
-
-@keyframes pf-hero-1 {
-  0%, 100% { transform: rotate3d(1, 1, 0, 16deg) translate3d(0, 0, 0); }
-  50%      { transform: rotate3d(1, 1, 0, 22deg) translate3d(-16px, -20px, 40px); }
-}
-@keyframes pf-hero-2 {
-  0%, 100% { transform: rotate3d(1, -1, 0.2, -14deg) translate3d(0, 0, 0); }
-  50%      { transform: rotate3d(1, -1, 0.2, -19deg) translate3d(12px, 16px, 30px); }
-}
-@keyframes pf-hero-3 {
-  0%, 100% { transform: rotate3d(-1, 1, 0, 11deg) translate3d(0, 0, 0); }
-  50%      { transform: rotate3d(-1, 1, 0, 16deg) translate3d(-10px, 14px, 22px); }
-}
-
-
-
-
-
-
-.diagram {
-  perspective: 1400px;
-}
-
-.diagram__node {
-  transform-style: preserve-3d;
-  animation: pf-node-tilt 9s ease-in-out infinite;
-}
-
-.diagram__node:nth-child(1) { animation-delay: 0s; }
-.diagram__node:nth-child(3) { animation-delay: 1.4s; }
-.diagram__node:nth-child(5) { animation-delay: 2.8s; }
-
-@keyframes pf-node-tilt {
-  0%, 100% { transform: rotate3d(1, -1, 0, 0deg) translateZ(0); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
-  50%      { transform: rotate3d(1, -1, 0, 4deg) translateZ(16px); box-shadow: 0 24px 40px -20px rgba(0, 0, 0, 0.5); }
-}
-
-
-
-.diagram--pipeline {
-  position: relative;
-}
-
-.diagram__packet {
-  position: absolute;
-  top: 50%;
-  left: 14%;
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  box-shadow: 0 0 18px 4px var(--accent-tint), 0 0 5px var(--accent-soft);
-  animation: pf-packet-travel 4.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes pf-packet-travel {
-  0%   { left: 14%; opacity: 0; }
-  6%   { opacity: 1; }
-  42%  { left: 47%; opacity: 1; }
-  50%  { opacity: 0; }
-  52%  { left: 53%; opacity: 0; }
-  58%  { opacity: 1; }
-  94%  { left: 86%; opacity: 1; }
-  100% { left: 86%; opacity: 0; }
-}
-
-.diagram--pipeline .diagram__node:last-child {
-  position: relative;
-  overflow: hidden;
-}
-
-.diagram--pipeline .diagram__node:last-child::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16), transparent);
-  animation: pf-node-shine 4.6s ease-in-out infinite;
-}
-
-@keyframes pf-node-shine {
-  0%, 60% { left: -150%; }
-  85%     { left: 150%; }
-  100%    { left: 150%; }
-}
-
-
-
-
-
-
-pre code .line {
-  animation-duration: 14s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-pre code .line:nth-child(1) { animation-name: pf-type-l0; }
-pre code .line:nth-child(2) { animation-name: pf-type-l1; }
-pre code .line:nth-child(3) { animation-name: pf-type-l2; }
-pre code .line:nth-child(4) { animation-name: pf-type-l3; }
-pre code .line:nth-child(5) { animation-name: pf-type-l4; }
-pre code .line:nth-child(6) { animation-name: pf-type-l5; }
-pre code .line:nth-child(7) { animation-name: pf-type-l6; }
-pre code .line:nth-child(8) { animation-name: pf-type-l7; }
-
-@keyframes pf-type-l0 { 0%        { clip-path: inset(0 100% 0 0); } 7.14%   { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l1 { 0%,7.14%  { clip-path: inset(0 100% 0 0); } 14.29%  { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l2 { 0%,14.29% { clip-path: inset(0 100% 0 0); } 21.43%  { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l3 { 0%,21.43% { clip-path: inset(0 100% 0 0); } 28.57%  { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l4 { 0%,28.57% { clip-path: inset(0 100% 0 0); } 35.71%  { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l5 { 0%,35.71% { clip-path: inset(0 100% 0 0); } 42.86%  { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l6 { 0%,42.86% { clip-path: inset(0 100% 0 0); } 50%     { clip-path: inset(0 0 0 0); } }
-@keyframes pf-type-l7 { 0%,50%    { clip-path: inset(0 100% 0 0); } 57.14%  { clip-path: inset(0 0 0 0); } }
-
-pre code .line:last-child::after {
-  content: "";
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  margin-left: 4px;
-  vertical-align: -0.15em;
-  background: var(--accent-soft);
-  animation: pf-caret-blink 0.9s step-end infinite;
-}
-
-@keyframes pf-caret-blink {
-  0%, 50%      { opacity: 1; }
-  50.01%, 100% { opacity: 0; }
-}
-
-
-
-
-
-
-.slide[data-active]::before {
-  animation: pf-line-draw 1.1s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@keyframes pf-line-draw {
-  0%   { clip-path: inset(0 100% 0 0); }
-  100% { clip-path: inset(0 0 0 0); }
-}
-
-
-
-
-
-
-.slide::after {
-  background:
-    radial-gradient(640px 460px at 26% 32%, var(--accent-tint) 0%, transparent 62%),
-    radial-gradient(520px 420px at 78% 70%, #4fd6e60f 0%, transparent 60%),
-    radial-gradient(2.5px circle at 12% 18%, rgba(255, 255, 255, 0.55), transparent 70%),
-    radial-gradient(2px circle at 34% 64%, rgba(255, 255, 255, 0.4), transparent 70%),
-    radial-gradient(3px circle at 58% 22%, rgba(255, 255, 255, 0.5), transparent 70%),
-    radial-gradient(2px circle at 71% 48%, rgba(255, 255, 255, 0.35), transparent 70%),
-    radial-gradient(2.5px circle at 85% 78%, rgba(255, 255, 255, 0.45), transparent 70%),
-    radial-gradient(2px circle at 45% 85%, rgba(255, 255, 255, 0.3), transparent 70%),
-    radial-gradient(2px circle at 18% 55%, rgba(255, 255, 255, 0.3), transparent 70%),
-    radial-gradient(2.5px circle at 92% 30%, rgba(255, 255, 255, 0.4), transparent 70%);
-}
-
 </style>
 </head>
 <body>
-<deck-stage width="1920" height="1080" transition="fade" exit-hint="Press Esc to exit full screen.">
+<deck-stage width="1920" height="1080" transition="fade" motion="lively" exit-hint="Press Esc to exit full screen.">
 <!-- 01 - Title / hero -->
-<section class="slide slide--title">
-  <p class="eyebrow">The HTML presentation engine</p>
-  <h1 class="display">Slides you<br>actually own.</h1>
-  <p class="lead">Describe your talk to Claude. Get back one self-contained <code>index.html</code>: designed, offline-ready, yours forever. No app, no export, no lock-in.</p>
-  <span class="hero-glass hero-glass--1" aria-hidden="true"></span>
-  <span class="hero-glass hero-glass--2" aria-hidden="true"></span>
-  <span class="hero-glass hero-glass--3" aria-hidden="true"></span>
-  <aside class="notes">
+<section class="slide slide--title" data-pf-src="01-title.html">
+  <p class="eyebrow" data-anim="fade" data-pf-edit="f948f4496e">The HTML presentation engine</p>
+  <h1 class="display" data-anim="rise" data-pf-edit="04e2c597e4">Slides you<br>actually own.</h1>
+  <p class="lead" data-anim="rise" style="--delay: 0.15s" data-pf-edit="7c0ed982e1">Describe your talk to Claude. Get back one self-contained <code>index.html</code>: designed, offline-ready, yours forever. No app, no export, no lock-in.</p>
+  <div class="fx fx--glass fx--tr" data-loop="float" aria-hidden="true"></div>
+  <div class="fx fx--glass fx--sm" style="top: 46%; right: 17%;" data-loop="float" aria-hidden="true"></div>
+  <div class="fx fx--glass fx--sm fx--br" style="--fx-size: 190px;" data-loop="float" aria-hidden="true"></div>
+  <aside class="notes" data-pf-notes="1c058158fb">
     <p>Open warm: this deck was generated by the very skill it describes. What you're looking at <em>is</em> the output.</p>
     <ul>
       <li>The one-sentence promise: own your slides, one file, any browser, forever.</li>
@@ -2339,16 +2769,16 @@ pre code .line:last-child::after {
   </aside>
 </section>
 <!-- 02 - The problem -->
-<section class="slide">
-  <h2 class="title">PowerPoint files don't travel well.</h2>
-  <ul class="bullets">
-    <li class="fragment">Fonts and layout drift from one machine to the next.</li>
-    <li class="fragment">It needs the app, often a paid one, just to open.</li>
-    <li class="fragment">A binary blob you can't read, diff, or version.</li>
-    <li class="fragment">Awkward to share as a plain link.</li>
+<section class="slide" data-pf-src="02-problem.html">
+  <h2 class="title" data-pf-edit="dcb6857446">PowerPoint files don't travel well.</h2>
+  <ul class="bullets" data-stagger="from-left">
+    <li class="fragment" data-pf-edit="60acb705ee">Fonts and layout drift from one machine to the next.</li>
+    <li class="fragment" data-pf-edit="7b4a658a33">It needs the app, often a paid one, just to open.</li>
+    <li class="fragment" data-pf-edit="d03d8b52a3">A binary blob you can't read, diff, or version.</li>
+    <li class="fragment" data-pf-edit="6c05af28a7">Awkward to share as a plain link.</li>
   </ul>
   <div class="footer"><span>Presentation Forge</span><span>The problem</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="352441552d">
     <p>Reveal one pain at a time so each one lands instead of blurring together.</p>
     <ul>
       <li>Ask the room: who's opened a .pptx and watched the layout explode?</li>
@@ -2357,175 +2787,116 @@ pre code .line:last-child::after {
   </aside>
 </section>
 <!-- 03 - HTML vs PowerPoint, straight from the README table -->
-<section class="slide">
-  <h2 class="title">Portable where PowerPoint is fragile.</h2>
-  <div class="vs">
-    <div class="vs__head-row">
-      <div class="vs__head"></div>
-      <div class="vs__head vs__head--a">PowerPoint</div>
-      <div class="vs__head vs__head--b">Forge</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Presenter mode, notes, timer</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Slide transitions and animation</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Opens with no software installed</div>
-      <div class="vs__mark vs__mark--no">✗</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Renders identically on every machine</div>
-      <div class="vs__mark vs__mark--partial">~</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Fonts travel inside the file</div>
-      <div class="vs__mark vs__mark--partial">~</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Readable and versionable in git</div>
-      <div class="vs__mark vs__mark--no">✗</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-
-    <div class="vs__data-row">
-      <div class="vs__row">Hostable as a public link</div>
-      <div class="vs__mark vs__mark--no">✗</div>
-      <div class="vs__mark vs__mark--yes">✓</div>
-    </div>
-  </div>
+<section class="slide" data-pf-src="03-versus.html">
+  <h2 class="title" data-pf-edit="c274d24762">Portable where PowerPoint is fragile.</h2>
+  <table class="compare compare--last">
+    <thead>
+      <tr><th></th><th data-pf-edit="782e4989cf">PowerPoint</th><th data-pf-edit="3ab11b75ca">Forge</th></tr>
+    </thead>
+    <tbody>
+      <tr><td data-pf-edit="67ce1e9e4b">Presenter mode, notes, timer</td><td class="yes"></td><td class="yes"></td></tr>
+      <tr><td data-pf-edit="d3e5587cb2">Slide transitions and animation</td><td class="yes"></td><td class="yes"></td></tr>
+      <tr><td data-pf-edit="4e9d700a28">Opens with no software installed</td><td class="no"></td><td class="yes"></td></tr>
+      <tr><td data-pf-edit="96036eadcb">Renders identically on every machine</td><td class="partial"></td><td class="yes"></td></tr>
+      <tr><td data-pf-edit="0865497178">Fonts travel inside the file</td><td class="partial"></td><td class="yes"></td></tr>
+      <tr><td data-pf-edit="6e5b33590c">Readable and versionable in git</td><td class="no"></td><td class="yes"></td></tr>
+      <tr><td data-pf-edit="2c9c49bf85">Hostable as a public link</td><td class="no"></td><td class="yes"></td></tr>
+    </tbody>
+  </table>
   <div class="footer"><span>Presentation Forge</span><span>HTML vs PowerPoint</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="1bd64812a3">
     <p>Be fair, not smug: the top rows are everything PowerPoint already gives a presenter. Forge matches them, then adds the rest.</p>
-    <ul><li>Full 14-row table lives in the README, this is the punchy cut.</li></ul>
+    <ul><li>Full table lives in the README, this is the punchy cut.</li></ul>
   </aside>
 </section>
 <!-- 04 - Agenda -->
-<section class="slide">
-  <p class="eyebrow">Agenda</p>
-  <h2 class="title">Three minutes, three ideas.</h2>
-  <ul class="bullets">
-    <li>The idea: three layers compile to one file.</li>
-    <li>On stage: every control, demonstrated live.</li>
-    <li>Make it yours: swap themes, import a brand.</li>
+<section class="slide" data-pf-src="04-agenda.html">
+  <p class="eyebrow" data-pf-edit="891e9d6d47">Agenda</p>
+  <h2 class="title" data-pf-edit="03e15e827b">Three minutes, three ideas.</h2>
+  <ul class="bullets" data-stagger="rise">
+    <li data-pf-edit="c73d97e394">The idea: three layers compile to one file.</li>
+    <li data-pf-edit="17ec991f60">On stage: every control, demonstrated live.</li>
+    <li data-pf-edit="f6cf12dafb">Make it yours: themes, motion, a brand of your own.</li>
   </ul>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="9e78849ebe">
     <p>Set expectations and keep it to three beats, so the talk feels short and deliberate.</p>
   </aside>
 </section>
 <!-- 05 - Section divider: The idea -->
-<section class="slide slide--section">
-  <p class="eyebrow">Part 01</p>
-  <h1 class="display">The idea</h1>
-  <p class="lead">Three layers that stay separate, so a deck never breaks when you reskin it.</p>
-  <aside class="notes">
+<section class="slide slide--section" data-pf-src="05-section-idea.html">
+  <p class="eyebrow" data-pf-edit="f83634c9be">Part 01</p>
+  <h1 class="display" data-pf-edit="43e1981653">The idea</h1>
+  <p class="lead" data-pf-edit="33302c4fe8">Three layers that stay separate, so a deck never breaks when you reskin it.</p>
+  <aside class="notes" data-pf-notes="5e7d667183">
     <p>Pivot into the architecture. One breath, then move on.</p>
   </aside>
 </section>
-<!-- 06 - Three layers, as a diagram -->
-<section class="slide">
-  <h2 class="title">Engine, theme, content. Never tangled.</h2>
-  <div class="diagram">
-    <div class="diagram__node">
-      <h3>Engine</h3>
-      <p>Scaling, navigation, presenter mode. Never touched.</p>
-    </div>
-    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
-    <div class="diagram__node">
-      <h3>Theme</h3>
-      <p>Colours, type, spacing, fonts. The whole look.</p>
-    </div>
-    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
-    <div class="diagram__node">
-      <h3>Content</h3>
-      <p>Your slides. One HTML file each.</p>
-    </div>
-  </div>
-  <p class="lead muted">Change one layer and the others don't move. Restyle a whole deck without touching a slide.</p>
+<!-- 06 - Three layers, as a process -->
+<section class="slide" data-pf-src="06-three-layers.html">
+  <h2 class="title" data-pf-edit="9356bd55a3">Engine, theme, content. Never tangled.</h2>
+  <ol class="steps">
+    <li><i data-icon="cpu"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg></i><h3 data-pf-edit="c1f65ddb75">Engine</h3><p data-pf-edit="ac78bb9b0c">Scaling, navigation, presenter mode. Never touched.</p></li>
+    <li><i data-icon="layers"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg></i><h3 data-pf-edit="a797e30923">Theme</h3><p data-pf-edit="b2739687d0">Colours, type, spacing, fonts. The whole look.</p></li>
+    <li class="is-highlight"><i data-icon="file-text"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></i><h3 data-pf-edit="4f9be057f0">Content</h3><p data-pf-edit="1906c3555e">Your slides. One HTML file each.</p></li>
+  </ol>
+  <p class="lead muted" data-pf-edit="20e2a8b5c1">Change one layer and the others don't move. Restyle a whole deck without touching a slide.</p>
   <div class="footer"><span>Presentation Forge</span><span>The idea</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="558a2ead47">
     <p>This separation is the core design bet. Slides only ever use the theme's vocabulary, which is exactly why themes are swappable.</p>
     <ul><li>Transition: "and authoring a slide is almost nothing."</li></ul>
   </aside>
 </section>
 <!-- 07 - A slide is just markup, styled like a real code editor -->
-<section class="slide">
-  <h2 class="title">A slide is just markup.</h2>
-  <pre data-filename="slide.html"><code><span class="line"><span class="tok-punc">&lt;</span><span class="tok-tag">section</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"slide"</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">h2</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"title"</span><span class="tok-punc">&gt;</span>Caching cut p99 by 40%.<span class="tok-punc">&lt;/</span><span class="tok-tag">h2</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">ul</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"bullets"</span><span class="tok-punc">&gt;</span></span><span class="line">    <span class="tok-punc">&lt;</span><span class="tok-tag">li</span><span class="tok-punc">&gt;</span>One idea per line.<span class="tok-punc">&lt;/</span><span class="tok-tag">li</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;/</span><span class="tok-tag">ul</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">aside</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"notes"</span><span class="tok-punc">&gt;</span>What you say, not what they read.<span class="tok-punc">&lt;/</span><span class="tok-tag">aside</span><span class="tok-punc">&gt;</span></span><span class="line"><span class="tok-punc">&lt;/</span><span class="tok-tag">section</span><span class="tok-punc">&gt;</span></span></code></pre>
-  <aside class="notes">
+<section class="slide" data-pf-src="07-markup.html">
+  <h2 class="title" data-pf-edit="36b144cb42">A slide is just markup.</h2>
+  <pre data-filename="slide.html"><code data-stagger="type"><span class="line"><span class="tok-punc">&lt;</span><span class="tok-tag">section</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"slide"</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">h2</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"title"</span><span class="tok-punc">&gt;</span>Caching cut p99 by 40%.<span class="tok-punc">&lt;/</span><span class="tok-tag">h2</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">ul</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"bullets"</span><span class="tok-punc">&gt;</span></span><span class="line">    <span class="tok-punc">&lt;</span><span class="tok-tag">li</span><span class="tok-punc">&gt;</span>One idea per line.<span class="tok-punc">&lt;/</span><span class="tok-tag">li</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;/</span><span class="tok-tag">ul</span><span class="tok-punc">&gt;</span></span><span class="line">  <span class="tok-punc">&lt;</span><span class="tok-tag">aside</span> <span class="tok-attr">class</span><span class="tok-punc">=</span><span class="tok-str">"notes"</span><span class="tok-punc">&gt;</span>What you say, not what they read.<span class="tok-punc">&lt;/</span><span class="tok-tag">aside</span><span class="tok-punc">&gt;</span></span><span class="line"><span class="tok-punc">&lt;/</span><span class="tok-tag">section</span><span class="tok-punc">&gt;</span></span></code></pre>
+  <aside class="notes" data-pf-notes="8147502091">
     <p>No framework, no JSX, no toolchain. If you can write HTML, you can write a slide, and the classes come from the theme.</p>
   </aside>
 </section>
-<!-- 08 - One file, as a pipeline diagram -->
-<section class="slide">
-  <h2 class="title">One command inlines everything.</h2>
-  <div class="diagram diagram--pipeline">
-    <div class="diagram__inputs">
-      <div class="diagram__chip">slides/</div>
-      <div class="diagram__chip">theme/</div>
-      <div class="diagram__chip">assets/</div>
-    </div>
-    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
-    <div class="diagram__node">
-      <h3>build.py</h3>
-      <p>Python standard library only.</p>
-    </div>
-    <div class="diagram__arrow"><svg viewBox="0 0 40 16"><path d="M2 8h32M26 2l10 6-10 6"/></svg></div>
-    <div class="diagram__node">
-      <h3>index.html</h3>
-      <p>One file. Opens anywhere, forever.</p>
-    </div>
-    <span class="diagram__packet" aria-hidden="true"></span>
-  </div>
-  <p class="lead muted">No build server, no dependencies, no network. Double-click to open, email it, host it.</p>
+<!-- 08 - One file, as a pipeline -->
+<section class="slide" data-pf-src="08-one-file.html">
+  <h2 class="title" data-pf-edit="66a79be315">One command inlines everything.</h2>
+  <ol class="steps">
+    <li><i data-icon="layers"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg></i><h3 data-pf-edit="2eb56be3c2">Sources</h3><p data-pf-edit="92f99bb353">Slides, theme, fonts and images, in plain files.</p></li>
+    <li><i data-icon="terminal"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19h8"/><path d="m4 17 6-6-6-6"/></svg></i><h3 data-pf-edit="e9caecba20">build.py</h3><p data-pf-edit="f40e515728">Python standard library only.</p></li>
+    <li class="is-highlight"><i data-icon="file-text" data-anim="draw"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></i><h3 data-pf-edit="f6013a00b3">index.html</h3><p data-pf-edit="b4ce2bff84">One file. Opens anywhere, forever.</p></li>
+  </ol>
+  <p class="lead muted" data-pf-edit="5770d96c51">No build server, no dependencies, no network. Double-click to open, email it, host it.</p>
   <div class="footer"><span>Presentation Forge</span><span>The idea</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="82dc722e84">
     <p>Lean into "boring on purpose": boring is exactly what makes the output portable and durable for ten years.</p>
   </aside>
 </section>
 <!-- 09 - Section divider: On stage -->
-<section class="slide slide--section">
-  <p class="eyebrow">Part 02</p>
-  <h1 class="display">On stage</h1>
-  <p class="lead">Every control a presenter needs, built into the same single file.</p>
-  <aside class="notes">
+<section class="slide slide--section" data-pf-src="09-section-stage.html">
+  <p class="eyebrow" data-pf-edit="1e431e1b29">Part 02</p>
+  <h1 class="display" data-pf-edit="1b8ec34af9">On stage</h1>
+  <p class="lead" data-pf-edit="dade6b4da0">Every control a presenter needs, built into the same single file.</p>
+  <aside class="notes" data-pf-notes="ba6dfaef3e">
     <p>Shift from "how it's built" to "what it feels like to actually present." The next slides demo every button, live.</p>
   </aside>
 </section>
 <!-- 10 - Presenter mode, the pitch -->
-<section class="slide">
-  <h2 class="title">Present like you rehearsed.</h2>
+<section class="slide" data-pf-src="10-presenter.html">
+  <h2 class="title" data-pf-edit="ae993d9831">Present like you rehearsed.</h2>
   <ul class="bullets">
-    <li class="fragment">Press <code>p</code> to see your speaker notes. Only you see them.</li>
-    <li class="fragment">A timer and a wall clock, so you stay on time.</li>
-    <li class="fragment">A live preview of the next slide. Nothing surprises you.</li>
-    <li class="fragment">Press <code>?</code> for every keyboard shortcut.</li>
+    <li class="fragment" data-pf-edit="eeb2f2108e">Press <code>p</code> to see your speaker notes. Only you see them.</li>
+    <li class="fragment" data-pf-edit="0a329f2f36">A timer and a wall clock, so you stay on time.</li>
+    <li class="fragment" data-pf-edit="035c6ceb53">A live preview of the next slide. Nothing surprises you.</li>
+    <li class="fragment" data-pf-edit="3642c29a55">Press <code>?</code> for every keyboard shortcut.</li>
   </ul>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="c1994c0f82">
     <p>Do it live: hit <strong>p</strong> right now. These notes are exactly what the audience never sees.</p>
     <ul><li>Reveal each capability as you say it: click, talk, click.</li></ul>
   </aside>
 </section>
 <!-- 11 - Windowed toolbar, every button toured in a CSS-only loop -->
-<section class="slide">
-  <p class="context-badge">Windowed toolbar</p>
-  <h2 class="title">Every slide ships its own controls.</h2>
-  <div class="tour tour--toolbar">
+<section class="slide" data-pf-src="11-demo-toolbar.html">
+  <p class="context-badge" data-pf-edit="70e335b31a">Windowed toolbar</p>
+  <h2 class="title" data-pf-edit="b63ee90bec">Every slide ships its own controls.</h2>
+  <div data-noedit class="tour tour--toolbar">
     <div class="tour__caption">
       <span>Previous / next</span>
       <span>Draw</span>
@@ -2544,18 +2915,18 @@ pre code .line:last-child::after {
     </div>
     <span class="tour__cursor"></span>
   </div>
-  <p class="lead muted">Bottom-right in windowed mode. Click them, or press the matching key.</p>
+  <p class="lead muted" data-pf-edit="c204809ee1">Bottom-right in windowed mode. Click them, or press the matching key.</p>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="82bb54ea77">
     <p>This is a CSS mockup, not a recording, looping forever so it works in any browser with no playback.</p>
     <ul><li>Name each one as the cursor lands on it; the caption above does it too.</li></ul>
   </aside>
 </section>
 <!-- 12 - Switching into presenter mode -->
-<section class="slide">
-  <p class="context-badge">Mode switch</p>
-  <h2 class="title">One key opens a presenter sidebar.</h2>
-  <div class="switch switch--presenter">
+<section class="slide" data-pf-src="12-demo-presenter.html">
+  <p class="context-badge" data-pf-edit="170725ee29">Mode switch</p>
+  <h2 class="title" data-pf-edit="a232dafcb9">One key opens a presenter sidebar.</h2>
+  <div data-noedit class="switch switch--presenter">
     <div class="switch__main">
       <button class="switch__btn" aria-hidden="true">
         <span class="icon-a"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="13" rx="2"></rect><path d="M8 21h8M12 16v5"/><path d="M7 10h1m3-3v6m3-4v4"/></svg></span>
@@ -2571,17 +2942,17 @@ pre code .line:last-child::after {
       </div>
     </div>
   </div>
-  <p class="lead muted">Press <code>p</code>. Notes, the timer and the next slide appear here, never on the screen behind you.</p>
+  <p class="lead muted" data-pf-edit="34a495690f">Press <code>p</code>. Notes, the timer and the next slide appear here, never on the screen behind you.</p>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="ad65a84025">
     <p>The audience window stays full screen and clean; the presenter sidebar is local, on this machine only.</p>
   </aside>
 </section>
 <!-- 13 - Inside the presenter sidebar, four more tools toured -->
-<section class="slide">
-  <p class="context-badge">Presenter sidebar</p>
-  <h2 class="title">The sidebar has its own toolkit.</h2>
-  <div class="tour tour--presenter">
+<section class="slide" data-pf-src="13-demo-presenter-tools.html">
+  <p class="context-badge" data-pf-edit="04ea83867a">Presenter sidebar</p>
+  <h2 class="title" data-pf-edit="add1aa30a3">The sidebar has its own toolkit.</h2>
+  <div data-noedit class="tour tour--presenter">
     <div class="tour__caption">
       <span>Auto-scroll notes</span>
       <span>Resize text</span>
@@ -2596,17 +2967,17 @@ pre code .line:last-child::after {
     </div>
     <span class="tour__cursor"></span>
   </div>
-  <p class="lead muted">Notes scroll themselves, text resizes for tired eyes, the timer resets in one click.</p>
+  <p class="lead muted" data-pf-edit="f26bf77595">Notes scroll themselves, text resizes for tired eyes, the timer resets in one click.</p>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="5c476459d0">
     <p>Exit asks for a confirm before it drops you back to windowed mode, so a stray key never ends the talk.</p>
   </aside>
 </section>
 <!-- 14 - Full screen switch -->
-<section class="slide">
-  <p class="context-badge">Full screen</p>
-  <h2 class="title">Distraction-free for the room.</h2>
-  <div class="switch switch--fullscreen">
+<section class="slide" data-pf-src="14-demo-fullscreen.html">
+  <p class="context-badge" data-pf-edit="d15f886d60">Full screen</p>
+  <h2 class="title" data-pf-edit="4f6503b469">Distraction-free for the room.</h2>
+  <div data-noedit class="switch switch--fullscreen">
     <div class="switch__rail"></div>
     <div class="switch__main">
       <span class="switch__toast">Press Esc to exit full screen</span>
@@ -2617,31 +2988,31 @@ pre code .line:last-child::after {
       <span class="switch__cursor"></span>
     </div>
   </div>
-  <p class="lead muted">The rail and the chrome fade away. Only the slide stays, for a projector or a back row.</p>
+  <p class="lead muted" data-pf-edit="58a462376e">The rail and the chrome fade away. Only the slide stays, for a projector or a back row.</p>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="10e1414721">
     <p>Same key, <code>f</code>, leaves full screen too. Controls fade after a few idle seconds and return on the first move.</p>
   </aside>
 </section>
 <!-- 15 - Progressive reveal (meta demo) -->
-<section class="slide">
-  <h2 class="title">Reveal a point exactly when it lands.</h2>
+<section class="slide" data-pf-src="15-reveal.html">
+  <h2 class="title" data-pf-edit="218ecf4375">Reveal a point exactly when it lands.</h2>
   <ul class="bullets">
-    <li class="fragment">Add <code>class="fragment"</code> to any element.</li>
-    <li class="fragment">Each click brings the next one in.</li>
-    <li class="fragment">The slide builds alongside your argument.</li>
-    <li class="fragment">The presenter view counts the steps for you.</li>
+    <li class="fragment" data-anim="from-left" data-pf-edit="fd29c36e32">Add <code>class="fragment"</code> to any element.</li>
+    <li class="fragment" data-anim="from-left" data-pf-edit="7d8f0ccd6d">Each click brings the next one in, with the effect you pick.</li>
+    <li data-pf-edit="742d132a8f">Or keep it on screen and <span class="fragment" data-anim="highlight">highlight the words that matter</span> on the click.</li>
+    <li class="fragment" data-anim="from-left" data-pf-edit="423f235ae0">The presenter view counts the steps for you.</li>
   </ul>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="f0e6c14274">
     <p>Meta moment: the bullets you're revealing right now <em>are</em> fragments. Say it out loud, the demo is the feature.</p>
   </aside>
 </section>
 <!-- 16 - Editing text straight in the browser, demoed as a looping mockup -->
-<section class="slide">
-  <p class="context-badge">Edit mode</p>
-  <h2 class="title">Fix a typo without opening an editor.</h2>
-  <div class="switch switch--edit">
+<section class="slide" data-pf-src="16-edit-in-browser.html">
+  <p class="context-badge" data-pf-edit="26926bf5e2">Edit mode</p>
+  <h2 class="title" data-pf-edit="2010d19db1">Fix a typo without opening an editor.</h2>
+  <div data-noedit class="switch switch--edit">
     <div class="switch__edit-slide">
       <p class="switch__edit-text switch__edit-text--before">Slides you atcually own.</p>
       <p class="switch__edit-text switch__edit-text--after">Slides you actually own.</p>
@@ -2653,62 +3024,112 @@ pre code .line:last-child::after {
     <span class="switch__cursor switch__edit-cursor"></span>
     <span class="switch__toast switch__edit-toast">Saved</span>
   </div>
-  <p class="lead muted">Chrome, Edge, or another Chromium browser, never Safari or Firefox. Works on a deck already on disk, emailed copies included, not a hosted link.</p>
+  <p class="lead muted" data-pf-edit="ef76712c01">Chrome, Edge, or another Chromium browser, never Safari or Firefox. Works on a deck already on disk, emailed copies included, not a hosted link.</p>
   <div class="footer"><span>Presentation Forge</span><span>On stage</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="9b37cbff8e">
     <p>This is a CSS mockup, not a recording, looping forever so it works in any browser with no playback.</p>
     <ul>
       <li>The pencil only shows up where saving could actually work, so nobody on Safari or Firefox sees a control that would just disappoint them.</li>
       <li>This rewords existing text only, it doesn't add or remove bullets, slides or images.</li>
+      <li>The next build copies every edit back into the slide files, so a rebuild never loses them.</li>
       <li>Speaker notes follow the same rule: always readable, only editable once the pencil is available.</li>
     </ul>
   </aside>
 </section>
 <!-- 17 - Section divider: Make it yours -->
-<section class="slide slide--section">
-  <p class="eyebrow">Part 03</p>
-  <h1 class="display">Make it yours</h1>
-  <p class="lead">One identity, every deck, without redesigning a thing.</p>
-  <aside class="notes">
+<section class="slide slide--section" data-pf-src="17-section-yours.html">
+  <p class="eyebrow" data-pf-edit="475012ae3f">Part 03</p>
+  <h1 class="display" data-pf-edit="54135155f8">Make it yours</h1>
+  <p class="lead" data-pf-edit="2b7d9eb895">One identity, every deck, without redesigning a thing.</p>
+  <aside class="notes" data-pf-notes="c70c25240e">
     <p>Final beat: theming and reusing a brand across decks.</p>
   </aside>
 </section>
 <!-- 18 - Themes -->
-<section class="slide">
-  <h2 class="title">Swap the whole look in one line.</h2>
+<section class="slide" data-pf-src="18-themes.html">
+  <h2 class="title" data-pf-edit="c50e0a8761">Swap the whole look in one line.</h2>
   <div class="two-col">
     <ul class="bullets">
-      <li>This deck is the <strong>obsidian</strong> theme: dark and editorial.</li>
-      <li>Ship <strong>ink-blue</strong> instead for a clean, light look.</li>
-      <li>Import a brand from a <code>.pptx</code>, an image, or a description.</li>
-      <li>Save any look as a portable <code>.pfstyle.json</code>.</li>
+      <li data-pf-edit="d074f4c6bc">This deck is the <strong>obsidian</strong> theme: dark and editorial.</li>
+      <li data-pf-edit="b2b38e0e6f">Ship <strong>ink-blue</strong> instead for a clean, light look.</li>
+      <li data-pf-edit="8c40bf5dd3">Import a brand from a <code>.pptx</code>, an image, or a description.</li>
+      <li data-pf-edit="8473c073f2">Save any look as a portable <code>.pfstyle.json</code>.</li>
     </ul>
     <div class="card">
-      <p class="eyebrow accent">deck.config.json</p>
+      <p class="eyebrow accent" data-pf-edit="ec9a27e673">deck.config.json</p>
       <pre data-filename="deck.config.json"><code><span class="line">{</span><span class="line">  <span class="tok-attr">"theme"</span><span class="tok-punc">:</span> <span class="tok-str">"obsidian"</span></span><span class="line">}</span></code></pre>
     </div>
   </div>
   <div class="footer"><span>Presentation Forge</span><span>Make it yours</span></div>
-  <aside class="notes">
+  <aside class="notes" data-pf-notes="cc18284b67">
     <p>The strongest demo of all: the same slides under a different theme. The content never changes, the look completely does.</p>
   </aside>
 </section>
+<!-- 19 - Motion levels, shown as a bar chart -->
+<section class="slide" data-pf-src="19-motion.html">
+  <h2 class="title" data-pf-edit="cc3cc18791">From perfectly still to full show, in one word.</h2>
+  <div class="two-col">
+    <ul class="bars">
+      <li style="--value: 4" data-pf-edit="771b99f118"><span class="bars__label">none</span><span class="bars__value">still</span></li>
+      <li style="--value: 28" data-pf-edit="8cedb1e927"><span class="bars__label">subtle</span><span class="bars__value">fades</span></li>
+      <li style="--value: 52" data-pf-edit="ac0bc15655"><span class="bars__label">balanced</span><span class="bars__value">default</span></li>
+      <li style="--value: 76" class="is-highlight" data-pf-edit="6e480fe9eb"><span class="bars__label">lively</span><span class="bars__value">this deck</span></li>
+      <li style="--value: 100" data-pf-edit="050eb22687"><span class="bars__label">extra</span><span class="bars__value">3D, loops</span></li>
+    </ul>
+    <div class="card" data-anim="from-right" style="--delay: 0.3s">
+      <p class="eyebrow accent" data-pf-edit="ec9a27e673">deck.config.json</p>
+      <pre data-filename="deck.config.json"><code><span class="line">{</span><span class="line">  <span class="tok-attr">"motion"</span><span class="tok-punc">:</span> <span class="tok-str">"lively"</span></span><span class="line">}</span></code></pre>
+      <p class="muted" data-pf-edit="dbc5c941b0">Slides keep the same markup at every level. The engine only turns the dial.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Presentation Forge</span><span>Make it yours</span></div>
+  <aside class="notes" data-pf-notes="d7e52f08ad">
+    <p>Twelve entrance effects, five loops and seven transitions ship in the engine, so Claude picks from a menu instead of inventing CSS.</p>
+    <ul>
+      <li>Going back to a slide shows it finished: entrances only play forwards.</li>
+      <li>Reduced-motion settings in the OS are always respected.</li>
+    </ul>
+  </aside>
+</section>
+<!-- 20 - Built-in graphics: figures that count -->
+<section class="slide" data-pf-src="20-figures.html">
+  <p class="eyebrow" data-pf-edit="6b0c36de27">Built in</p>
+  <h2 class="title" data-pf-edit="ac363779f6">Charts, figures and icons, with no library.</h2>
+  <div class="stats" data-stagger="rise">
+    <div class="stat">
+      <p class="stat__value" data-count data-pf-edit="be461a0cd1">84</p>
+      <p class="stat__label" data-pf-edit="0823d2d3a4">line icons, only the ones you use get bundled</p>
+    </div>
+    <div class="stat">
+      <p class="stat__value" data-count data-pf-edit="0ade7c2cf9">9</p>
+      <p class="stat__label" data-pf-edit="67e00ac245">components: stats, bars, rings, timelines, steps…</p>
+    </div>
+    <div class="stat">
+      <p class="stat__value" data-pf-edit="b6589fc6ab">0</p>
+      <p class="stat__label" data-pf-edit="82663b3a0f">dependencies, still one self-contained file</p>
+    </div>
+  </div>
+  <div class="footer"><span>Presentation Forge</span><span>Make it yours</span></div>
+  <aside class="notes" data-pf-notes="d588edf2db">
+    <p>The numbers count up when the slide arrives, yet the real figure stays in the markup, so print and thumbnails always show it.</p>
+  </aside>
+</section>
 <!-- 19 - Quote -->
-<section class="slide">
-  <p class="eyebrow">The point</p>
-  <blockquote>Own your slides. Don't rent them from an app that might not open them in ten years.</blockquote>
-  <aside class="notes">
+<section class="slide" data-pf-src="21-quote.html">
+  <p class="eyebrow" data-pf-edit="4c1c703b94">The point</p>
+  <blockquote data-pf-edit="9f7f38b9ce">Own your slides. Don't rent them from an app that might not open them in ten years.</blockquote>
+  <aside class="notes" data-pf-notes="712b62282a">
     <p>A beat of silence. This is the thesis of the whole talk, let it sit before the call to action.</p>
   </aside>
 </section>
 <!-- 20 - Closing / call to action -->
-<section class="slide slide--conclude">
-  <p class="eyebrow">Your turn</p>
-  <h1 class="display">Describe your next talk.</h1>
-  <p class="lead">Claude writes the slides and hands you one file you can open, present, and keep.</p>
+<section class="slide slide--conclude" data-pf-src="22-thanks.html">
+  <p class="eyebrow" data-pf-edit="8a4e60471b">Your turn</p>
+  <h1 class="display" data-pf-edit="bad87ac448">Describe your next talk.</h1>
+  <p class="lead" data-pf-edit="62c7ac16da">Claude writes the slides and hands you one file you can open, present, and keep.</p>
   <pre data-filename="terminal"><code><span class="line">git clone https://github.com/thmsgo18/presentation-forge.git \</span><span class="line">  ~/.claude/skills/presentation-forge</span></code></pre>
-  <p class="muted">This deck itself was written and built with Presentation Forge, the skill it just described.</p>
-  <aside class="notes">
+  <p class="muted" data-pf-edit="7bc78328b5">This deck itself was written and built with Presentation Forge, the skill it just described.</p>
+  <aside class="notes" data-pf-notes="d8cb4a7c76">
     <p>Close on the call to action: install once, then just ask in plain language. Point people to the live demo URL.</p>
   </aside>
 </section>
@@ -2734,11 +3155,22 @@ pre code .line:last-child::after {
  * Progressive reveal: add class="fragment" to elements to reveal them one click
  * at a time before moving on to the next slide.
  *
+ * Motion: the canvas carries data-motion (the level), data-transition (this
+ * slide's transition) and data-dir (next / prev); motion.css and the
+ * components animate off those. data-count numbers count up here, in JS.
+ *
  * Attributes on <deck-stage>:
  *   width / height   design canvas size (default 1920x1080)
- *   transition       slide transition: fade (default), slide, or zoom
+ *   transition       default slide transition: none, fade (default), slide,
+ *                    zoom, rise, blur, flip - a slide's data-transition wins
+ *   motion           none, subtle, balanced (default), lively, extra
  *   exit-hint        toast text shown when entering single-screen full screen
  *   no-rail          always hide the thumbnail rail
+ *
+ * Render mode, for scripts/check_deck.py: ?pf=shot#3 shows slide 3 alone and
+ * finished; ?pf=sheet shows every slide on one contact sheet. Both write a
+ * layout report (overflowing content, broken images) into the page, as a
+ * JSON script element with the id pf-report.
  */
 (() => {
   "use strict";
@@ -2755,14 +3187,13 @@ pre code .line:last-child::after {
     'a[href], button, input, select, textarea, summary, label, ' +
     'video[controls], audio[controls], [role="button"], [onclick], [tabindex]';
 
-  // Text blocks a slide author can edit in place. Block-level only - never an
-  // inline span inside one of these, so two contenteditable regions never
-  // overlap. Skipped entirely inside decorative/structural zones (see
-  // _editableElements) such as code blocks, diagrams and the demo mockups.
-  const EDITABLE_SELECTOR =
-    '.eyebrow, .display, h1, .title, h2, .subtitle, .lead, ul.bullets > li, blockquote, p';
-  const EDITABLE_EXCLUDE_ANCESTOR =
-    'pre, svg, .diagram, .tour, .switch, .vs, aside.notes, [aria-hidden="true"]';
+  // Text blocks the Edit mode may change: build.py decides which and stamps
+  // them (data-pf-edit), so the same rules find them again when it pulls the
+  // edits back into slides/. The notes carry data-pf-notes the same way.
+  const EDITABLE = "[data-pf-edit]";
+  // Count-ups run from this level up (see countUp below).
+  const COUNT_LEVELS = ["balanced", "lively", "extra"];
+  const DRAW_SHAPES = "path, line, polyline, polygon, circle, rect, ellipse";
 
   const ICONS = {
     prev:     '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
@@ -2857,6 +3288,60 @@ pre code .line:last-child::after {
     });
   };
 
+  /* Count a figure up from 0 to the number in its text, then put the exact
+     original text back. The real figure stays in the markup, so thumbnails,
+     print and a copy without JS all show it. Self-contained (no outer names):
+     the audience window gets a copy of this very function. */
+  function countUp(el, lang) {
+    if (el.children.length) return;                     // plain-text figures only
+    if (el.__pfFinal === undefined) el.__pfFinal = el.textContent;
+    var text = el.__pfFinal;
+    var m = /\d(?:[\d\s\u00a0\u202f.,']*\d)?/.exec(text);
+    if (!m) return;
+    var raw = m[0];
+    var compact = raw.replace(/[\s\u00a0\u202f']/g, "");
+    var grouped = compact.length !== raw.length;
+    var dot = compact.lastIndexOf("."), comma = compact.lastIndexOf(",");
+    var sep = Math.max(dot, comma), decimals = 0, value;
+    var locDec = "."; try { locDec = (1.5).toLocaleString(lang).replace(/\d/g, ""); } catch (e) {}
+    if (sep >= 0) {
+      var ch = compact.charAt(sep), after = compact.length - sep - 1;
+      // "1,250" is a thousands group in English, "3,5" a decimal in French.
+      var single = compact.indexOf(ch) === sep;
+      if ((dot >= 0 && comma >= 0) || (single && (after !== 3 || ch === locDec))) decimals = after;
+      else grouped = true;
+    }
+    if (decimals) value = parseFloat(compact.slice(0, sep).replace(/[.,]/g, "") + "." + compact.slice(sep + 1));
+    else value = parseFloat(compact.replace(/[.,]/g, ""));
+    if (!isFinite(value)) return;
+    var fmt;
+    try { fmt = new Intl.NumberFormat(lang, { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: grouped }); }
+    catch (e) { fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: grouped }); }
+    var head = text.slice(0, m.index), tail = text.slice(m.index + raw.length);
+    var token = {}, start = null, dur = 1400;
+    el.__pfCount = token;
+    el.textContent = head + fmt.format(0) + tail;
+    requestAnimationFrame(function frame(now) {
+      if (el.__pfCount !== token) return;               // restarted or stopped
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / dur);
+      if (t < 1) {
+        el.textContent = head + fmt.format(value * (1 - Math.pow(1 - t, 3))) + tail;
+        requestAnimationFrame(frame);
+      } else {
+        el.textContent = text;
+        el.__pfCount = null;
+      }
+    });
+  }
+
+  const countStop = (el) => {
+    el.__pfCount = null;
+    if (el.__pfFinal !== undefined) el.textContent = el.__pfFinal;
+  };
+
+  const escAttr = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+
   class DeckStage extends HTMLElement {
     connectedCallback() {
       if (this._ready) return;
@@ -2865,10 +3350,25 @@ pre code .line:last-child::after {
       this.designW = Number(this.getAttribute("width")) || DESIGN_W;
       this.designH = Number(this.getAttribute("height")) || DESIGN_H;
       this.exitHint = this.getAttribute("exit-hint") || DEFAULT_EXIT_HINT;
+      this._motion = this.getAttribute("motion") || "balanced";
+      this._lang = document.documentElement.getAttribute("lang") || undefined;
+
+      // Render mode (scripts/check_deck.py): the slides alone, finished, still.
+      const pf = new URLSearchParams(location.search).get("pf");
+      this._render = pf === "shot" || pf === "sheet" ? pf : null;
+      if (this._render) {
+        this._motion = "none";
+        this.classList.add("pf-render");
+        if (this._render === "sheet") this.classList.add("pf-sheet");
+      }
       this.style.setProperty("--design-w", this.designW + "px");
       this.style.setProperty("--design-h", this.designH + "px");
 
       this.slides = Array.from(this.children).filter((c) => c.nodeType === 1);
+
+      // Shapes that draw themselves (data-anim="draw") share one stroke length.
+      this.querySelectorAll('[data-anim="draw"]').forEach((el) =>
+        el.querySelectorAll(DRAW_SHAPES).forEach((s) => s.setAttribute("pathLength", "1")));
 
       // Create overlay and toast before builders so _buildStage can place
       // the overlay inside .pf-stage (centres it on the slide, not the viewport).
@@ -2886,7 +3386,7 @@ pre code .line:last-child::after {
       // Saving back to disk only makes sense for a deck opened as a local
       // file: a hosted copy has no real "this file" to write to, and the
       // picker would just confuse people into choosing an unrelated file.
-      this._canEdit = "showOpenFilePicker" in window && location.protocol === "file:";
+      this._canEdit = !this._render && "showOpenFilePicker" in window && location.protocol === "file:";
 
       this._buildRail();
       this._buildStage();    // appends overlay to this.stage
@@ -2898,6 +3398,7 @@ pre code .line:last-child::after {
       this.show(this.index, { updateHash: false });
       this._layout();
       this._scaleThumbs();
+      if (this._render) this._startRender();
 
       this._onResize = () => {
         this._layout();
@@ -2915,7 +3416,7 @@ pre code .line:last-child::after {
       this.addEventListener("mousemove",         this._onMove);
       document.addEventListener("fullscreenchange",        this._onFs);
       document.addEventListener("webkitfullscreenchange",  this._onFs);
-      this._bindTouch();
+      if (!this._render) this._bindTouch();
     }
 
     disconnectedCallback() {
@@ -2937,6 +3438,8 @@ pre code .line:last-child::after {
       this.canvas = el("div", "pf-canvas");
       this.canvas.style.width  = this.designW + "px";
       this.canvas.style.height = this.designH + "px";
+      this.canvas.setAttribute("data-motion", this._motion);
+      this.canvas.setAttribute("data-dir", "next");
       this.slides.forEach((slide, i) => {
         slide.setAttribute("data-index", String(i));
         slide.setAttribute("role", "group");
@@ -3067,8 +3570,7 @@ pre code .line:last-child::after {
         mini.style.width  = this.designW + "px";
         mini.style.height = this.designH + "px";
 
-        const clone = slide.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(slide);
         clone.removeAttribute("data-index");
         clone.removeAttribute("id");
         clone.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
@@ -3116,15 +3618,28 @@ pre code .line:last-child::after {
     _buildEditing() {
       this._editing    = false;
       this._fileHandle = null;
-      this._onEditableFocus   = (e) => { e.target.dataset.pfOrig = e.target.textContent; };
+      // What a block held when it got focus, so Esc can put it back exactly
+      // (inline markup included) - kept out of the DOM so it is never saved.
+      this._editOrig = new WeakMap();
+      this._onEditableFocus = (e) => {
+        const node = e.currentTarget;
+        this._editOrig.set(node, { html: node.innerHTML, changed: node.hasAttribute("data-pf-changed") });
+      };
+      // data-pf-changed tells build.py which blocks to pull back into slides/.
+      this._onEditableInput = (e) => e.currentTarget.setAttribute("data-pf-changed", "");
       this._onEditableKeyDown = (e) => {
+        const node = e.currentTarget;
         if (e.key === "Enter") {
           e.preventDefault();
-          e.target.blur();
+          node.blur();
         } else if (e.key === "Escape") {
           e.preventDefault();
-          if (e.target.dataset.pfOrig !== undefined) e.target.textContent = e.target.dataset.pfOrig;
-          e.target.blur();
+          const orig = this._editOrig.get(node);
+          if (orig) {
+            node.innerHTML = orig.html;
+            if (!orig.changed) node.removeAttribute("data-pf-changed");
+          }
+          node.blur();
         }
       };
 
@@ -3163,15 +3678,10 @@ pre code .line:last-child::after {
       }
     }
 
-    /* Every editable block, across every slide, never inside a decorative or
-       structural zone (code, diagrams, the engine's own demo mockups). */
+    /* Every block build.py stamped as editable, across every slide. */
     _editableElements() {
       const all = [];
-      this.slides.forEach((slide) => {
-        slide.querySelectorAll(EDITABLE_SELECTOR).forEach((node) => {
-          if (!node.closest(EDITABLE_EXCLUDE_ANCESTOR)) all.push(node);
-        });
-      });
+      this.slides.forEach((slide) => all.push(...slide.querySelectorAll(EDITABLE)));
       return all;
     }
 
@@ -3192,11 +3702,15 @@ pre code .line:last-child::after {
       this.editBtn.title = "Done";
       this.editBtn.setAttribute("aria-label", "Done editing");
 
+      // Figures show their real value while being edited, never a count.
+      this.querySelectorAll("[data-count]").forEach(countStop);
       this._editableElements().forEach((node) => {
-        node.contentEditable = "true";
+        // plaintext-only: typing and pasting add text, never stray markup.
+        try { node.contentEditable = "plaintext-only"; } catch (_) { node.contentEditable = "true"; }
         node.classList.add("pf-editable");
         node.addEventListener("keydown", this._onEditableKeyDown);
         node.addEventListener("focus",   this._onEditableFocus);
+        node.addEventListener("input",   this._onEditableInput);
       });
     }
 
@@ -3212,10 +3726,12 @@ pre code .line:last-child::after {
         node.removeAttribute("contenteditable");
         node.classList.remove("pf-editable");
         if (!node.classList.length) node.removeAttribute("class");
-        delete node.dataset.pfOrig;
         node.removeEventListener("keydown", this._onEditableKeyDown);
         node.removeEventListener("focus",   this._onEditableFocus);
+        node.removeEventListener("input",   this._onEditableInput);
       });
+      // A figure may have been edited: count to whatever it says now.
+      this.querySelectorAll("[data-count]").forEach((el) => { el.__pfFinal = undefined; });
 
       await this._persistToDisk();
     }
@@ -3236,34 +3752,36 @@ pre code .line:last-child::after {
     }
 
     _serializeForSave() {
+      // Engine state is stripped; the build's data-pf-* stamps and the
+      // data-pf-changed marks stay, so build.py can pull the edits back.
       const cleanSlide = (slide) => {
-        const clone = slide.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(slide);
         clone.removeAttribute("data-index");
         clone.removeAttribute("role");
         clone.removeAttribute("aria-roledescription");
-        clone.querySelectorAll("[contenteditable]").forEach((n) => {
-          n.removeAttribute("contenteditable");
+        clone.querySelectorAll("[contenteditable]").forEach((n) => n.removeAttribute("contenteditable"));
+        clone.querySelectorAll(".pf-editable").forEach((n) => {
           n.classList.remove("pf-editable");
           if (!n.classList.length) n.removeAttribute("class");
-          delete n.dataset.pfOrig;
         });
-        clone.querySelectorAll("[data-pf-orig]").forEach((n) => delete n.dataset.pfOrig);
-        clone.querySelectorAll(".fragment.is-visible").forEach((n) => n.classList.remove("is-visible"));
+        clone.querySelectorAll(".fragment").forEach((n) => n.classList.remove("is-visible", "pf-instant"));
         return clone.outerHTML;
       };
 
       const slidesHtml = this.slides.map(cleanSlide).join("\n");
       const script = document.querySelector("body > script:not([src])");
       const lang = document.documentElement.getAttribute("lang") || "en";
+      const stageAttrs = ["width", "height", "transition", "motion", "exit-hint"]
+        .filter((a) => this.hasAttribute(a))
+        .map((a) => `${a}="${escAttr(this.getAttribute(a))}"`)
+        .join(" ");
 
       return (
         "<!doctype html>\n" +
-        `<html lang="${lang}">\n` +
+        `<html lang="${escAttr(lang)}">\n` +
         document.head.outerHTML + "\n" +
         "<body>\n" +
-        `<deck-stage width="${this.getAttribute("width")}" height="${this.getAttribute("height")}" ` +
-        `transition="${this.getAttribute("transition")}" exit-hint="${this.getAttribute("exit-hint")}">\n` +
+        `<deck-stage ${stageAttrs}>\n` +
         slidesHtml + "\n" +
         "</deck-stage>\n" +
         (script ? script.outerHTML : "") + "\n" +
@@ -3309,22 +3827,27 @@ pre code .line:last-child::after {
       this._blankEl.className = "pf-blank";
 
       this.index = this._clamp(i);
+      const slide = this.slides[this.index];
 
-      // Slide transition direction class (used by CSS slide/zoom animations).
-      const tMode = this.getAttribute("transition");
-      if (tMode === "slide") {
-        this.classList.remove("pf-going-next", "pf-going-prev");
-        this.classList.add(this.index >= prevIndex ? "pf-going-next" : "pf-going-prev");
-      }
+      // Motion keys off the canvas: the direction (a slide already seen shows
+      // finished, transitions mirror) and this slide's own transition. Set
+      // before data-active so the incoming slide animates with them.
+      const forward = this.index >= prevIndex || prevIndex === undefined;
+      this.canvas.setAttribute("data-dir", forward ? "next" : "prev");
+      this.canvas.setAttribute("data-transition",
+        slide.getAttribute("data-transition") || this.getAttribute("transition") || "fade");
 
       this.slides.forEach((s, n) =>
         n === this.index ? s.setAttribute("data-active", "") : s.removeAttribute("data-active")
       );
 
-      // Fragments: forward arrival reveals none, backward arrival reveals all.
-      this._fragmentEls = Array.from(this.slides[this.index].querySelectorAll(".fragment"));
+      // Fragments: forward arrival reveals none, backward arrival reveals all,
+      // at once (pf-instant), since those points were already made.
+      this._fragmentEls = Array.from(slide.querySelectorAll(".fragment"));
       this._step = revealAll ? this._fragmentEls.length : 0;
+      this._fragmentEls.forEach((f) => f.classList.toggle("pf-instant", revealAll));
       this._applyFragments();
+      if (forward) this._runCounts(slide);
 
       this.thumbs.forEach((t, n) => t.classList.toggle("is-active", n === this.index));
 
@@ -3375,8 +3898,11 @@ pre code .line:last-child::after {
 
     _revealNext() {
       if (this._step >= this._fragmentEls.length) return false;
+      const frag = this._fragmentEls[this._step];
+      frag.classList.remove("pf-instant");
       this._step++;
       this._applyFragments();
+      this._runCounts(frag);
       this._syncAudience(this.index);
       this._updatePresenterView();
       return true;
@@ -3651,6 +4177,8 @@ pre code .line:last-child::after {
           pfStep:  this._step || 0,
           pfNotes: notesEl ? notesEl.innerHTML : "",
           pfBlank: this._blank || null,
+          pfDir:   this.canvas.getAttribute("data-dir"),
+          pfTransition: this.canvas.getAttribute("data-transition"),
         }, "*");
       }
     }
@@ -3699,14 +4227,25 @@ pre code .line:last-child::after {
       this._notesLoaded = this.notesTA.value;
       let notesEl  = slide.querySelector("aside.notes");
       const text   = this.notesTA.value.trim();
+      // The data-pf-* marks below are what build.py reads to pull the change
+      // back into the slide file.
       if (text) {
         if (!notesEl) {
           notesEl = document.createElement("aside");
           notesEl.className = "notes";
+          // Notes cleared then written again are an edit of the original ones.
+          const removed = slide.getAttribute("data-pf-notes-removed");
+          if (removed) {
+            notesEl.setAttribute("data-pf-notes", removed);
+            slide.removeAttribute("data-pf-notes-removed");
+          }
           slide.appendChild(notesEl);
         }
         textToNotes(notesEl, text);
+        notesEl.setAttribute("data-pf-changed", "");
       } else if (notesEl) {
+        const original = notesEl.getAttribute("data-pf-notes");
+        if (original) slide.setAttribute("data-pf-notes-removed", original);
         notesEl.remove();
       }
       this._updatePresenterView();
@@ -3887,8 +4426,7 @@ pre code .line:last-child::after {
       const next = this.slides[this.index + 1];
       this._nextSlot.innerHTML = "";
       if (next) {
-        const clone = next.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(next);
         clone.querySelectorAll("aside.notes").forEach((n) => n.remove());
         this._nextSlot.appendChild(clone);
         this._nextCanvas.style.opacity = "1";
@@ -3974,6 +4512,137 @@ pre code .line:last-child::after {
       }, 16);
     }
 
+    /* ---- Copies of a slide, and figures that count ---------------------- */
+
+    /* A copy for the rail, the overview, the next-slide preview, the audience
+       window or a save: a figure caught mid-count shows its real value. */
+    _cloneSlide(slide) {
+      const clone = slide.cloneNode(true);
+      clone.removeAttribute("data-active");
+      const live = slide.querySelectorAll("[data-count]");
+      if (live.length) {
+        const copies = clone.querySelectorAll("[data-count]");
+        live.forEach((n, k) => {
+          if (n.__pfFinal !== undefined && copies[k]) copies[k].textContent = n.__pfFinal;
+        });
+      }
+      return clone;
+    }
+
+    _countsAllowed() {
+      return COUNT_LEVELS.indexOf(this._motion) >= 0 &&
+        !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    /* Count up the figures in root (a slide, or a fragment just revealed),
+       skipping those still hidden in a fragment. */
+    _runCounts(root) {
+      if (!root || this._editing || !this._countsAllowed()) return;
+      const els = Array.from(root.querySelectorAll("[data-count]"));
+      if (root.matches("[data-count]")) els.unshift(root);
+      els.forEach((n) => {
+        if (!n.closest(".fragment:not(.is-visible)")) countUp(n, this._lang);
+      });
+    }
+
+    /* ---- Render mode: screenshots and the layout report ----------------- */
+
+    _startRender() {
+      // The slide as it finally looks: every fragment shown, nothing moving.
+      this._step = this._fragmentEls.length;
+      this._applyFragments();
+      if (this._render === "sheet") {
+        this._toggleOverview(true);
+        this._scaleOverview();
+      }
+      const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+      fonts.then(() => new Promise((r) => setTimeout(r, 150))).then(() => {
+        const issues = this._layoutIssues();
+        if (this._render === "sheet") {
+          issues.forEach((it) => this._ovCells[it.slide - 1].classList.add("is-flagged"));
+        }
+        const report = {
+          slides: this.count,
+          files: this.slides.map((sl) => sl.getAttribute("data-pf-src") || ""),
+          issues,
+          sheetHeight: this._overview ? Math.ceil(this._overview.scrollHeight) : 0,
+        };
+        const tag = document.createElement("script");
+        tag.type = "application/json";
+        tag.id = "pf-report";
+        tag.textContent = JSON.stringify(report).replace(/</g, "\\u003c");
+        document.body.appendChild(tag);
+      });
+    }
+
+    /* What a careful reviewer would flag on each slide: content poking out of
+       the 1920x1080 canvas, content cut off inside its own box (a long code
+       line, a fixed-height card), and images that failed to load. Decoration
+       (aria-hidden, .fx, empty boxes) and speaker notes are ignored. */
+    _layoutIssues() {
+      const TOL = 2;
+      const issues = [];
+      const label = (n) => {
+        const cls = Array.from(n.classList).filter((c) => !/^(pf-|is-visible)/.test(c));
+        const text = (n.textContent || "").replace(/\s+/g, " ").trim().slice(0, 70);
+        return { element: n.tagName.toLowerCase() + (cls.length ? "." + cls.join(".") : ""), text };
+      };
+      this.slides.forEach((slide, i) => {
+        const box = slide.getBoundingClientRect();
+        if (!box.width) return;
+        const k = box.width / this.designW;           // rendered px per design px
+        const base = { slide: i + 1, file: slide.getAttribute("data-pf-src") || "" };
+        const out = [];
+        // Only what a viewer would miss: text, images, media. An empty box
+        // that is hidden or bleeds off on purpose is decoration.
+        const shows = (n) => (n.textContent || "").trim() !== "" ||
+          n.matches("img, svg, video, canvas, iframe") || !!n.querySelector("img, svg, video, canvas, iframe");
+        const clips = new Map();     // element -> does it cut off its overflow?
+        const clipsOverflow = (n) => {
+          if (!clips.has(n)) {
+            const cs = getComputedStyle(n);
+            clips.set(n, cs.overflowX !== "visible" || cs.overflowY !== "visible");
+          }
+          return clips.get(n);
+        };
+        // Inside a box that cuts it off, an element can't show past the slide;
+        // that box reports the cut instead.
+        const insideClip = (n) => {
+          for (let a = n.parentElement; a && a !== slide; a = a.parentElement) {
+            if (clipsOverflow(a)) return true;
+          }
+          return false;
+        };
+        slide.querySelectorAll("*").forEach((n) => {
+          if (n.closest('aside.notes, [aria-hidden="true"], .fx, script, style') || !shows(n)) return;
+          const r = n.getBoundingClientRect();
+          if (!r.width && !r.height) return;
+          const edges = {
+            top: (box.top - r.top) / k,
+            bottom: (r.bottom - box.bottom) / k,
+            left: (box.left - r.left) / k,
+            right: (r.right - box.right) / k,
+          };
+          const edge = Object.keys(edges).reduce((a, b) => (edges[b] > edges[a] ? b : a));
+          if (edges[edge] > TOL && !insideClip(n)) out.push({ n, edge, px: Math.round(edges[edge]) });
+          if (clipsOverflow(n) &&
+              (n.scrollWidth > n.clientWidth + TOL || n.scrollHeight > n.clientHeight + TOL)) {
+            const px = Math.max(n.scrollWidth - n.clientWidth, n.scrollHeight - n.clientHeight);
+            issues.push(Object.assign({ kind: "clipped", px: Math.round(px / k) }, base, label(n)));
+          }
+          if (n.tagName === "IMG" && n.complete && !n.naturalWidth) {
+            issues.push(Object.assign({ kind: "image" }, base, { element: "img", text: (n.getAttribute("src") || "").slice(0, 70) }));
+          }
+        });
+        // Report only the outermost element that pokes out: its children
+        // follow it and would only repeat the same problem.
+        out.filter((o) => !out.some((p) => p !== o && p.n.contains(o.n))).forEach((o) => {
+          issues.push(Object.assign({ kind: "overflow", edge: o.edge, px: o.px }, base, label(o.n)));
+        });
+      });
+      return issues;
+    }
+
     /* ---- Progress bar ------------------------------------------------- */
 
     _updateProgressBar() {
@@ -4057,8 +4726,7 @@ pre code .line:last-child::after {
         canvas.style.width  = this.designW + "px";
         canvas.style.height = this.designH + "px";
 
-        const clone = slide.cloneNode(true);
-        clone.removeAttribute("data-active");
+        const clone = this._cloneSlide(slide);
         clone.querySelectorAll("aside.notes").forEach((n) => n.remove());
         clone.querySelectorAll(".fragment").forEach((f) => f.classList.add("is-visible"));
         canvas.appendChild(clone);
@@ -4066,6 +4734,10 @@ pre code .line:last-child::after {
 
         const num = el("span", "pf-ov-num");
         num.textContent = String(i + 1);
+        // On the contact sheet, name the file too: that is what gets fixed.
+        if (this._render && slide.getAttribute("data-pf-src")) {
+          num.textContent += "  ·  " + slide.getAttribute("data-pf-src");
+        }
 
         cell.append(frame, num);
         cell.addEventListener("click", () => { this.show(i); this._toggleOverview(false); });
@@ -4245,11 +4917,11 @@ pre code .line:last-child::after {
       const inlineCSS = this._collectCSS();
 
       const slidesHTML = this.slides.map((s) => {
-        const c = s.cloneNode(true);
-        c.removeAttribute("data-active");
+        const c = this._cloneSlide(s);
         c.querySelectorAll("aside.notes").forEach((n) => n.remove());
         return c.outerHTML;
       }).join("\n");
+      const countsOn = this._countsAllowed();
 
       const W = this.designW, H = this.designH;
       return `<!doctype html>
@@ -4278,7 +4950,7 @@ ${inlineCSS}
 ${linkTags}
 </head>
 <body>
-<div class="pf-canvas" id="c">${slidesHTML}</div>
+<div class="pf-canvas" id="c" data-motion="${escAttr(this._motion)}" data-dir="next">${slidesHTML}</div>
 <svg id="aud-draw" viewBox="0 0 ${W} ${H}"></svg>
 <div id="aud-laser"></div>
 <div id="aud-blank"></div>
@@ -4292,22 +4964,42 @@ ${linkTags}
   var notesBody=document.getElementById('aud-notes-body');
   var blankEl=document.getElementById('aud-blank');
   var W=${W}, H=${H};
-  var drawPath=null, drawD='', notesVisible=false, cur=0;
+  var drawPath=null, drawD='', notesVisible=false, cur=-1;
+  var LANG=${JSON.stringify(this._lang || "")} || undefined, COUNTS=${countsOn};
+  ${countUp.toString()}
+  function runCounts(root){
+    if(!COUNTS) return;
+    if(root.matches('[data-count]')) countUp(root, LANG);
+    var els=root.querySelectorAll('[data-count]');
+    for(var k=0;k<els.length;k++) if(!els[k].closest('.fragment:not(.is-visible)')) countUp(els[k], LANG);
+  }
 
   function scale(){
     var s=Math.min(innerWidth/W,innerHeight/H);
     var t='translate(-50%,-50%) scale('+s+')';
     C.style.transform=t; drawSvg.style.transform=t;
   }
-  function applyFragments(i, step){
+  // instant: arriving back on a slide shows its fragments at once.
+  function applyFragments(i, step, instant){
     var act=slides[i]; if(!act) return;
     var frags=act.querySelectorAll('.fragment');
-    for(var k=0;k<frags.length;k++) frags[k].classList.toggle('is-visible', k < step);
+    for(var k=0;k<frags.length;k++){
+      var f=frags[k], vis=k<step, was=f.classList.contains('is-visible');
+      if(instant!==undefined) f.classList.toggle('pf-instant', instant && vis);
+      else if(vis && !was) f.classList.remove('pf-instant');
+      f.classList.toggle('is-visible', vis);
+      if(vis && !was && instant===undefined) runCounts(f);
+    }
   }
-  function show(i, step){
+  function show(i, step, d){
+    if(d.pfTransition) C.setAttribute('data-transition', d.pfTransition);
+    if(d.pfDir) C.setAttribute('data-dir', d.pfDir);
+    if(i===cur){ applyFragments(i, step); return; }
     cur=i;
     slides.forEach(function(s,n){ n===i?s.setAttribute('data-active',''):s.removeAttribute('data-active') });
-    applyFragments(i, step||0);
+    var back=d.pfDir==='prev';
+    applyFragments(i, step, back);
+    if(!back) runCounts(slides[i]);
   }
   function handleBlank(b){ blankEl.className = b ? ('is-'+b) : ''; }
 
@@ -4340,10 +5032,10 @@ ${linkTags}
   }
 
   window.addEventListener('resize', scale);
-  scale(); show(0, 0);
+  scale(); show(0, 0, {});
   window.addEventListener('message', function(e){
     if(!e.data) return;
-    if(typeof e.data.pfSlide==='number') show(e.data.pfSlide, e.data.pfStep||0);
+    if(typeof e.data.pfSlide==='number') show(e.data.pfSlide, e.data.pfStep||0, e.data);
     else if(typeof e.data.pfStep==='number') applyFragments(cur, e.data.pfStep);
     if(typeof e.data.pfNotes!=='undefined') notesBody.innerHTML=e.data.pfNotes||'';
     if('pfBlank' in e.data) handleBlank(e.data.pfBlank);
