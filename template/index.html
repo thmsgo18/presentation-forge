@@ -2802,6 +2802,61 @@ pre code .line:last-child::after {
   const pad2 = (n) => String(n).padStart(2, "0");
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 
+  /* Speaker notes are authored as HTML (paragraphs and lists) but edited in a
+     plain <textarea>. These two translate between the forms so an edit keeps
+     the notes' structure: one line per paragraph, "- " for a bullet, "1. " for
+     a numbered item. Inline formatting (<em>, <code>...) is only lost on notes
+     someone actually edits - untouched notes are never rewritten. */
+  const NOTE_BLOCKS = new Set(["P", "DIV", "UL", "OL", "BLOCKQUOTE", "PRE", "H1", "H2", "H3", "H4", "H5", "H6"]);
+  const squash = (s) => s.replace(/\s+/g, " ").trim();
+
+  const notesToText = (aside) => {
+    const lines = [];
+    let run = "";   // consecutive inline content (text, <em>, <code>...) = one paragraph
+    const flush = () => {
+      const text = squash(run);
+      if (text) lines.push(text);
+      run = "";
+    };
+    aside.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) { run += node.textContent; return; }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;              // comments
+      if (node.tagName === "BR") { flush(); return; }
+      if (!NOTE_BLOCKS.has(node.tagName)) { run += node.textContent; return; }
+      flush();
+      if (node.tagName === "UL" || node.tagName === "OL") {
+        let n = 0;
+        Array.from(node.children).forEach((li) => {
+          if (li.tagName !== "LI") return;
+          lines.push((node.tagName === "OL" ? `${++n}. ` : "- ") + squash(li.textContent));
+        });
+      } else {
+        run = node.textContent;
+        flush();
+      }
+    });
+    flush();
+    return lines.join("\n");
+  };
+
+  const textToNotes = (aside, text) => {
+    aside.textContent = "";
+    let list = null;   // the <ul>/<ol> consecutive list lines are appended to
+    text.split("\n").forEach((raw) => {
+      const line = raw.trim();
+      if (!line) { list = null; return; }
+      const m = /^(?:([-*•])|\d+[.)])\s+(.*)$/.exec(line);
+      if (!m) {
+        list = null;
+        aside.appendChild(document.createElement("p")).textContent = line;
+        return;
+      }
+      const tag = m[1] ? "UL" : "OL";
+      if (!list || list.tagName !== tag) list = aside.appendChild(document.createElement(tag));
+      list.appendChild(document.createElement("li")).textContent = m[2];
+    });
+  };
+
   class DeckStage extends HTMLElement {
     connectedCallback() {
       if (this._ready) return;
@@ -2952,7 +3007,7 @@ pre code .line:last-child::after {
       this.notesTA.className   = "pf-notes-ta";
       this.notesTA.setAttribute("aria-label", "Speaker notes");
       if (this._canEdit) {
-        this.notesTA.placeholder = "Speaker notes for this slide...";
+        this.notesTA.placeholder = "Speaker notes for this slide. Start a line with - for a bullet.";
       } else {
         // No real save path here (hosted page, or a browser without the
         // File System Access API) - offer reading notes, never editing ones
@@ -3364,9 +3419,11 @@ pre code .line:last-child::after {
 
     _onKeyDown(e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      // Let the user type freely in the notes textarea (or any input).
-      const tag = document.activeElement && document.activeElement.tagName;
-      if (tag === "TEXTAREA" || tag === "INPUT") return;
+      // Let the user type freely in the notes textarea, any input, or a text
+      // block being edited in place. Checked on e.target, not activeElement:
+      // Enter / Esc blur an edited block before this listener runs.
+      const t = e.target;
+      if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.isContentEditable)) return;
       switch (e.key) {
         case "ArrowRight": case "ArrowDown": case "PageDown": case " ":
           e.preventDefault(); this.next(); break;
@@ -3630,12 +3687,16 @@ pre code .line:last-child::after {
     _loadNotesForCurrentSlide() {
       const slide   = this.slides[this.index];
       const notesEl = slide && slide.querySelector("aside.notes");
-      this.notesTA.value = notesEl ? notesEl.textContent.trim() : "";
+      this.notesTA.value = notesEl ? notesToText(notesEl) : "";
+      this._notesLoaded  = this.notesTA.value;
     }
 
     _saveNotes() {
       const slide = this.slides[this.index];
       if (!slide) return;
+      // Nothing typed: leave the authored notes, and their HTML, untouched.
+      if (this.notesTA.value === this._notesLoaded) return;
+      this._notesLoaded = this.notesTA.value;
       let notesEl  = slide.querySelector("aside.notes");
       const text   = this.notesTA.value.trim();
       if (text) {
@@ -3644,7 +3705,7 @@ pre code .line:last-child::after {
           notesEl.className = "notes";
           slide.appendChild(notesEl);
         }
-        notesEl.textContent = text;
+        textToNotes(notesEl, text);
       } else if (notesEl) {
         notesEl.remove();
       }

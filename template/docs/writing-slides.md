@@ -120,7 +120,9 @@ it, pick the deck's `index.html` in the dialog that appears, and grant write
 access; existing titles, bullets and paragraphs become editable in place. Saves
 happen automatically when you leave a slide or close edit mode, plus a save
 button while editing. Speaker notes become editable too, through the same
-mechanism, once you've granted access once.
+mechanism, once you've granted access once: one line per paragraph, start a
+line with `- ` for a bullet or `1. ` for a numbered item. Notes you don't touch
+keep their original HTML exactly.
 
 This only edits existing text - it can't add or remove bullets, slides or
 images. The Edit button only appears when saving could actually work: it's

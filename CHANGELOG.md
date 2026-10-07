@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- In-browser editing: typing in an edited text block no longer triggers deck
+  shortcuts. Space advanced to the next slide and letters such as `f`, `p`,
+  `l` or `b` toggled full screen, presenter mode, the laser or a black screen
+  instead of being typed.
+- Speaker notes kept their structure through the notes panel. Opening and
+  closing it flattened paragraphs and bullet lists into one block of text, and
+  saved that to disk once editing was on. Untouched notes are now never
+  rewritten, and edited ones keep paragraphs and lists (`- ` / `1. ` lines).
+
 ## [2.0.0] - 2026-06-29
 
 ### Added
