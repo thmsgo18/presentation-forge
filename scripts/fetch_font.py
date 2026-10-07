@@ -77,6 +77,26 @@ def parse_faces(css: str, subsets):
     return faces
 
 
+def merge_variable(faces):
+    """Fold the weights of a variable font into one face per subset.
+
+    For a variable font, Google Fonts answers every requested weight with the
+    very same file. Downloading it once per weight would embed identical
+    copies in every deck; instead keep one file per subset and declare the
+    weight range (font-weight: 400 700), which the browser maps onto the
+    font's weight axis."""
+    merged = {}
+    for f in faces:
+        key = (f["style"], f["subset"], f["url"])
+        if key in merged:
+            merged[key]["weights"].append(f["weight"])
+        else:
+            merged[key] = dict(f, weights=[f["weight"]])
+    for f in merged.values():
+        f["weights"] = sorted(set(f["weights"]), key=int)
+    return list(merged.values())
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("family", help='font family, e.g. "Montserrat"')
@@ -99,8 +119,11 @@ def main() -> int:
 
     out = Path(args.out)
     rules = []
-    for f in faces:
-        fname = f"{slug(args.family)}-{f['weight']}-{f['style']}-{f['subset']}.woff2"
+    files = 0
+    for f in merge_variable(faces):
+        weights = f["weights"]
+        span = weights[0] if len(weights) == 1 else f"{weights[0]}-{weights[-1]}"
+        fname = f"{slug(args.family)}-{span}-{f['style']}-{f['subset']}.woff2"
         if not args.css_only:
             out.mkdir(parents=True, exist_ok=True)
             req = urllib.request.Request(f["url"], headers={"User-Agent": UA})
@@ -114,15 +137,16 @@ def main() -> int:
             f"@font-face {{\n"
             f"  font-family: \"{args.family}\";\n"
             f"  font-style: {f['style']};\n"
-            f"  font-weight: {f['weight']};\n"
+            f"  font-weight: {span.replace('-', ' ')};\n"
             f"  font-display: swap;\n"
             f"  src: url(\"fonts/{fname}\") format(\"woff2\");\n"
             f"{urange}"
             f"}}"
         )
+        files += 1
 
     if not args.css_only:
-        print(f"Downloaded {len(faces)} file(s) to {out}/", file=sys.stderr)
+        print(f"Downloaded {files} file(s) to {out}/", file=sys.stderr)
     print("\n".join(rules))
     print(f"\n/* In tokens.css, set the family name, e.g. "
           f"--font-sans: \"{args.family}\", system-ui, sans-serif; */",

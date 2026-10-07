@@ -65,6 +65,11 @@ All notable changes to this project are documented here. The format is based on
 
 ### Fixed
 
+- Decks on the `obsidian` theme are about 45% smaller: Inter is a variable font,
+  and the theme embedded the same file three times (once per weight). It now
+  ships one file per subset declared for weights 400 to 700, rendering
+  identically. `scripts/fetch_font.py` detects variable fonts the same way, so
+  imported themes don't repeat the mistake.
 - Slide copies in the thumbnail rail and the overview (`o`) inherited the
   centred text of their buttons and no longer looked like the slide.
 - In-browser editing: typing in an edited text block no longer triggers deck
